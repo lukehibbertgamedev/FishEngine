@@ -1,0 +1,10 @@
+
+Future Todo:
+	-
+
+Previously:
+	- [X] Recreated a new project using Vulkan and SDL as opposed to Vulkan and GLFW.		05/06
+	- [X] Build the cmake files using cmake-gui.											05/06
+
+Next time:
+	- [ ] Follow the code walkthrough tutorial of the vulkan guide (https://vkguide.dev/docs/new_chapter_0/code_walkthrough/)

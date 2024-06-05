@@ -118,7 +118,8 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message></Message>
+      <Message>
+      </Message>
       <Command>setlocal
 C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -E copy C:/Users/lukeh/Desktop/FishEngine/Fish/code/third_party/SDL/Debug/SDL2d.dll C:/Users/lukeh/Desktop/FishEngine/Fish/bin/Debug
 if %errorlevel% neq 0 goto :cmEnd
@@ -177,7 +178,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message></Message>
+      <Message>
+      </Message>
       <Command>setlocal
 C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -E copy C:/Users/lukeh/Desktop/FishEngine/Fish/code/third_party/SDL/Release/SDL2.dll C:/Users/lukeh/Desktop/FishEngine/Fish/bin/Release
 if %errorlevel% neq 0 goto :cmEnd
@@ -236,7 +238,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message></Message>
+      <Message>
+      </Message>
       <Command>setlocal
 C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -E copy C:/Users/lukeh/Desktop/FishEngine/Fish/code/third_party/SDL/MinSizeRel/SDL2.dll C:/Users/lukeh/Desktop/FishEngine/Fish/bin/MinSizeRel
 if %errorlevel% neq 0 goto :cmEnd
@@ -294,7 +297,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message></Message>
+      <Message>
+      </Message>
       <Command>setlocal
 C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -E copy C:/Users/lukeh/Desktop/FishEngine/Fish/code/third_party/SDL/RelWithDebInfo/SDL2.dll C:/Users/lukeh/Desktop/FishEngine/Fish/bin/RelWithDebInfo
 if %errorlevel% neq 0 goto :cmEnd
@@ -491,6 +495,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Project>{D482E9FD-A8AB-3E34-ACE1-4F07E2873737}</Project>
       <Name>vkbootstrap</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="todo.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
