@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\gradient.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\gradient_color.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\sky.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3d5f9ec89d366b11103d02d9ca2850be\Shaders.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\Shaders" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{579C29EB-83E9-33AF-8756-CE241A85EC79}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,415 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{EF1D6260-1843-3C32-9E0F-10B58A0F64FE}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.22000.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>Shaders</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\gradient.comp.spv.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient.comp.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient.comp -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient.comp.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient.comp -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient.comp.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient.comp -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient.comp.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient.comp -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\gradient_color.comp.spv.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient_color.comp.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient_color.comp -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient_color.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient_color.comp.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient_color.comp -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient_color.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient_color.comp.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient_color.comp -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient_color.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient_color.comp.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient_color.comp -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/gradient_color.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\sky.comp.spv.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/sky.comp.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/sky.comp -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/sky.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/sky.comp.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/sky.comp -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/sky.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/sky.comp.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/sky.comp -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/sky.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/sky.comp.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/sky.comp -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/sky.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3d5f9ec89d366b11103d02d9ca2850be\Shaders.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\Shaders</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</VerifyInputsAndOutputsExist>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'"></Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\Shaders</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</VerifyInputsAndOutputsExist>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'"></Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\Shaders</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</VerifyInputsAndOutputsExist>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'"></Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\Shaders</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+      <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</VerifyInputsAndOutputsExist>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/lukeh/Desktop/FishEngine/Fish/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -SC:/Users/lukeh/Desktop/FishEngine/Fish -BC:/Users/lukeh/Desktop/FishEngine/Fish/code --check-stamp-file C:/Users/lukeh/Desktop/FishEngine/Fish/code/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeCCompiler.cmake;C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeCXXCompiler.cmake;C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeRCCompiler.cmake;C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeSystem.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeCInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeCXXInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeCommonLanguageInclude.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeGenericSystem.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeInitializeConfigs.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeLanguageInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeRCInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeSystemSpecificInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeSystemSpecificInitialize.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\MSVC-C.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\MSVC-CXX.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\MSVC.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\FindPackageHandleStandardArgs.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\FindPackageMessage.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\FindVulkan.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-Initialize.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-MSVC-C.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-MSVC.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\WindowsPaths.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Users/lukeh/Desktop/FishEngine/Fish/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -SC:/Users/lukeh/Desktop/FishEngine/Fish -BC:/Users/lukeh/Desktop/FishEngine/Fish/code --check-stamp-file C:/Users/lukeh/Desktop/FishEngine/Fish/code/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeCCompiler.cmake;C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeCXXCompiler.cmake;C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeRCCompiler.cmake;C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeSystem.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeCInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeCXXInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeCommonLanguageInclude.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeGenericSystem.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeInitializeConfigs.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeLanguageInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeRCInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeSystemSpecificInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeSystemSpecificInitialize.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\MSVC-C.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\MSVC-CXX.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\MSVC.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\FindPackageHandleStandardArgs.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\FindPackageMessage.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\FindVulkan.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-Initialize.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-MSVC-C.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-MSVC.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\WindowsPaths.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule C:/Users/lukeh/Desktop/FishEngine/Fish/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -SC:/Users/lukeh/Desktop/FishEngine/Fish -BC:/Users/lukeh/Desktop/FishEngine/Fish/code --check-stamp-file C:/Users/lukeh/Desktop/FishEngine/Fish/code/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeCCompiler.cmake;C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeCXXCompiler.cmake;C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeRCCompiler.cmake;C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeSystem.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeCInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeCXXInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeCommonLanguageInclude.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeGenericSystem.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeInitializeConfigs.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeLanguageInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeRCInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeSystemSpecificInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeSystemSpecificInitialize.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\MSVC-C.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\MSVC-CXX.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\MSVC.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\FindPackageHandleStandardArgs.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\FindPackageMessage.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\FindVulkan.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-Initialize.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-MSVC-C.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-MSVC.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\WindowsPaths.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule C:/Users/lukeh/Desktop/FishEngine/Fish/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -SC:/Users/lukeh/Desktop/FishEngine/Fish -BC:/Users/lukeh/Desktop/FishEngine/Fish/code --check-stamp-file C:/Users/lukeh/Desktop/FishEngine/Fish/code/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeCCompiler.cmake;C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeCXXCompiler.cmake;C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeRCCompiler.cmake;C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3.29.4\CMakeSystem.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeCInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeCXXInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeCommonLanguageInclude.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeGenericSystem.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeInitializeConfigs.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeLanguageInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeRCInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeSystemSpecificInformation.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\CMakeSystemSpecificInitialize.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\MSVC-C.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\MSVC-CXX.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Compiler\MSVC.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\FindPackageHandleStandardArgs.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\FindPackageMessage.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\FindVulkan.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-Initialize.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-MSVC-C.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows-MSVC.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\Windows.cmake;C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\share\cmake-3.29\Modules\Platform\WindowsPaths.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\Shaders">
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\ZERO_CHECK.vcxproj">
+      <Project>{880CEEA4-404D-36DF-886B-EFB59C06AD95}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
