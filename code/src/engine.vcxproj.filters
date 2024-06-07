@@ -7,50 +7,29 @@
     <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_initializers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_images.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_descriptors.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_pipelines.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_engine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_loader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_descriptors.cpp">
+      <Filter>Source Files\VulkanGuide</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_engine.cpp">
+      <Filter>Source Files\VulkanGuide</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_images.cpp">
+      <Filter>Source Files\VulkanGuide</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_initializers.cpp">
+      <Filter>Source Files\VulkanGuide</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_loader.cpp">
+      <Filter>Source Files\VulkanGuide</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_pipelines.cpp">
+      <Filter>Source Files\VulkanGuide</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_initializers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_images.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_descriptors.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_pipelines.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_engine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_loader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -66,6 +45,27 @@
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\src\CMakeFiles\engine.dir\RelWithDebInfo\cmake_pch.hxx">
       <Filter>Precompile Header File</Filter>
     </ClInclude>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_descriptors.h">
+      <Filter>Header Files\VulkanGuide</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_engine.h">
+      <Filter>Header Files\VulkanGuide</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_images.h">
+      <Filter>Header Files\VulkanGuide</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_initializers.h">
+      <Filter>Header Files\VulkanGuide</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_loader.h">
+      <Filter>Header Files\VulkanGuide</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_pipelines.h">
+      <Filter>Header Files\VulkanGuide</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_types.h">
+      <Filter>Header Files\VulkanGuide</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\CMakeLists.txt" />
@@ -79,6 +79,18 @@
     </Filter>
     <Filter Include="Source Files">
       <UniqueIdentifier>{6F542E7A-1538-343C-95FE-11E5EA5CDC78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VulkanGuide">
+      <UniqueIdentifier>{b0cf95e2-e233-41a0-aaf1-e29ecb484e0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Fish">
+      <UniqueIdentifier>{72915c7f-ff56-44e2-af1d-b7211d5c002a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\VulkanGuide">
+      <UniqueIdentifier>{e90638e0-1772-4ba5-b7cc-db7c046216ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Fish">
+      <UniqueIdentifier>{d159c0da-b3e3-4fca-ab48-186855f509ea}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

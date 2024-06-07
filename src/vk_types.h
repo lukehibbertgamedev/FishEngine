@@ -1,5 +1,8 @@
 ﻿// vulkan_guide.h : Include file for standard system include files,
 // or project specific include files.
+
+// The entire codebase will include this header. it will provide widely used default structures and includes.
+
 #pragma once
 
 #include <memory>
