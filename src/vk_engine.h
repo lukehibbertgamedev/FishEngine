@@ -31,6 +31,14 @@ public:
 	//initializes everything in the engine
 	void init();
 
+	void init_vulkan();
+	void init_swapchain();
+	void create_commands();
+	void create_synchronisation_structures();
+
+	void create_swapchain(uint32_t width, uint32_t height);
+	void destroy_swapchain();
+
 	//shuts down the engine
 	void cleanup();
 
@@ -39,4 +47,18 @@ public:
 
 	//run main loop
 	void run();
+
+private:
+
+	VkInstance m_VkInstance;// Vulkan library handle
+	VkDebugUtilsMessengerEXT m_DebugMessenger;// Vulkan debug output handle
+	VkPhysicalDevice m_PhysicalDevice; // GPU chosen as the default device
+	VkDevice m_Device; // Vulkan device for commands
+	VkSurfaceKHR m_SurfaceKHR;// Vulkan window surface
+
+	VkSwapchainKHR m_Swapchain;
+	VkFormat m_SwapchainImageFormat;
+	std::vector<VkImage> m_SwapchainImages;
+	std::vector<VkImageView> m_SwapchainImageViews;
+	VkExtent2D m_SwapchainExtent;
 };

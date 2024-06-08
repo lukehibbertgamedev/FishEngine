@@ -23,6 +23,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 
+constexpr bool kUseValidationLayers = true;
 
 #define VK_CHECK(x)                                                     \
     do {                                                                \
