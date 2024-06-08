@@ -1,0 +1,24 @@
+
+Ensure CMakeLists.txt is updated per file created:
+
+For each file that you create, CMakeLists.txt needs to know so it can be added to the executable.
+This is the one within root/CMakeLists.txt.
+
+--------------------------------------------------------------------------------------------------------------------
+
+Potential optimisation technique - Submit the same command buffer multiple times: 
+
+Record the commands you need once, and submit them to the command queue each frame. 
+This is useful to avoid recording commands into the buffer per frame, but for tutorial's sake
+we do this anyway as it shows more of a render engine technique.
+This is only useful if you are sure that the commands won't be changed on a per-frame basis.
+This is a picky technique as recording commands is relatively cheap, but worth noting.
+
+--------------------------------------------------------------------------------------------------------------------
+
+Initialisation of Vulkan structures:
+
+With Vulkan structures, it is very important that we do this `VkCommandPoolCreateInfo commandPoolInfo = {};`
+By doing ` = {}`, we are letting the compiler initialize the entire struct to zero. 
+This is critical, as in general Vulkan structs will have their defaults set in a way that 0 is 
+relatively safe. By doing that, we make sure we don’t leave uninitialized data in the struct.

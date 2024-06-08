@@ -7,8 +7,24 @@
 
 #include <vk_types.h>
 
+struct FrameData {
+	VkCommandPool commandPool;
+	VkCommandBuffer commandBuffer;
+	VkFence renderFence;
+	VkSemaphore swapchainSemaphore, renderSemaphore;
+};
+
+constexpr unsigned int kFrameOverlap = 2;
+
 class VulkanEngine {
 public:
+
+	FrameData m_Frames[kFrameOverlap];
+
+	FrameData& GetCurrentFrame() { return m_Frames[m_FrameNumber % kFrameOverlap]; }
+
+	VkQueue m_GraphicsQueue;
+	uint32_t m_GraphicsQueueFamily;
 
 	// A flag to check if the engine has been initialised.
 	bool m_IsInitialized{ false };
@@ -33,8 +49,8 @@ public:
 
 	void init_vulkan();
 	void init_swapchain();
-	void create_commands();
-	void create_synchronisation_structures();
+	void init_commands();
+	void init_synchronisation_structures();
 
 	void create_swapchain(uint32_t width, uint32_t height);
 	void destroy_swapchain();

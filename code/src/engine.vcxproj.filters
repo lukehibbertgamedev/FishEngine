@@ -97,5 +97,8 @@
     <Text Include="todo.txt">
       <Filter>Source Files</Filter>
     </Text>
+    <Text Include="notes.txt">
+      <Filter>Source Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>
