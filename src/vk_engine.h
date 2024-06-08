@@ -7,17 +7,52 @@
 
 #include <vk_types.h>
 
+struct AllocatedImage {
+	VkImage image;
+	VkImageView imageView;
+	VmaAllocation allocation;
+	VkExtent3D imageExtent;
+	VkFormat imageFormat;
+};
+
+// safely handle the cleanup of a growing amount of objects.
+struct DeletionQueue {
+
+	std::deque<std::function<void()>> toDelete;
+
+	void push_function(std::function<void()>&& function) {
+		toDelete.push_back(function);
+	}
+
+	void flush() {
+		// reverse iterate the deletion queue to execute all the functions
+		for (auto it = toDelete.rbegin(); it != toDelete.rend(); it++) {
+			(*it)(); //call functors
+		}
+
+		toDelete.clear();
+	}
+};
+
 struct FrameData {
 	VkCommandPool commandPool;
 	VkCommandBuffer commandBuffer;
 	VkFence renderFence;
 	VkSemaphore swapchainSemaphore, renderSemaphore;
+	DeletionQueue deletionQueue;
 };
 
 constexpr unsigned int kFrameOverlap = 2;
 
 class VulkanEngine {
 public:
+
+	AllocatedImage m_DrawImage;
+	VkExtent2D m_DrawExtent;
+
+	VmaAllocator m_MemAllocator;
+
+	DeletionQueue m_EngineDeletionQueue;
 
 	FrameData m_Frames[kFrameOverlap];
 
@@ -60,6 +95,7 @@ public:
 
 	//draw loop
 	void draw();
+	void draw_background(VkCommandBuffer cmd);
 
 	//run main loop
 	void run();

@@ -1,10 +1,23 @@
 
+My computer currently sees the Vulkan API as version 1.2.XX and not 1.3.XX so some functions are replaced with older types.
+
+-----------------------------------------------------------------------------------------------------------------------------
+
 Ensure CMakeLists.txt is updated per file created:
+
+You are using Vulkan API version 1.2.178 at the maximum. Your driver does not currently support Vulkan 1.3.XXX
+
+-----------------------------------------------------------------------------------------------------------------------------
 
 For each file that you create, CMakeLists.txt needs to know so it can be added to the executable.
 This is the one within root/CMakeLists.txt.
 
---------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------
+
+ImageView creation is hardcoded to have a tiling of OPTIMAL, but if you want to read image data
+from the CPU then you need to use a tiling of LINEAR.
+
+-----------------------------------------------------------------------------------------------------------------------------
 
 Potential optimisation technique - Submit the same command buffer multiple times: 
 
@@ -14,7 +27,18 @@ we do this anyway as it shows more of a render engine technique.
 This is only useful if you are sure that the commands won't be changed on a per-frame basis.
 This is a picky technique as recording commands is relatively cheap, but worth noting.
 
---------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------
+
+Potential optimisation technique - Not storing function callbacks for the deletion queue:
+
+Within the deletion queue struct:
+std::function stores a lambda, and we can use it to store a callback with some data, which is perfect for this case.
+Doing callbacks like this is inneficient at scale, because we are storing whole std::functions for every object we are 
+deleting, which is not going to be optimal. For the amount of objects we will use in this tutorial, its going to be fine. 
+But if you need to delete thousands of objects and want them deleted faster, a better implementation would be to store 
+arrays of vulkan handles of various types such as VkImage, VkBuffer, and so on. And then delete those from a loop.
+
+-----------------------------------------------------------------------------------------------------------------------------
 
 Initialisation of Vulkan structures:
 
