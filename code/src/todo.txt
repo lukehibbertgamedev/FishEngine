@@ -22,5 +22,8 @@ Previously:
 
 	- [X] Follow the code walkthrough tutorial of the vulkan guide							07/06
 
+	- [X] Completed chapter 1 of the vulkan guide, initialising vulkan						08/06
+
 Next time:
-	- [ ] Continue chapter 1 of the vulkan guide (https://vkguide.dev/docs/new_chapter_1/vulkan_init_code/)
+	- [ ] Fix issue from chapter 1 (no entry point for vkQueueSubmit2() found)
+ 	- [ ] Begin chapter 2 of the vulkan guide (https://vkguide.dev/docs/new_vkguide/chapter_2)
