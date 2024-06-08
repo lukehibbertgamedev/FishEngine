@@ -38,7 +38,7 @@ struct FrameData {
 	VkCommandPool commandPool;
 	VkCommandBuffer commandBuffer;
 	VkFence renderFence;
-	VkSemaphore swapchainSemaphore, renderSemaphore;
+	VkSemaphore presentSemaphore, renderSemaphore;
 	DeletionQueue deletionQueue;
 };
 
@@ -48,15 +48,20 @@ class VulkanEngine {
 public:
 
 	AllocatedImage m_DrawImage;
-	VkExtent2D m_DrawExtent;
+	/*VkExtent2D m_DrawExtent;*/
 
-	VmaAllocator m_MemAllocator;
+	VkRenderPass m_MainRenderPass;
+	std::vector<VkFramebuffer> m_FrameBuffers;
 
-	DeletionQueue m_EngineDeletionQueue;
+	VkCommandPool commandPool;
+	VkCommandBuffer commandBuffer;
+	VkFence renderFence;
+	VkSemaphore presentSemaphore, renderSemaphore;
+	DeletionQueue deletionQueue;
 
-	FrameData m_Frames[kFrameOverlap];
+	//FrameData m_Frames[kFrameOverlap];
 
-	FrameData& GetCurrentFrame() { return m_Frames[m_FrameNumber % kFrameOverlap]; }
+	//FrameData& GetCurrentFrame() { return m_Frames[m_FrameNumber % kFrameOverlap]; }
 
 	VkQueue m_GraphicsQueue;
 	uint32_t m_GraphicsQueueFamily;
@@ -85,6 +90,9 @@ public:
 	void init_vulkan();
 	void init_swapchain();
 	void init_commands();
+	void init_main_renderpass();
+	void init_framebuffers();
+
 	void init_synchronisation_structures();
 
 	void create_swapchain(uint32_t width, uint32_t height);
