@@ -10,6 +10,12 @@
     <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\sky.comp.spv.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\triangle.frag.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\triangle.vert.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
     <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\3d5f9ec89d366b11103d02d9ca2850be\Shaders.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>

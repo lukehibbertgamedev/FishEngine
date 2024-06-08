@@ -92,8 +92,12 @@ public:
 	void init_commands();
 	void init_main_renderpass();
 	void init_framebuffers();
+	void init_pipelines();
 
 	void init_synchronisation_structures();
+
+	// loads a shader module from a spir-v file. false if error.
+	bool load_shader_module(const char* filePath, VkShaderModule* outShaderModule);
 
 	void create_swapchain(uint32_t width, uint32_t height);
 	void destroy_swapchain();

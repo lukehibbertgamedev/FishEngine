@@ -9,6 +9,16 @@ You are using Vulkan API version 1.2.178 at the maximum. Your driver does not cu
 
 -----------------------------------------------------------------------------------------------------------------------------
 
+Creating a shader file.
+
+Using this command in the directory of the *.vert or *.frag file: glslangValidator.exe "shader.vert" -V -l -o "shader.vert.spv"
+You will get the shader module that vulkan likes.
+Don't forget to rebuild the root CMake file first (this will include it into the project source).
+(go to gui, it should be there but if not then src = /Fish/ and bin = /Fish/code/ then generate)
+See init_pipelines() for how to load the module.
+
+-----------------------------------------------------------------------------------------------------------------------------
+
 For each file that you create, CMakeLists.txt needs to know so it can be added to the executable.
 This is the one within root/CMakeLists.txt.
 
