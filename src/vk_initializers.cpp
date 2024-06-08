@@ -63,18 +63,31 @@ VkSemaphoreCreateInfo vkinit::semaphore_create_info(VkSemaphoreCreateFlags flags
 //< init_sync
 
 //> init_submit
-VkSemaphoreSubmitInfo vkinit::semaphore_submit_info(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore)
+VkSemaphoreSubmitInfo vkinit::semaphore_submit_info(VkPipelineStageFlags stageMask, VkSemaphore semaphore)
 {
-	VkSemaphoreSubmitInfo submitInfo{};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-	submitInfo.pNext = nullptr;
-	submitInfo.semaphore = semaphore;
-	submitInfo.stageMask = stageMask;
-	submitInfo.deviceIndex = 0;
-	submitInfo.value = 1;
+    VkSemaphoreSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+    submitInfo.pNext = nullptr;
+    submitInfo.semaphore = semaphore;
+    submitInfo.stageMask = stageMask;
+    submitInfo.deviceIndex = 0;
+    submitInfo.value = 1;
 
-	return submitInfo;
+    return submitInfo;
 }
+
+//VkSemaphoreSubmitInfo vkinit::semaphore_submit_info(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore)
+//{
+//	VkSemaphoreSubmitInfo submitInfo{};
+//	submitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+//	submitInfo.pNext = nullptr;
+//	submitInfo.semaphore = semaphore;
+//	submitInfo.stageMask = stageMask;
+//	submitInfo.deviceIndex = 0;
+//	submitInfo.value = 1;
+//
+//	return submitInfo;
+//}
 
 VkCommandBufferSubmitInfo vkinit::command_buffer_submit_info(VkCommandBuffer cmd)
 {
@@ -87,24 +100,41 @@ VkCommandBufferSubmitInfo vkinit::command_buffer_submit_info(VkCommandBuffer cmd
 	return info;
 }
 
-VkSubmitInfo2 vkinit::submit_info(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signalSemaphoreInfo,
-    VkSemaphoreSubmitInfo* waitSemaphoreInfo)
+VkSubmitInfo vkinit::submit_info(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signalSemaphoreInfo, VkSemaphoreSubmitInfo* waitSemaphoreInfo)
 {
-    VkSubmitInfo2 info = {};
-    info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
+    VkSubmitInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     info.pNext = nullptr;
 
-    info.waitSemaphoreInfoCount = waitSemaphoreInfo == nullptr ? 0 : 1;
-    info.pWaitSemaphoreInfos = waitSemaphoreInfo;
+    info.waitSemaphoreCount = waitSemaphoreInfo == nullptr ? 0 : 1;
+    info.pWaitSemaphores = &waitSemaphoreInfo->semaphore;
 
-    info.signalSemaphoreInfoCount = signalSemaphoreInfo == nullptr ? 0 : 1;
-    info.pSignalSemaphoreInfos = signalSemaphoreInfo;
+    info.signalSemaphoreCount = signalSemaphoreInfo == nullptr ? 0 : 1;
+    info.pSignalSemaphores = &signalSemaphoreInfo->semaphore;
 
-    info.commandBufferInfoCount = 1;
-    info.pCommandBufferInfos = cmd;
+    info.commandBufferCount = 1;
+    info.pCommandBuffers = &cmd->commandBuffer;
 
     return info;
 }
+
+//VkSubmitInfo2 vkinit::submit_info2(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signalSemaphoreInfo, VkSemaphoreSubmitInfo* waitSemaphoreInfo)
+//{
+//    VkSubmitInfo2 info = {};
+//    info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
+//    info.pNext = nullptr;
+//
+//    info.waitSemaphoreInfoCount = waitSemaphoreInfo == nullptr ? 0 : 1;
+//    info.pWaitSemaphoreInfos = waitSemaphoreInfo;
+//
+//    info.signalSemaphoreInfoCount = signalSemaphoreInfo == nullptr ? 0 : 1;
+//    info.pSignalSemaphoreInfos = signalSemaphoreInfo;
+//
+//    info.commandBufferInfoCount = 1;
+//    info.pCommandBufferInfos = cmd;
+//
+//    return info;
+//}
 //< init_submit
 
 VkPresentInfoKHR vkinit::present_info()

@@ -16,6 +16,9 @@ Future Todo:
 		chain must be either NULL or a pointer to a valid struct for extending VkDeviceCreateInfo 
 		(https://vulkan.lunarg.com/doc/view/1.3.283.0/windows/1.3-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pNext-pNext)
 
+	Once fixed, go over the (https://vkguide.dev/docs/new_chapter_1/vulkan_mainloop_code/) tutorial and change the functions back
+	to utilise the use of type2 structures. I replaced them with type structures to get this to work as type2 comes with the 1.3 API.
+
 Previously:
 	- [X] Recreated a new project using Vulkan and SDL as opposed to Vulkan and GLFW.		05/06
 	- [X] Build the cmake files using cmake-gui.											05/06
@@ -23,7 +26,7 @@ Previously:
 	- [X] Follow the code walkthrough tutorial of the vulkan guide							07/06
 
 	- [X] Completed chapter 1 of the vulkan guide, initialising vulkan						08/06
+	- [X] Fix issue from chapter 1 (no entry point for vkQueueSubmit2() found)				08/06
 
 Next time:
-	- [ ] Fix issue from chapter 1 (no entry point for vkQueueSubmit2() found)
  	- [ ] Begin chapter 2 of the vulkan guide (https://vkguide.dev/docs/new_vkguide/chapter_2)
