@@ -7,6 +7,21 @@
 
 #include <vk_types.h>
 
+class PipelineBuilder {
+public:
+	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+	VkPipelineVertexInputStateCreateInfo vertexInputState;
+	VkPipelineInputAssemblyStateCreateInfo inputAssembly;
+	VkViewport viewport;
+	VkRect2D scissor;
+	VkPipelineRasterizationStateCreateInfo rasterizer;
+	VkPipelineColorBlendAttachmentState colourBlendAttachment;
+	VkPipelineMultisampleStateCreateInfo multisampler;
+	VkPipelineLayout pipelineLayout;
+
+	VkPipeline build_pipeline(VkDevice device, VkRenderPass renderPass);
+};
+
 struct AllocatedImage {
 	VkImage image;
 	VkImageView imageView;
@@ -46,6 +61,9 @@ constexpr unsigned int kFrameOverlap = 2;
 
 class VulkanEngine {
 public:
+
+	VkPipeline m_TrianglePipeline;
+	VkPipelineLayout m_TrianglePipelineLayout;
 
 	AllocatedImage m_DrawImage;
 	/*VkExtent2D m_DrawExtent;*/
