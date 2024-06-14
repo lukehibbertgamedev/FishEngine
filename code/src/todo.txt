@@ -32,6 +32,7 @@ Previously:
 	- [X] Set up and load triangle shader completed											08/06
 
 	- [X] Pipeline set up and triangle rendering											14/06
+	- [X] Passing colour data through the shader data to render coloured triangle			14/06
 
 Next time:
  	- [ ] Compelete chapter 2 of the vulkan guide (https://vkguide.dev/docs/chapter-2/pipeline_walkthrough/)

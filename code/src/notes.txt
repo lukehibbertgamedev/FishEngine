@@ -9,13 +9,24 @@ You are using Vulkan API version 1.2.178 at the maximum. Your driver does not cu
 
 -----------------------------------------------------------------------------------------------------------------------------
 
-Creating a shader file.
+Shader files
 
 Using this command in the directory of the *.vert or *.frag file: glslangValidator.exe "shader.vert" -V -l -o "shader.vert.spv"
 You will get the shader module that vulkan likes.
 Don't forget to rebuild the root CMake file first (this will include it into the project source).
 (go to gui, it should be there but if not then src = /Fish/ and bin = /Fish/code/ then generate)
 See init_pipelines() for how to load the module.
+
+If when compiling a shader, this process fails, it will come up as the pipeline compilation failing.
+
+To create input/output variables via shader, we use 'layout (location = 0) out vec3 outColor;'.
+layout location = n is a decorator that lets us add extra data to variable declarations and other things in GLSL.
+The location refers to a slot, I assume in memory. 
+Typically, we pass data from the vertex shader into the pixel/fragment shader.
+
+Output variable: layout (location = 0) out vec3 outColour;
+Input variable: layout (location = 0) in vec3 inColour;
+The names are not entirely important to match, although they should, but the decorator location does matter.
 
 -----------------------------------------------------------------------------------------------------------------------------
 
