@@ -18,6 +18,8 @@
 #include <chrono>
 #include <thread>
 #include <fstream>
+#include <imgui_impl_vulkan.h>
+#include <imgui_impl_sdl2.h>
 
 // We set a *global* pointer for the vulkan engine singleton reference. 
 // We do that instead of a typical singleton because we want to control explicitly when is the class initalized and destroyed. 
@@ -46,6 +48,8 @@ void VulkanEngine::init()
         window_flags);
 
     init_vulkan();
+
+    //init_imgui(); // disabled until chapter 5
 
     init_swapchain();
 
@@ -139,6 +143,71 @@ void VulkanEngine::init_vulkan()
     vmaCreateAllocator(&allocatorInfo, &m_Allocator);
 }
 
+void VulkanEngine::init_imgui()
+{
+    ////1: create descriptor pool for IMGUI
+    //// the size of the pool is very oversize, but it's copied from imgui demo itself.
+    //VkDescriptorPoolSize pool_sizes[] =
+    //{
+    //    { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+    //    { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+    //    { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+    //    { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+    //    { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+    //    { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+    //    { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+    //    { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+    //    { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+    //    { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+    //    { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+    //};
+
+    //VkDescriptorPoolCreateInfo pool_info = {};
+    //pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    //pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    //pool_info.maxSets = 1000;
+    //pool_info.poolSizeCount = std::size(pool_sizes);
+    //pool_info.pPoolSizes = pool_sizes;
+
+    //VkDescriptorPool imguiPool;
+    //VK_CHECK(vkCreateDescriptorPool(m_Device, &pool_info, nullptr, &imguiPool));
+
+    //// 2: initialize imgui library
+
+    ////this initializes the core structures of imgui
+    //ImGui::CreateContext();
+
+    ////this initializes imgui for SDL
+    //ImGui_ImplSDL2_InitForVulkan(m_pWindow);
+
+    ////this initializes imgui for Vulkan
+    //ImGui_ImplVulkan_InitInfo init_info = {};
+    //init_info.Instance = m_VkInstance;
+    //init_info.PhysicalDevice = m_PhysicalDevice;
+    //init_info.Device = m_Device;
+    //init_info.Queue = m_GraphicsQueue;
+    //init_info.DescriptorPool = imguiPool;
+    //init_info.MinImageCount = 3;
+    //init_info.ImageCount = 3;
+    //init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+
+    //ImGui_ImplVulkan_Init(&init_info, m_MainRenderPass);
+
+    ////execute a gpu command to upload imgui font textures
+    //immediate_submit([&](VkCommandBuffer cmd) {
+    //    ImGui_ImplVulkan_CreateFontsTexture(cmd);
+    //});
+
+    ////clear font textures from cpu data
+    //ImGui_ImplVulkan_DestroyFontUploadObjects();
+
+    ////add the destroy the imgui created structures
+    //m_DeletionQueue.push_function([=]() {
+    //    vkDestroyDescriptorPool(m_Device, imguiPool, nullptr);
+    //    ImGui_ImplVulkan_Shutdown();
+    //});
+}
+
 void VulkanEngine::init_swapchain()
 {
     create_swapchain(m_WindowExtents.width, m_WindowExtents.height);
@@ -150,14 +219,17 @@ void VulkanEngine::init_commands()
     //we also want the pool to allow for resetting of individual command buffers
     VkCommandPoolCreateInfo commandPoolInfo = vkinit::command_pool_create_info(m_GraphicsQueueFamily, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
-    VK_CHECK(vkCreateCommandPool(m_Device, &commandPoolInfo, nullptr, &m_CommandPool));
+    for (int i = 0; i < kFrameOverlap; ++i)
+    {
+        VK_CHECK(vkCreateCommandPool(m_Device, &commandPoolInfo, nullptr, &m_Frames[i].m_CommandPool));
 
-    //allocate the default command buffer that we will use for rendering
-    VkCommandBufferAllocateInfo cmdAllocInfo = vkinit::command_buffer_allocate_info(m_CommandPool, 1);
+        //allocate the default command buffer that we will use for rendering
+        VkCommandBufferAllocateInfo cmdAllocInfo = vkinit::command_buffer_allocate_info(m_Frames[i].m_CommandPool, 1);
 
-    VK_CHECK(vkAllocateCommandBuffers(m_Device, &cmdAllocInfo, &m_CommandBuffer));
+        VK_CHECK(vkAllocateCommandBuffers(m_Device, &cmdAllocInfo, &m_Frames[i].m_CommandBuffer));
 
-    m_DeletionQueue.push_function([=]() { vkDestroyCommandPool(m_Device, m_CommandPool, nullptr); });
+        m_DeletionQueue.push_function([=]() { vkDestroyCommandPool(m_Device, m_Frames[i].m_CommandPool, nullptr); });
+    }    
 }
 
 void VulkanEngine::init_main_renderpass()
@@ -470,11 +542,7 @@ void VulkanEngine::init_synchronisation_structures()
     VkFenceCreateInfo fenceCreateInfo = {};
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceCreateInfo.pNext = nullptr;
-
-    //we want to create the fence with the Create Signaled flag, so we can wait on it before using it on a GPU command (for the first frame)
-    fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-    VK_CHECK(vkCreateFence(m_Device, &fenceCreateInfo, nullptr, &m_RenderFence));
+    fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; //we want to create the fence with the Create Signaled flag, so we can wait on it before using it on a GPU command (for the first frame)
 
     //for the semaphores we don't need any flags
     VkSemaphoreCreateInfo semaphoreCreateInfo = {};
@@ -482,13 +550,24 @@ void VulkanEngine::init_synchronisation_structures()
     semaphoreCreateInfo.pNext = nullptr;
     semaphoreCreateInfo.flags = 0;
 
-    VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &m_PresentSemaphore));
-    VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &m_RenderSemaphore));
+    for (int i = 0; i < kFrameOverlap; ++i)
+    {
+        VK_CHECK(vkCreateFence(m_Device, &fenceCreateInfo, nullptr, &m_Frames[i].m_RenderFence));
 
-    m_DeletionQueue.push_function([=]() {
-        vkDestroySemaphore(m_Device, m_PresentSemaphore, nullptr);
-        vkDestroySemaphore(m_Device, m_RenderSemaphore, nullptr);
-    });
+        // queue destruction of fence.
+        m_DeletionQueue.push_function([=]() { vkDestroyFence(m_Device, m_Frames[i].m_RenderFence, nullptr); });
+
+        VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &m_Frames[i].m_PresentSemaphore));
+        VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &m_Frames[i].m_RenderSemaphore));
+
+        // queue destruction of semaphores.
+        m_DeletionQueue.push_function([=]() {
+            vkDestroySemaphore(m_Device, m_Frames[i].m_PresentSemaphore, nullptr);
+            vkDestroySemaphore(m_Device, m_Frames[i].m_RenderSemaphore, nullptr);
+        });
+    }
+
+    
 }
 
 void VulkanEngine::init_scene()
@@ -597,7 +676,7 @@ void VulkanEngine::cleanup()
 
 
         //make sure the GPU has stopped doing its things
-        vkWaitForFences(m_Device, 1, &m_RenderFence, true, timeout);
+        vkWaitForFences(m_Device, 1, &get_current_frame().m_RenderFence, true, timeout);
 
         m_DeletionQueue.flush();
         
@@ -623,20 +702,20 @@ void VulkanEngine::render()
     const unsigned int timeout = 1000000000;
 
     // wait until the gpu has finished rendering the last frame. Timeout of 1 second
-    VK_CHECK(vkWaitForFences(m_Device, 1, &m_RenderFence, true, timeout));
-    VK_CHECK(vkResetFences(m_Device, 1, &m_RenderFence));
+    VK_CHECK(vkWaitForFences(m_Device, 1, &get_current_frame().m_RenderFence, true, timeout));
+    VK_CHECK(vkResetFences(m_Device, 1, &get_current_frame().m_RenderFence));
 
     //request image from the swapchain
     uint32_t swapchainImageIndex;
-    VK_CHECK(vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout, m_PresentSemaphore, nullptr, &swapchainImageIndex));
+    VK_CHECK(vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout, get_current_frame().m_PresentSemaphore, nullptr, &swapchainImageIndex));
 
 
     // now that we are sure that the commands finished executing, we can safely
     // reset the command buffer to begin recording again.
-    VK_CHECK(vkResetCommandBuffer(m_CommandBuffer, 0));
+    VK_CHECK(vkResetCommandBuffer(get_current_frame().m_CommandBuffer, 0));
 
     // get local frame command buffer
-    VkCommandBuffer cmd = m_CommandBuffer;
+    VkCommandBuffer cmd = get_current_frame().m_CommandBuffer;
 
     //begin the command buffer recording. We will use this command buffer exactly once, so we want to let Vulkan know that
     VkCommandBufferBeginInfo cmdBeginInfo = {};
@@ -714,17 +793,17 @@ void VulkanEngine::render()
     submit.pWaitDstStageMask = &waitStage;
 
     submit.waitSemaphoreCount = 1;
-    submit.pWaitSemaphores = &m_PresentSemaphore;
+    submit.pWaitSemaphores = &get_current_frame().m_PresentSemaphore;
 
     submit.signalSemaphoreCount = 1;
-    submit.pSignalSemaphores = &m_RenderSemaphore;
+    submit.pSignalSemaphores = &get_current_frame().m_RenderSemaphore;
 
     submit.commandBufferCount = 1;
     submit.pCommandBuffers = &cmd;
 
     //submit command buffer to the queue and execute it.
     // _renderFence will now block until the graphic commands finish execution
-    VK_CHECK(vkQueueSubmit(m_GraphicsQueue, 1, &submit, m_RenderFence));
+    VK_CHECK(vkQueueSubmit(m_GraphicsQueue, 1, &submit, get_current_frame().m_RenderFence));
 
     // this will put the image we just rendered into the visible window.
     // we want to wait on the _renderSemaphore for that,
@@ -736,7 +815,7 @@ void VulkanEngine::render()
     presentInfo.pSwapchains = &m_Swapchain;
     presentInfo.swapchainCount = 1;
 
-    presentInfo.pWaitSemaphores = &m_RenderSemaphore;
+    presentInfo.pWaitSemaphores = &get_current_frame().m_RenderSemaphore;
     presentInfo.waitSemaphoreCount = 1;
 
     presentInfo.pImageIndices = &swapchainImageIndex;
@@ -943,6 +1022,11 @@ void VulkanEngine::render_objects(VkCommandBuffer cmd, RenderObject* first, int 
         //we can now draw
         vkCmdDraw(cmd, object.pMesh->vertices.size(), 1, 0, 0);
     }
+}
+
+FrameData& VulkanEngine::get_current_frame()
+{
+    return m_Frames[m_FrameNumber % kFrameOverlap];
 }
 
 bool VulkanEngine::load_shader_module(const char* filePath, VkShaderModule* outShaderModule)

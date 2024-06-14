@@ -48,6 +48,7 @@ Previously:
 	- [X] Implemented spinning triangle with camera position and view matrix				14/06
 	- [X] Implemented depth buffer to fix and complete model loading for one model			14/06
  	- [X] Complete chapter 3 of the vulkan guide											14/06
+	- [X] Implemented double-buffering														14/06
 
 Next time:
 	- [ ] Complete chapter 4 of the vulkan guide (https://vkguide.dev/docs/chapter_4)

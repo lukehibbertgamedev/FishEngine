@@ -45,7 +45,6 @@ struct DeletionQueue {
 	}
 };
 
-constexpr unsigned int kFrameOverlap = 2;
 
 enum SelectedShader {
 
@@ -71,6 +70,15 @@ struct RenderObject {
 	glm::mat4 transformMatrix;
 };
 
+constexpr unsigned int kFrameOverlap = 2;
+
+struct FrameData {
+	VkCommandPool m_CommandPool;										// A collection of command buffers. Resetting the command pool resets all command buffers allocated from it.
+	VkCommandBuffer m_CommandBuffer;									// All commands are recorded into a command buffer, this won't do anything unless submitted to the GPU.
+	VkFence m_RenderFence;												// Used for GPU -> CPU communication.
+	VkSemaphore m_PresentSemaphore, m_RenderSemaphore;					// Used for GPU -> GPU synchronisation.
+};
+
 class VulkanEngine {
 public:
 
@@ -90,6 +98,7 @@ private:
 
 	// bet you cant guess what these functions do...
 	void init_vulkan();
+	void init_imgui(); // disabled until chapter 5
 	void init_swapchain();
 	void init_commands();
 	void init_main_renderpass();
@@ -121,6 +130,8 @@ private:
 
 	void render_objects(VkCommandBuffer cmd, RenderObject* first, int count);
 
+	// return frame we are rendering to right now.
+	FrameData& get_current_frame();
 	
 	VkExtent2D m_WindowExtents{ 1700 , 900 };							// Size of the window we are going to open (in pixels).
 	struct SDL_Window* m_pWindow{ nullptr };							// A pointer to our window, using SDL2 (notably a forward-declaration).
@@ -146,10 +157,6 @@ private:
 	VkQueue m_GraphicsQueue;											// An execution port for the GPU to stream graphics commands.
 	uint32_t m_GraphicsQueueFamily;										// Defines the type of queue and the type of commands the queue supports.
 	
-	VkCommandPool m_CommandPool;										// A collection of command buffers. Resetting the command pool resets all command buffers allocated from it.
-	VkCommandBuffer m_CommandBuffer;									// All commands are recorded into a command buffer, this won't do anything unless submitted to the GPU.
-	VkFence m_RenderFence;												// Used for GPU -> CPU communication.
-	VkSemaphore m_PresentSemaphore, m_RenderSemaphore;					// Used for GPU -> GPU synchronisation.
 	DeletionQueue m_DeletionQueue;										// More efficient implementation of a deletion/cleanup system. Uses a FIFO order (good for small engines).
 	VkRenderPass m_MainRenderPass;										// All rendering happens here. Begin and End render pass are recorded into the command buffer for other rendering commands between.
 	std::vector<VkFramebuffer> m_FrameBuffers;							// A link between the attachments of the render pass and the real images they render to.
@@ -172,4 +179,7 @@ private:
 	std::vector<RenderObject> m_RenderObjects;							// All renderable objects.
 	std::unordered_map<std::string, Material> m_Materials;				// Map of name to material.
 	std::unordered_map<std::string, Fish::Mesh> m_Meshes;				// Map of name to mesh.
+
+	FrameData m_Frames[kFrameOverlap];									//
+
 };
