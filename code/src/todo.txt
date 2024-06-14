@@ -44,9 +44,20 @@ Previously:
 	- [X] Swap between the 3 pipelines defined												14/06
 	- [X] Refactor selected shader to be enum												14/06
 	- [X] Refactor some code and add comments where needed									14/06
+	- [X] Merge this branch into develop and branch off to Feature/Renderer					14/06
 	- [X] Implemented spinning triangle with camera position and view matrix				14/06
 	- [X] Implemented depth buffer to fix and complete model loading for one model			14/06
+ 	- [X] Complete chapter 3 of the vulkan guide											14/06
 
 Next time:
-	- [ ] Merge this branch into develop and branch off to Feature/Renderer
- 	- [ ] Complete chapter 3 of the vulkan guide (https://vkguide.dev/docs/chapter_3)
+	- [ ] Complete chapter 4 of the vulkan guide (https://vkguide.dev/docs/chapter_4)
+	- [ ] Complete chapter 5 of the vulkan guide (https://vkguide.dev/docs/chapter_5)
+	- [ ] Complete extra chapter of the vulkan guide (https://vkguide.dev/docs/extra_chapter)
+
+	- [ ] Implement the ImGui section of the vulkan guide (https://vkguide.dev/docs/extra-chapter/implementing_imgui/)
+
+	- [ ] Complete the exercises from the finale of chapter 3
+	- [ ] Add WASD control to the camera (modify matricies in the render function)
+	- [ ] Sort the render objects container before rendering by Pipeline and Mesh, reducing number of binds
+	- [ ] Clean up all hardcoded pipelines and meshes
+	- [ ] Load more meshes

@@ -8,6 +8,8 @@
 #include <vk_types.h>
 #include <mesh.h>
 
+#include <unordered_map>
+
 class PipelineBuilder {
 public:
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
@@ -58,6 +60,17 @@ struct MeshPushConstants {
 	glm::mat4 matrix;
 };
 
+struct Material {
+	VkPipeline pipeline;
+	VkPipelineLayout pipelineLayout;
+};
+
+struct RenderObject {	
+	Fish::Mesh* pMesh;
+	Material* pMaterial;
+	glm::mat4 transformMatrix;
+};
+
 class VulkanEngine {
 public:
 
@@ -83,6 +96,7 @@ private:
 	void init_framebuffers();
 	void init_pipelines();
 	void init_synchronisation_structures(); // for fences and semaphores
+	void init_scene();
 
 	void create_swapchain(uint32_t width, uint32_t height);
 	void destroy_swapchain();
@@ -98,6 +112,14 @@ private:
 
 	// allocate and map the mesh memory to a buffer
 	void upload_mesh(Fish::Mesh& mesh);
+
+	Material* create_material(VkPipeline pipeline, VkPipelineLayout layout, const std::string& name);
+	// returns nullptr if cannot find
+	Material* get_material(const std::string& name); 
+	// returns nullptr if cannot find
+	Fish::Mesh* get_mesh(const std::string& name);
+
+	void render_objects(VkCommandBuffer cmd, RenderObject* first, int count);
 
 	
 	VkExtent2D m_WindowExtents{ 1700 , 900 };							// Size of the window we are going to open (in pixels).
@@ -140,11 +162,14 @@ private:
 	VkPipelineLayout m_MeshPipelineLayout;								// A full Vulkan object that contains all information about shader inputs for our meshes.
 
 	SelectedShader m_SelectedShader = SelectedShader::MeshPipeline;		// A way to determine which pipeline we are currently rendering.
-	Fish::Mesh m_Mesh;													// The current mesh we are working with (the triangle).
+	Fish::Mesh m_TriangleMesh;											// The current mesh we are working with (the triangle).
 	Fish::Mesh m_MonkeyMesh;											// Obj loaded mesh.
 
 	AllocatedImage m_DepthImage;										// Depth image handle to configure z-testing with a depth buffer.
 	VkImageView m_DepthImageView;										// Metadata for the depth image.
 	VkFormat m_DepthFormat;												// Cached format of the depth image for reuse.
 
+	std::vector<RenderObject> m_RenderObjects;							// All renderable objects.
+	std::unordered_map<std::string, Material> m_Materials;				// Map of name to material.
+	std::unordered_map<std::string, Fish::Mesh> m_Meshes;				// Map of name to mesh.
 };
