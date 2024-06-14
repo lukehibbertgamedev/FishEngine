@@ -25,6 +25,11 @@
 
 constexpr bool kUseValidationLayers = true;
 
+struct AllocatedBuffer {
+    VkBuffer buffer;
+    VmaAllocation allocation;
+};
+
 #define VK_CHECK(x)                                                     \
     do {                                                                \
         VkResult err = x;                                               \

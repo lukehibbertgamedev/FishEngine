@@ -6,6 +6,7 @@
 #pragma once
 
 #include <vk_types.h>
+#include <mesh.h>
 
 class PipelineBuilder {
 public:
@@ -62,11 +63,17 @@ constexpr unsigned int kFrameOverlap = 2;
 class VulkanEngine {
 public:
 
+	VmaAllocator m_Allocator;
+
 	// TODO: refactor to an enum using index and filename.
 	int m_SelectedShader{ 0 }; // 0 for red triangle. 1 for coloured triangle.
 
+	Fish::Mesh m_Mesh;
+
 	VkPipeline m_RedTrianglePipeline;
 	VkPipeline m_ColouredTrianglePipeline;
+	VkPipeline m_MeshPipeline;
+
 	VkPipelineLayout m_TrianglePipelineLayout;
 
 	AllocatedImage m_DrawImage;
@@ -135,6 +142,9 @@ public:
 	void run();
 
 private:
+
+	void load_meshes();
+	void upload_mesh(Fish::Mesh& mesh);
 
 	VkInstance m_VkInstance;// Vulkan library handle
 	VkDebugUtilsMessengerEXT m_DebugMessenger;// Vulkan debug output handle

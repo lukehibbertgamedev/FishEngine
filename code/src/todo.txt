@@ -38,6 +38,10 @@ Previously:
 	- [X] Passing colour data through the shader data to render coloured triangle			14/06
 	- [X] Refactoring using a deletion queue												14/06
 	- [X] Completed chapter 2 of the vulkan guide, the graphics pipeline					14/06
+	- [X] Updated the Vulkan API to version 1.3												14/06
+	- [X] Fix the issue regarding VmaAllocator, seems to be using Vk 1.3					14/06
 
 Next time:
- 	- [ ] Compelete chapter 3 of the vulkan guide (https://vkguide.dev/docs/chapter_3)
+	- [ ] Swap between the 3 pipelines defined
+	- [ ] Refactor some code and add comments where needed
+ 	- [ ] Complete chapter 3 of the vulkan guide (https://vkguide.dev/docs/chapter_3)
