@@ -30,6 +30,15 @@ The names are not entirely important to match, although they should, but the dec
 
 -----------------------------------------------------------------------------------------------------------------------------
 
+Creating some vulkan object:
+
+Using the new deletion queue, we must push each thing we create to it.
+VkSomething something
+VkCreateSomething(&something)
+deletionQueue.push_function([=]() { VkDeleteSomething(somthing);});
+
+-----------------------------------------------------------------------------------------------------------------------------
+
 For each file that you create, CMakeLists.txt needs to know so it can be added to the executable.
 This is the one within root/CMakeLists.txt.
 

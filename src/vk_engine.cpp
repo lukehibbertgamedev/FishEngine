@@ -142,6 +142,8 @@ void VulkanEngine::init_commands()
     VkCommandBufferAllocateInfo cmdAllocInfo = vkinit::command_buffer_allocate_info(commandPool, 1);
 
     VK_CHECK(vkAllocateCommandBuffers(m_Device, &cmdAllocInfo, &commandBuffer));
+
+    deletionQueue.push_function([=]() { vkDestroyCommandPool(m_Device, commandPool, nullptr); });
 }
 
 void VulkanEngine::init_main_renderpass()
@@ -173,6 +175,8 @@ void VulkanEngine::init_main_renderpass()
     render_pass_info.pSubpasses = &subpass;
 
     VK_CHECK(vkCreateRenderPass(m_Device, &render_pass_info, nullptr, &m_MainRenderPass));
+
+    deletionQueue.push_function([=]() { vkDestroyRenderPass(m_Device, m_MainRenderPass, nullptr); });
 }
 
 void VulkanEngine::init_framebuffers()
@@ -197,6 +201,11 @@ void VulkanEngine::init_framebuffers()
 
         fb_info.pAttachments = &m_SwapchainImageViews[i];
         VK_CHECK(vkCreateFramebuffer(m_Device, &fb_info, nullptr, &m_FrameBuffers[i]));
+
+        deletionQueue.push_function([=]() {
+            vkDestroyFramebuffer(m_Device, m_FrameBuffers[i], nullptr);
+            vkDestroyImageView(m_Device, m_SwapchainImageViews[i], nullptr);
+        });
     }
 }
 
@@ -296,6 +305,21 @@ void VulkanEngine::init_pipelines()
 
     //build the red triangle pipeline
     m_RedTrianglePipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
+
+    //destroy all shader modules, outside of the queue
+    vkDestroyShaderModule(m_Device, redTriangleVertexShader, nullptr);
+    vkDestroyShaderModule(m_Device, redTriangleFragShader, nullptr);
+    vkDestroyShaderModule(m_Device, triangleFragShader, nullptr);
+    vkDestroyShaderModule(m_Device, triangleVertexShader, nullptr);
+
+    deletionQueue.push_function([=]() {
+        //destroy the 2 pipelines we have created
+        vkDestroyPipeline(m_Device, m_RedTrianglePipeline, nullptr);
+        vkDestroyPipeline(m_Device, m_ColouredTrianglePipeline, nullptr);
+
+        //destroy the pipeline layout that they use
+        vkDestroyPipelineLayout(m_Device, m_TrianglePipelineLayout, nullptr);
+    });
 }
 
 void VulkanEngine::init_synchronisation_structures()
@@ -319,6 +343,11 @@ void VulkanEngine::init_synchronisation_structures()
 
     VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &presentSemaphore));
     VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &renderSemaphore));
+
+    deletionQueue.push_function([=]() {
+        vkDestroySemaphore(m_Device, presentSemaphore, nullptr);
+        vkDestroySemaphore(m_Device, renderSemaphore, nullptr);
+    });
 }
 
 void VulkanEngine::create_swapchain(uint32_t width, uint32_t height)
@@ -343,6 +372,8 @@ void VulkanEngine::create_swapchain(uint32_t width, uint32_t height)
     m_Swapchain = vkbSwapchain.swapchain;
     m_SwapchainImages = vkbSwapchain.get_images().value();
     m_SwapchainImageViews = vkbSwapchain.get_image_views().value();
+
+    deletionQueue.push_function([=]() { vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr); });
 }
 
 void VulkanEngine::destroy_swapchain()
@@ -359,25 +390,15 @@ void VulkanEngine::destroy_swapchain()
 void VulkanEngine::cleanup()
 {
     // Delete in the opposite order to what they were created, to avoid dependency errors.
+    
+    const unsigned int timeout = 1000000000;
 
     if (m_IsInitialized) {
 
-        //make sure the gpu has stopped doing its things
-        //vkDeviceWaitIdle(m_Device);
+        //make sure the GPU has stopped doing its things
+        vkWaitForFences(m_Device, 1, &renderFence, true, timeout);
 
-        //vkDestroyCommandPool(m_Device, commandPool, nullptr);
-
-        vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
-
-        //destroy the main renderpass
-        vkDestroyRenderPass(m_Device, m_MainRenderPass, nullptr);
-
-        //destroy swapchain resources
-        for (int i = 0; i < m_FrameBuffers.size(); i++) {
-            vkDestroyFramebuffer(m_Device, m_FrameBuffers[i], nullptr);
-
-            vkDestroyImageView(m_Device, m_SwapchainImageViews[i], nullptr);
-        }
+        deletionQueue.flush();
 
         vkDestroyDevice(m_Device, nullptr);
         
