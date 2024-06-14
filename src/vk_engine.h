@@ -18,6 +18,7 @@ public:
 	VkPipelineRasterizationStateCreateInfo rasterizer;
 	VkPipelineColorBlendAttachmentState colourBlendAttachment;
 	VkPipelineMultisampleStateCreateInfo multisampler;
+	VkPipelineDepthStencilStateCreateInfo depthStencil;
 	VkPipelineLayout pipelineLayout;
 
 	VkPipeline build_pipeline(VkDevice device, VkRenderPass renderPass);
@@ -141,5 +142,9 @@ private:
 	SelectedShader m_SelectedShader = SelectedShader::MeshPipeline;		// A way to determine which pipeline we are currently rendering.
 	Fish::Mesh m_Mesh;													// The current mesh we are working with (the triangle).
 	Fish::Mesh m_MonkeyMesh;											// Obj loaded mesh.
+
+	AllocatedImage m_DepthImage;										// Depth image handle to configure z-testing with a depth buffer.
+	VkImageView m_DepthImageView;										// Metadata for the depth image.
+	VkFormat m_DepthFormat;												// Cached format of the depth image for reuse.
 
 };

@@ -25,6 +25,11 @@
 
 constexpr bool kUseValidationLayers = true;
 
+struct AllocatedImage {
+    VkImage image;
+    VmaAllocation allocation;
+};
+
 struct AllocatedBuffer {
     VkBuffer buffer;
     VmaAllocation allocation;

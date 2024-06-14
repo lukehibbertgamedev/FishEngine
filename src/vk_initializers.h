@@ -43,7 +43,9 @@ namespace vkinit {
 
     VkDescriptorBufferInfo buffer_info(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range);
     
+    // format - what the data of the texture is. extent - size of the image in pixels.
     VkImageCreateInfo image_create_info(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent);
+    // format - what the data of the texture is. image - points to the image that this imageview is being created from.
     VkImageViewCreateInfo imageview_create_info(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags);
 
     VkPipelineLayoutCreateInfo pipeline_layout_create_info();
@@ -54,7 +56,7 @@ namespace vkinit {
     VkPipelineRasterizationStateCreateInfo rasterization_state_create_info(VkPolygonMode polygonMode);
     VkPipelineMultisampleStateCreateInfo multisampling_state_create_info();
     VkPipelineColorBlendAttachmentState color_blend_attachment_state();
-    VkPipelineLayoutCreateInfo pipeline_layout_create_info();
 
+    VkPipelineDepthStencilStateCreateInfo depth_stencil_create_info(bool bDepthTest, bool bDepthWrite, VkCompareOp compareOp);
 
 } // namespace vkinit

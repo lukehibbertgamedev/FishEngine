@@ -33,7 +33,7 @@ Previously:
 	- [X] Fixed API issue (it cannot be fixed). Driver does not support 1.3					08/06
 	- [X] Moved on from all issues, converted to the Legacy Guide and caught up				08/06
 	- [X] Set up and load triangle shader completed											08/06
-
+	 
 	- [X] Pipeline set up and triangle rendering											14/06
 	- [X] Passing colour data through the shader data to render coloured triangle			14/06
 	- [X] Refactoring using a deletion queue												14/06
@@ -45,6 +45,7 @@ Previously:
 	- [X] Refactor selected shader to be enum												14/06
 	- [X] Refactor some code and add comments where needed									14/06
 	- [X] Implemented spinning triangle with camera position and view matrix				14/06
+	- [X] Implemented depth buffer to fix and complete model loading for one model			14/06
 
 Next time:
 	- [ ] Merge this branch into develop and branch off to Feature/Renderer
