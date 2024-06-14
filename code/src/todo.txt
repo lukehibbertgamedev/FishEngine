@@ -51,6 +51,8 @@ Previously:
 	- [X] Implemented double-buffering														14/06
 
 Next time:
+	- [ ] Continue on from setting up descriptor sets (https://vkguide.dev/docs/chapter-4/descriptors_code/)
+
 	- [ ] Complete chapter 4 of the vulkan guide (https://vkguide.dev/docs/chapter_4)
 	- [ ] Complete chapter 5 of the vulkan guide (https://vkguide.dev/docs/chapter_5)
 	- [ ] Complete extra chapter of the vulkan guide (https://vkguide.dev/docs/extra_chapter)
@@ -62,3 +64,5 @@ Next time:
 	- [ ] Sort the render objects container before rendering by Pipeline and Mesh, reducing number of binds
 	- [ ] Clean up all hardcoded pipelines and meshes
 	- [ ] Load more meshes
+
+	- [ ] Go through the console window on termination and attempt to clear the validation errors/warnings
