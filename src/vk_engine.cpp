@@ -146,14 +146,14 @@ void VulkanEngine::init_commands()
     //we also want the pool to allow for resetting of individual command buffers
     VkCommandPoolCreateInfo commandPoolInfo = vkinit::command_pool_create_info(m_GraphicsQueueFamily, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
-    VK_CHECK(vkCreateCommandPool(m_Device, &commandPoolInfo, nullptr, &commandPool));
+    VK_CHECK(vkCreateCommandPool(m_Device, &commandPoolInfo, nullptr, &m_CommandPool));
 
     //allocate the default command buffer that we will use for rendering
-    VkCommandBufferAllocateInfo cmdAllocInfo = vkinit::command_buffer_allocate_info(commandPool, 1);
+    VkCommandBufferAllocateInfo cmdAllocInfo = vkinit::command_buffer_allocate_info(m_CommandPool, 1);
 
-    VK_CHECK(vkAllocateCommandBuffers(m_Device, &cmdAllocInfo, &commandBuffer));
+    VK_CHECK(vkAllocateCommandBuffers(m_Device, &cmdAllocInfo, &m_CommandBuffer));
 
-    deletionQueue.push_function([=]() { vkDestroyCommandPool(m_Device, commandPool, nullptr); });
+    m_DeletionQueue.push_function([=]() { vkDestroyCommandPool(m_Device, m_CommandPool, nullptr); });
 }
 
 void VulkanEngine::init_main_renderpass()
@@ -186,7 +186,7 @@ void VulkanEngine::init_main_renderpass()
 
     VK_CHECK(vkCreateRenderPass(m_Device, &render_pass_info, nullptr, &m_MainRenderPass));
 
-    deletionQueue.push_function([=]() { vkDestroyRenderPass(m_Device, m_MainRenderPass, nullptr); });
+    m_DeletionQueue.push_function([=]() { vkDestroyRenderPass(m_Device, m_MainRenderPass, nullptr); });
 }
 
 void VulkanEngine::init_framebuffers()
@@ -212,7 +212,7 @@ void VulkanEngine::init_framebuffers()
         fb_info.pAttachments = &m_SwapchainImageViews[i];
         VK_CHECK(vkCreateFramebuffer(m_Device, &fb_info, nullptr, &m_FrameBuffers[i]));
 
-        deletionQueue.push_function([=]() {
+        m_DeletionQueue.push_function([=]() {
             vkDestroyFramebuffer(m_Device, m_FrameBuffers[i], nullptr);
             vkDestroyImageView(m_Device, m_SwapchainImageViews[i], nullptr);
         });
@@ -352,7 +352,7 @@ void VulkanEngine::init_pipelines()
     vkDestroyShaderModule(m_Device, triangleVertexShader, nullptr);
     vkDestroyShaderModule(m_Device, triangleMeshShader, nullptr);
 
-    deletionQueue.push_function([=]() {
+    m_DeletionQueue.push_function([=]() {
         //destroy the 2 pipelines we have created
         vkDestroyPipeline(m_Device, m_RedTrianglePipeline, nullptr);
         vkDestroyPipeline(m_Device, m_ColouredTrianglePipeline, nullptr);
@@ -374,7 +374,7 @@ void VulkanEngine::init_synchronisation_structures()
     //we want to create the fence with the Create Signaled flag, so we can wait on it before using it on a GPU command (for the first frame)
     fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    VK_CHECK(vkCreateFence(m_Device, &fenceCreateInfo, nullptr, &renderFence));
+    VK_CHECK(vkCreateFence(m_Device, &fenceCreateInfo, nullptr, &m_RenderFence));
 
     //for the semaphores we don't need any flags
     VkSemaphoreCreateInfo semaphoreCreateInfo = {};
@@ -382,12 +382,12 @@ void VulkanEngine::init_synchronisation_structures()
     semaphoreCreateInfo.pNext = nullptr;
     semaphoreCreateInfo.flags = 0;
 
-    VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &presentSemaphore));
-    VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &renderSemaphore));
+    VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &m_PresentSemaphore));
+    VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &m_RenderSemaphore));
 
-    deletionQueue.push_function([=]() {
-        vkDestroySemaphore(m_Device, presentSemaphore, nullptr);
-        vkDestroySemaphore(m_Device, renderSemaphore, nullptr);
+    m_DeletionQueue.push_function([=]() {
+        vkDestroySemaphore(m_Device, m_PresentSemaphore, nullptr);
+        vkDestroySemaphore(m_Device, m_RenderSemaphore, nullptr);
     });
 }
 
@@ -414,7 +414,7 @@ void VulkanEngine::create_swapchain(uint32_t width, uint32_t height)
     m_SwapchainImages = vkbSwapchain.get_images().value();
     m_SwapchainImageViews = vkbSwapchain.get_image_views().value();
 
-    deletionQueue.push_function([=]() { vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr); });
+    m_DeletionQueue.push_function([=]() { destroy_swapchain(); });
 }
 
 void VulkanEngine::destroy_swapchain()
@@ -437,9 +437,9 @@ void VulkanEngine::cleanup()
     if (m_IsInitialized) {
 
         //make sure the GPU has stopped doing its things
-        vkWaitForFences(m_Device, 1, &renderFence, true, timeout);
+        vkWaitForFences(m_Device, 1, &m_RenderFence, true, timeout);
 
-        deletionQueue.flush();
+        m_DeletionQueue.flush();
 
         vkDestroyDevice(m_Device, nullptr);
         
@@ -456,25 +456,25 @@ void VulkanEngine::cleanup()
     loadedEngine = nullptr;
 }
 
-void VulkanEngine::draw()
+void VulkanEngine::render()
 {
     const unsigned int timeout = 1000000000;
 
     // wait until the gpu has finished rendering the last frame. Timeout of 1 second
-    VK_CHECK(vkWaitForFences(m_Device, 1, &renderFence, true, timeout));
-    VK_CHECK(vkResetFences(m_Device, 1, &renderFence));
+    VK_CHECK(vkWaitForFences(m_Device, 1, &m_RenderFence, true, timeout));
+    VK_CHECK(vkResetFences(m_Device, 1, &m_RenderFence));
 
     //request image from the swapchain
     uint32_t swapchainImageIndex;
-    VK_CHECK(vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout, presentSemaphore, nullptr, &swapchainImageIndex));
+    VK_CHECK(vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout, m_PresentSemaphore, nullptr, &swapchainImageIndex));
 
 
     // now that we are sure that the commands finished executing, we can safely
     // reset the command buffer to begin recording again.
-    VK_CHECK(vkResetCommandBuffer(commandBuffer, 0));
+    VK_CHECK(vkResetCommandBuffer(m_CommandBuffer, 0));
 
     // get local frame command buffer
-    VkCommandBuffer cmd = commandBuffer;
+    VkCommandBuffer cmd = m_CommandBuffer;
 
     //begin the command buffer recording. We will use this command buffer exactly once, so we want to let Vulkan know that
     VkCommandBufferBeginInfo cmdBeginInfo = {};
@@ -514,26 +514,27 @@ void VulkanEngine::draw()
     // 
     // 
     
-    /*if (m_SelectedShader == 0)
+    if (m_SelectedShader == SelectedShader::ColouredPipeline)
     {
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ColouredTrianglePipeline);
+        vkCmdDraw(cmd, 3, 1, 0, 0);
     }
-    else
+    else if (m_SelectedShader == SelectedShader::RedPipeline)
     {
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RedTrianglePipeline);
+        vkCmdDraw(cmd, 3, 1, 0, 0);
     }
+    else if (m_SelectedShader == SelectedShader::MeshPipeline)
+    {
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_MeshPipeline);
 
-    vkCmdDraw(cmd, 3, 1, 0, 0);*/
+        //bind the mesh vertex buffer with offset 0
+        VkDeviceSize offset = 0;
+        vkCmdBindVertexBuffers(cmd, 0, 1, &m_Mesh.vertexBuffer.buffer, &offset);
 
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_MeshPipeline);
-
-    //bind the mesh vertex buffer with offset 0
-    VkDeviceSize offset = 0;
-    vkCmdBindVertexBuffers(cmd, 0, 1, &m_Mesh.vertexBuffer.buffer, &offset);
-
-    //we can now draw the mesh
-    vkCmdDraw(cmd, m_Mesh.vertices.size(), 1, 0, 0);
-
+        //we can now draw the mesh
+        vkCmdDraw(cmd, m_Mesh.vertices.size(), 1, 0, 0);
+    } 
 
     //finalize the render pass
     vkCmdEndRenderPass(cmd);
@@ -553,17 +554,17 @@ void VulkanEngine::draw()
     submit.pWaitDstStageMask = &waitStage;
 
     submit.waitSemaphoreCount = 1;
-    submit.pWaitSemaphores = &presentSemaphore;
+    submit.pWaitSemaphores = &m_PresentSemaphore;
 
     submit.signalSemaphoreCount = 1;
-    submit.pSignalSemaphores = &renderSemaphore;
+    submit.pSignalSemaphores = &m_RenderSemaphore;
 
     submit.commandBufferCount = 1;
     submit.pCommandBuffers = &cmd;
 
     //submit command buffer to the queue and execute it.
     // _renderFence will now block until the graphic commands finish execution
-    VK_CHECK(vkQueueSubmit(m_GraphicsQueue, 1, &submit, renderFence));
+    VK_CHECK(vkQueueSubmit(m_GraphicsQueue, 1, &submit, m_RenderFence));
 
     // this will put the image we just rendered into the visible window.
     // we want to wait on the _renderSemaphore for that,
@@ -575,7 +576,7 @@ void VulkanEngine::draw()
     presentInfo.pSwapchains = &m_Swapchain;
     presentInfo.swapchainCount = 1;
 
-    presentInfo.pWaitSemaphores = &renderSemaphore;
+    presentInfo.pWaitSemaphores = &m_RenderSemaphore;
     presentInfo.waitSemaphoreCount = 1;
 
     presentInfo.pImageIndices = &swapchainImageIndex;
@@ -608,11 +609,17 @@ void VulkanEngine::run()
             else if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
                 case SDLK_SPACE:
-                    m_SelectedShader += 1;
-                    if (m_SelectedShader > 1) {
-                        m_SelectedShader = 0;
+
+                    // Increment shader 
+                    m_SelectedShader = (SelectedShader)((int)m_SelectedShader + 1);
+
+                    // Don't exceed max shader
+                    if (m_SelectedShader == SelectedShader::MaxPipelines) {
+
+                        // Reset shader 
+                        m_SelectedShader = (SelectedShader)(0);
                     }
-                    fmt::println("Toggle next shader: ", m_SelectedShader);
+                    fmt::println("Toggle next shader: ", (int)m_SelectedShader);
                     break;
                 }
 
@@ -636,7 +643,7 @@ void VulkanEngine::run()
             continue;
         }
 
-        draw();
+        render();
     }
 }
 
@@ -681,7 +688,7 @@ void VulkanEngine::upload_mesh(Fish::Mesh& mesh)
     VK_CHECK(vmaCreateBuffer(m_Allocator, &bufferInfo, &vmaallocInfo, &mesh.vertexBuffer.buffer, &mesh.vertexBuffer.allocation, nullptr));
 
     //add the destruction of triangle mesh buffer to the deletion queue
-    deletionQueue.push_function([=]() { vmaDestroyBuffer(m_Allocator, mesh.vertexBuffer.buffer, mesh.vertexBuffer.allocation); });
+    m_DeletionQueue.push_function([=]() { vmaDestroyBuffer(m_Allocator, mesh.vertexBuffer.buffer, mesh.vertexBuffer.allocation); });
 
     //copy vertex data
     void* data;
