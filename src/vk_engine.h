@@ -62,7 +62,11 @@ constexpr unsigned int kFrameOverlap = 2;
 class VulkanEngine {
 public:
 
-	VkPipeline m_TrianglePipeline;
+	// TODO: refactor to an enum using index and filename.
+	int m_SelectedShader{ 0 }; // 0 for red triangle. 1 for coloured triangle.
+
+	VkPipeline m_RedTrianglePipeline;
+	VkPipeline m_ColouredTrianglePipeline;
 	VkPipelineLayout m_TrianglePipelineLayout;
 
 	AllocatedImage m_DrawImage;

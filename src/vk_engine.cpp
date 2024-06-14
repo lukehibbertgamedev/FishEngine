@@ -202,6 +202,8 @@ void VulkanEngine::init_framebuffers()
 
 void VulkanEngine::init_pipelines()
 {
+    // TODO: Load shaders in one function, and shorten the function into a "check_load" type function.
+
     VkShaderModule triangleFragShader;
     if (!load_shader_module("../../shaders/triangle.frag.spv", &triangleFragShader))
     {
@@ -220,6 +222,24 @@ void VulkanEngine::init_pipelines()
         fmt::println("Triangle vertex shader successfully loaded");
     }
 
+    VkShaderModule redTriangleFragShader;
+    if (!load_shader_module("../../shaders/redTriangle.frag.spv", &redTriangleFragShader))
+    {
+        fmt::println("Error when building the red triangle fragment shader module");
+    }
+    else {
+        fmt::println("Red triangle fragment shader successfully loaded");
+    }
+
+    VkShaderModule redTriangleVertexShader;
+    if (!load_shader_module("../../shaders/redTriangle.vert.spv", &redTriangleVertexShader))
+    {
+        fmt::println("Error when building the red triangle vertex shader module");
+    }
+    else {
+        fmt::println("Red triangle vertex shader successfully loaded");
+    }
+
     //build the pipeline layout that controls the inputs/outputs of the shader
     //we are not using descriptor sets or other systems yet, so no need to use anything other than empty default
     VkPipelineLayoutCreateInfo pipeline_layout_info = vkinit::pipeline_layout_create_info();
@@ -228,11 +248,9 @@ void VulkanEngine::init_pipelines()
     //build the stage-create-info for both vertex and fragment stages. This lets the pipeline know the shader modules per stage
     PipelineBuilder pipelineBuilder;
 
-    pipelineBuilder.shaderStages.push_back(
-        vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, triangleVertexShader));
+    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, triangleVertexShader));
 
-    pipelineBuilder.shaderStages.push_back(
-        vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, triangleFragShader));
+    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, triangleFragShader));
 
 
     //vertex input controls how to read vertices from vertex buffers. We aren't using it yet
@@ -266,7 +284,18 @@ void VulkanEngine::init_pipelines()
     pipelineBuilder.pipelineLayout = m_TrianglePipelineLayout;
 
     //finally build the pipeline
-    m_TrianglePipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
+    m_ColouredTrianglePipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
+
+    //clear the shader stages for the builder
+    pipelineBuilder.shaderStages.clear();
+
+    //add the other shaders
+    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, redTriangleVertexShader));
+
+    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, redTriangleFragShader));
+
+    //build the red triangle pipeline
+    m_RedTrianglePipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
 }
 
 void VulkanEngine::init_synchronisation_structures()
@@ -419,8 +448,19 @@ void VulkanEngine::draw()
 
     vkCmdBeginRenderPass(cmd, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    //
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_TrianglePipeline);
+    // Actually send out rendering commands:
+    // 
+    // 
+    
+    if (m_SelectedShader == 0)
+    {
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ColouredTrianglePipeline);
+    }
+    else
+    {
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RedTrianglePipeline);
+    }
+
     vkCmdDraw(cmd, 3, 1, 0, 0);
 
     //finalize the render pass
@@ -488,26 +528,31 @@ void VulkanEngine::run()
         while (SDL_PollEvent(&e) != 0) {
 
             // close the window when user alt-f4s or clicks the X button
-            if (e.type == SDL_QUIT)
+            if (e.type == SDL_QUIT) {
                 bQuit = true;
+            }
 
-            if (e.type == SDL_WINDOWEVENT) {
+            // Quick example of getting a keypress event and logging it.
+            else if (e.type == SDL_KEYDOWN) {
+                switch (e.key.keysym.sym) {
+                case SDLK_SPACE:
+                    m_SelectedShader += 1;
+                    if (m_SelectedShader > 1) {
+                        m_SelectedShader = 0;
+                    }
+                    fmt::println("Toggle next shader: ", m_SelectedShader);
+                    break;
+                }
+
+            }
+            
+            else if (e.type == SDL_WINDOWEVENT) {
                 if (e.window.event == SDL_WINDOWEVENT_MINIMIZED) {
                     m_StopRendering = true;
                 }
                 if (e.window.event == SDL_WINDOWEVENT_RESTORED) {
                     m_StopRendering = false;
                 }
-            }
-
-            // Quick example of getting a keypress event and logging it.
-            if (e.type == SDL_KEYDOWN) {
-                switch (e.key.keysym.sym) {
-                case SDLK_SPACE:
-                    fmt::println("Space");
-                    break;
-                }
-
             }
         }
 

@@ -19,6 +19,9 @@ Future Todo:
 	Once fixed, go over the (https://vkguide.dev/docs/new_chapter_1/vulkan_mainloop_code/) tutorial and change the functions back
 	to utilise the use of type2 structures. I replaced them with type structures to get this to work as type2 comes with the 1.3 API.
 
+
+	Continue to swap shaders
+
 Previously:
 	- [X] Recreated a new project using Vulkan and SDL as opposed to Vulkan and GLFW.		05/06
 	- [X] Build the cmake files using cmake-gui.											05/06
