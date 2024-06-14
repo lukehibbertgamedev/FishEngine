@@ -19,6 +19,7 @@ add_executable (engine
   camera.h
   mesh.h
   mesh.cpp
+  tiny_obj_loader.h
 )
 
 set_property(TARGET engine PROPERTY CXX_STANDARD 20)

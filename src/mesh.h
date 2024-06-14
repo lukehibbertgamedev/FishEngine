@@ -24,6 +24,8 @@ namespace Fish {
 		std::vector<Vertex> vertices;
 
 		AllocatedBuffer vertexBuffer;
+
+		bool load_from_obj(const char* filename);
 	};
 
 }

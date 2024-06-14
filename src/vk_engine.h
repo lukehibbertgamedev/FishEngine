@@ -140,5 +140,6 @@ private:
 
 	SelectedShader m_SelectedShader = SelectedShader::MeshPipeline;		// A way to determine which pipeline we are currently rendering.
 	Fish::Mesh m_Mesh;													// The current mesh we are working with (the triangle).
+	Fish::Mesh m_MonkeyMesh;											// Obj loaded mesh.
 
 };
