@@ -52,6 +52,11 @@ enum SelectedShader {
 	MaxPipelines
 };
 
+struct MeshPushConstants {
+	glm::vec4 data;
+	glm::mat4 matrix;
+};
+
 class VulkanEngine {
 public:
 
@@ -87,7 +92,7 @@ private:
 	//draw loop responsible for synchronisation and the recording of command buffers.
 	void render();
 
-	// sets up a mesh structure and uploads it
+	// sets up a mesh structure and uploads it (this is technically load_triangle())
 	void load_meshes();
 
 	// allocate and map the mesh memory to a buffer
@@ -130,7 +135,8 @@ private:
 	VkPipeline m_ColouredTrianglePipeline;								// A pipeline for the use of colour in our triangle shader.
 	VkPipeline m_MeshPipeline;											// A pipeline for a mesh version of our original triangle.
 
-	VkPipelineLayout m_TrianglePipelineLayout;							// A full Vulkan object that contains all information about shader inputs of a given pipeline.
+	VkPipelineLayout m_TrianglePipelineLayout;							// A full Vulkan object that contains all information about shader inputs for our triangle.
+	VkPipelineLayout m_MeshPipelineLayout;								// A full Vulkan object that contains all information about shader inputs for our meshes.
 
 	SelectedShader m_SelectedShader = SelectedShader::MeshPipeline;		// A way to determine which pipeline we are currently rendering.
 	Fish::Mesh m_Mesh;													// The current mesh we are working with (the triangle).
