@@ -44,4 +44,5 @@ Previously:
 Next time:
 	- [ ] Swap between the 3 pipelines defined
 	- [ ] Refactor some code and add comments where needed
+	- [ ] Merge this branch into develop and branch off to Feature/Renderer
  	- [ ] Complete chapter 3 of the vulkan guide (https://vkguide.dev/docs/chapter_3)
