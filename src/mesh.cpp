@@ -16,7 +16,6 @@ namespace Fish {
 		mainBinding.binding = 0;
 		mainBinding.stride = sizeof(Vertex);
 		mainBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
 		description.bindings.push_back(mainBinding);
 
 		//Position will be stored at Location 0
@@ -40,9 +39,19 @@ namespace Fish {
 		colorAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
 		colorAttribute.offset = offsetof(Vertex, colour);
 
+		//UV will be stored at Location 3
+		VkVertexInputAttributeDescription uvAttribute = {};
+		uvAttribute.binding = 0;
+		uvAttribute.location = 3;
+		uvAttribute.format = VK_FORMAT_R32G32_SFLOAT;
+		uvAttribute.offset = offsetof(Vertex, uv);
+
+		//Push attributes
 		description.attributes.push_back(positionAttribute);
 		description.attributes.push_back(normalAttribute);
 		description.attributes.push_back(colorAttribute);
+		description.attributes.push_back(uvAttribute);
+
 		return description;
 	}
 
@@ -108,6 +117,12 @@ namespace Fish {
 					//we are setting the vertex color as the vertex normal. This is just for display purposes
 					new_vert.colour = new_vert.normal;
 
+					//vertex uv
+					tinyobj::real_t ux = attrib.texcoords[2 * idx.texcoord_index + 0];
+					tinyobj::real_t uy = attrib.texcoords[2 * idx.texcoord_index + 1];
+
+					new_vert.uv.x = ux;
+					new_vert.uv.y = 1 - uy; // inverse to flip texture correctly.
 
 					vertices.push_back(new_vert);
 				}

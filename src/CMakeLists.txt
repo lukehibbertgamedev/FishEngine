@@ -19,6 +19,8 @@ add_executable (engine
   camera.h
   mesh.h
   mesh.cpp
+  texture.h
+  texture.cpp
   tiny_obj_loader.h
 )
 

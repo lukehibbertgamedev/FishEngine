@@ -28,7 +28,7 @@ Previously:
 
 	- [X] Follow the code walkthrough tutorial of the vulkan guide							07/06
 
-	- [X] Completed chapter 1 of the vulkan guide, initialising vulkan						08/06
+	- [X] Completed chapter 1 of the vulkan guide, initialising vulkan						08/06 *
 	- [X] Fix issue from chapter 1 (no entry point for vkQueueSubmit2() found)				08/06
 	- [X] Fixed API issue (it cannot be fixed). Driver does not support 1.3					08/06
 	- [X] Moved on from all issues, converted to the Legacy Guide and caught up				08/06
@@ -37,8 +37,8 @@ Previously:
 	- [X] Pipeline set up and triangle rendering											14/06
 	- [X] Passing colour data through the shader data to render coloured triangle			14/06
 	- [X] Refactoring using a deletion queue												14/06
-	- [X] Completed chapter 2 of the vulkan guide, the graphics pipeline					14/06
-	- [X] Updated the Vulkan API to version 1.3												14/06
+	- [X] Completed chapter 2 of the vulkan guide, the graphics pipeline					14/06 *
+	- [X] Updated the Vulkan API to version 1.3												14/06 *
 	- [X] Fix the issue regarding VmaAllocator, seems to be using Vk 1.3					14/06
 
 	- [X] Swap between the 3 pipelines defined												14/06
@@ -47,23 +47,24 @@ Previously:
 	- [X] Merge this branch into develop and branch off to Feature/Renderer					14/06
 	- [X] Implemented spinning triangle with camera position and view matrix				14/06
 	- [X] Implemented depth buffer to fix and complete model loading for one model			14/06
- 	- [X] Complete chapter 3 of the vulkan guide, drawing meshes							14/06
+ 	- [X] Complete chapter 3 of the vulkan guide, drawing meshes							14/06 *
 	- [X] Implemented double-buffering														14/06
 
 	- [X] Implemented descriptor sets (including dynamic)									19/06
 	- [X] Implemented storage buffers														19/06
-	- [X] Complete chapter 4 of the vulkan guide, buffers and shader input/output			19/06
+	- [X] Complete chapter 4 of the vulkan guide, buffers and shader input/output			19/06 *
+	- [X] Implemented memory transfers														19/06
+	- [X] Implemented a texture load function												19/06
+	- [X] Implemented texture loading and rendering											19/06
+	- [X] Complete chapter 5 of the vulkan guide, textures									19/06 *
 
 Next time:
 
-	- [ ] Complete chapter 4 of the vulkan guide (https://vkguide.dev/docs/chapter_4)
-	- [ ] Complete chapter 5 of the vulkan guide (https://vkguide.dev/docs/chapter_5)
 	- [ ] Complete extra chapter of the vulkan guide (https://vkguide.dev/docs/extra_chapter)
 
 	- [ ] Implement the ImGui section of the vulkan guide (https://vkguide.dev/docs/extra-chapter/implementing_imgui/)
 
 	- [ ] Read up and review the code surrounding descriptor sets
-	- [ ] Fix the subtle flickering 
 
 	- [ ] Complete the exercises from the finale of chapter 3
 	- [ ] Add WASD control to the camera (modify matricies in the render function)

@@ -60,6 +60,7 @@ struct MeshPushConstants {
 };
 
 struct Material {
+	VkDescriptorSet textureSet{ VK_NULL_HANDLE }; //texture defaulted to null
 	VkPipeline pipeline;
 	VkPipelineLayout pipelineLayout;
 };
@@ -109,6 +110,11 @@ struct GPUSceneData {
 	glm::vec4 sunlightColour;
 };
 
+struct Texture {
+	AllocatedImage image;
+	VkImageView imageView;
+};
+
 class VulkanEngine {
 public:
 
@@ -123,6 +129,16 @@ public:
 
 	//run main loop
 	void run();
+
+	// abstracted buffer creation.
+	AllocatedBuffer create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+
+	void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function);
+
+	VmaAllocator GetAllocator() { return m_Allocator; }
+
+	// returns a reference
+	DeletionQueue& GetDeletionQueue() { return m_DeletionQueue; }
 
 private:
 
@@ -150,6 +166,8 @@ private:
 	// sets up a mesh structure and uploads it (this is technically load_triangle())
 	void load_meshes();
 
+	void load_images();
+
 	// allocate and map the mesh memory to a buffer
 	void upload_mesh(Fish::Mesh& mesh);
 
@@ -164,14 +182,10 @@ private:
 	// return frame we are rendering to right now.
 	FrameData& get_current_frame();
 
-	// abstracted buffer creation.
-	AllocatedBuffer create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
-
 	// pad the size of something to the alignment boundary
 	// with thanks to https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer
 	size_t pad_uniform_buffer_size(size_t originalSize);
 
-	void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function);
 	
 	VkExtent2D m_WindowExtents{ 1700 , 900 };							// Size of the window we are going to open (in pixels).
 	struct SDL_Window* m_pWindow{ nullptr };							// A pointer to our window, using SDL2 (notably a forward-declaration).
@@ -207,10 +221,12 @@ private:
 
 	VkPipelineLayout m_TrianglePipelineLayout;							// A full Vulkan object that contains all information about shader inputs for our triangle.
 	VkPipelineLayout m_MeshPipelineLayout;								// A full Vulkan object that contains all information about shader inputs for our meshes.
+	VkPipelineLayout m_TexturePipelineLayout;							// A full Vulkan object that contains all information about shader inputs for our textures.
 
 	SelectedShader m_SelectedShader = SelectedShader::MeshPipeline;		// A way to determine which pipeline we are currently rendering.
 	Fish::Mesh m_TriangleMesh;											// The current mesh we are working with (the triangle).
 	Fish::Mesh m_MonkeyMesh;											// Obj loaded mesh.
+	Fish::Mesh m_LostEmpireMesh;										// Obj loaded mesh.
 
 	AllocatedImage m_DepthImage;										// Depth image handle to configure z-testing with a depth buffer.
 	VkImageView m_DepthImageView;										// Metadata for the depth image.
@@ -219,6 +235,7 @@ private:
 	std::vector<RenderObject> m_RenderObjects;							// All renderable objects.
 	std::unordered_map<std::string, Material> m_Materials;				// Map of name to material.
 	std::unordered_map<std::string, Fish::Mesh> m_Meshes;				// Map of name to mesh.
+	std::unordered_map<std::string, Texture> m_Textures;				// Map of name to texture.
 
 	FrameData m_Frames[kFrameOverlap];									//
 
@@ -232,4 +249,6 @@ private:
 	AllocatedBuffer m_SceneParametersBuffer;							//
 
 	UploadContext m_UploadContext;										//
+
+	VkDescriptorSetLayout m_SingleTextureSetLayout;						//
 };

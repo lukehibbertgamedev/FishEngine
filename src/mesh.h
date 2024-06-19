@@ -4,6 +4,7 @@
 #include <vk_types.h>
 #include <vector>
 #include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
 
 namespace Fish {
 
@@ -16,6 +17,7 @@ namespace Fish {
 		glm::vec3 position;
 		glm::vec3 normal;
 		glm::vec3 colour;
+		glm::vec2 uv;
 
 		static VertexInputDescription get_vertex_description();
 	};

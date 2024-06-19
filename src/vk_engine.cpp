@@ -8,6 +8,8 @@
 #include <vk_images.h>
 #include <vk_initializers.h>
 
+#include <texture.h>
+
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
 
@@ -65,6 +67,8 @@ void VulkanEngine::init()
     init_descriptors();
 
     init_pipelines();
+
+    load_images();
 
     load_meshes();
 
@@ -378,12 +382,13 @@ void VulkanEngine::init_framebuffers()
 
 void VulkanEngine::init_descriptors()
 {
-    //create a descriptor pool that will hold 10 uniform buffers and 10 dynamic uniform buffers and 10 storage buffers.
+    //create a descriptor pool that will hold 10 uniform buffers and 10 dynamic uniform buffers and 10 storage buffers and 10 combined image samplers.
     std::vector<VkDescriptorPoolSize> sizes =
     {
         { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10 },
         { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 10 },
-        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 10 }
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 10 },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10 }
     };
 
     VkDescriptorPoolCreateInfo pool_info = {};
@@ -423,6 +428,16 @@ void VulkanEngine::init_descriptors()
     vkCreateDescriptorSetLayout(m_Device, &set2info, nullptr, &m_ObjectSetLayout);
 
     // Texture bind.
+    VkDescriptorSetLayoutBinding textureBind = vkinit::descriptorset_layout_binding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0);
+
+    VkDescriptorSetLayoutCreateInfo set3info = {};
+    set3info.bindingCount = 1;
+    set3info.flags = 0;
+    set3info.pNext = nullptr;
+    set3info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    set3info.pBindings = &textureBind;
+
+    vkCreateDescriptorSetLayout(m_Device, &set3info, nullptr, &m_SingleTextureSetLayout);
 
     // Scene param buffer.
     const size_t sceneParamBufferSize = kFrameOverlap * pad_uniform_buffer_size(sizeof(GPUSceneData));
@@ -518,67 +533,78 @@ void VulkanEngine::init_pipelines()
 {
     // TODO: Load shaders in one function, and shorten the function into a "check_load" type function.
 
-    VkShaderModule defaultLitShader;
-    if (!load_shader_module("../../shaders/default_lit.frag.spv", &defaultLitShader))
+    VkShaderModule colorMeshShader;
+    if (!load_shader_module("../../shaders/default_lit.frag.spv", &colorMeshShader))
     {
-        fmt::println("Error when building the default lit triangle fragment shader module");
+        fmt::println("Error when building the defaultLitShader shader module");
     }
     else {
-        fmt::println("Triangle fragment shader successfully loaded");
+        fmt::println("defaultLitShader shader successfully loaded");
     }
 
-    VkShaderModule triangleVertexShader;
-    if (!load_shader_module("../../shaders/triangle.vert.spv", &triangleVertexShader))
+    VkShaderModule texturedMeshShader;
+    if (!load_shader_module("../../shaders/textured_lit.frag.spv", &texturedMeshShader))
     {
-        fmt::println("Error when building the triangle vertex shader module");
+        fmt::println("Error when building the texturedLitShader shader module");
     }
     else {
-        fmt::println("Triangle vertex shader successfully loaded");
+        fmt::println("texturedLitShader shader successfully loaded");
     }
 
-    VkShaderModule redTriangleFragShader;
-    if (!load_shader_module("../../shaders/redTriangle.frag.spv", &redTriangleFragShader))
+    VkShaderModule meshVertShader;
+    if (!load_shader_module("../../shaders/triangleMesh.vert.spv", &meshVertShader))
     {
-        fmt::println("Error when building the red triangle fragment shader module");
+        fmt::println("Error when building the triangleMeshShader shader module");
     }
     else {
-        fmt::println("Red triangle fragment shader successfully loaded");
+        fmt::println("triangleMeshShader shader successfully loaded");
     }
-
-    VkShaderModule redTriangleVertexShader;
-    if (!load_shader_module("../../shaders/redTriangle.vert.spv", &redTriangleVertexShader))
-    {
-        fmt::println("Error when building the red triangle vertex shader module");
-    }
-    else {
-        fmt::println("Red triangle vertex shader successfully loaded");
-    }
-
-    VkShaderModule triangleMeshShader;
-    if (!load_shader_module("../../shaders/triangleMesh.vert.spv", &triangleMeshShader))
-    {
-        fmt::println("Error when building the triangle mesh vertex shader module");
-    }
-    else {
-        fmt::println("Triangle mesh vertex shader successfully loaded");
-    }
-
-    //build the pipeline layout that controls the inputs/outputs of the shader
-    //we are not using descriptor sets or other systems yet, so no need to use anything other than empty default
-    VkPipelineLayoutCreateInfo pipeline_layout_info = vkinit::pipeline_layout_create_info();
-    VK_CHECK(vkCreatePipelineLayout(m_Device, &pipeline_layout_info, nullptr, &m_TrianglePipelineLayout));
-
-    //
-    // Pipeline Builder setup
-    //
+      
 
     //build the stage-create-info for both vertex and fragment stages. This lets the pipeline know the shader modules per stage
     PipelineBuilder pipelineBuilder;
 
-    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, triangleVertexShader));
-    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, defaultLitShader));
+    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
+    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, colorMeshShader));
 
-    //vertex input controls how to read vertices from vertex buffers. We aren't using it yet
+    //we start from just the default empty pipeline layout info
+    VkPipelineLayoutCreateInfo mesh_pipeline_layout_info = vkinit::pipeline_layout_create_info();
+
+    //setup push constants
+    VkPushConstantRange push_constant;
+    //offset 0
+    push_constant.offset = 0;
+    //size of a MeshPushConstant struct
+    push_constant.size = sizeof(MeshPushConstants);
+    //for the vertex shader
+    push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+    mesh_pipeline_layout_info.pPushConstantRanges = &push_constant;
+    mesh_pipeline_layout_info.pushConstantRangeCount = 1;
+
+    VkDescriptorSetLayout setLayouts[] = { m_GlobalSetLayout, m_ObjectSetLayout };
+
+    mesh_pipeline_layout_info.setLayoutCount = 2;
+    mesh_pipeline_layout_info.pSetLayouts = setLayouts;
+
+    VkPipelineLayout meshPipLayout;
+    VK_CHECK(vkCreatePipelineLayout(m_Device, &mesh_pipeline_layout_info, nullptr, &meshPipLayout));
+
+    //we start from  the normal mesh layout
+    VkPipelineLayoutCreateInfo textured_pipeline_layout_info = mesh_pipeline_layout_info;
+
+    VkDescriptorSetLayout texturedSetLayouts[] = { m_GlobalSetLayout, m_ObjectSetLayout, m_SingleTextureSetLayout };
+
+    textured_pipeline_layout_info.setLayoutCount = 3;
+    textured_pipeline_layout_info.pSetLayouts = texturedSetLayouts;
+
+    VkPipelineLayout texturedPipeLayout;
+    VK_CHECK(vkCreatePipelineLayout(m_Device, &textured_pipeline_layout_info, nullptr, &texturedPipeLayout));
+
+    //hook the push constants layout
+    pipelineBuilder.pipelineLayout = meshPipLayout;
+
+    //vertex input controls how to read vertices from vertex buffers. We arent using it yet
     pipelineBuilder.vertexInputState = vkinit::vertex_input_state_create_info();
 
     //input assembly is the configuration for drawing triangle lists, strips, or individual points.
@@ -599,111 +625,50 @@ void VulkanEngine::init_pipelines()
     //configure the rasterizer to draw filled triangles
     pipelineBuilder.rasterizer = vkinit::rasterization_state_create_info(VK_POLYGON_MODE_FILL);
 
-    //we don't use multisampling, so just run the default one
+    //we dont use multisampling, so just run the default one
     pipelineBuilder.multisampler = vkinit::multisampling_state_create_info();
 
     //a single blend attachment with no blending and writing to RGBA
-    pipelineBuilder.colourBlendAttachment= vkinit::color_blend_attachment_state();
+    pipelineBuilder.colourBlendAttachment = vkinit::color_blend_attachment_state();
 
-    //default depth testing
+    //default depthtesting
     pipelineBuilder.depthStencil = vkinit::depth_stencil_create_info(true, true, VK_COMPARE_OP_LESS_OR_EQUAL);
 
-    //use the triangle layout we created
-    pipelineBuilder.pipelineLayout = m_TrianglePipelineLayout;
+    //build the mesh pipeline
 
-    //finally build the pipeline
-    m_ColouredTrianglePipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
-
-    //
-    // Mesh Pipeline Layout ( Push constants tutorial )
-    //
-
-    //we start from just the default empty pipeline layout info
-    VkPipelineLayoutCreateInfo mesh_pipeline_layout_info = vkinit::pipeline_layout_create_info();
-
-    //setup push constants
-    VkPushConstantRange push_constant;
-    //this push constant range starts at the beginning
-    push_constant.offset = 0;
-    //this push constant range takes up the size of a MeshPushConstants struct
-    push_constant.size = sizeof(MeshPushConstants);
-    //this push constant range is accessible only in the vertex shader
-    push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-    mesh_pipeline_layout_info.pPushConstantRanges = &push_constant;
-    mesh_pipeline_layout_info.pushConstantRangeCount = 1;
-
-    //hook the set layouts
-    const int setLayoutsCount = 2;
-    VkDescriptorSetLayout setLayouts[] = { m_GlobalSetLayout, m_ObjectSetLayout };
-
-    mesh_pipeline_layout_info.setLayoutCount = setLayoutsCount;
-    mesh_pipeline_layout_info.pSetLayouts = setLayouts;
-
-    VK_CHECK(vkCreatePipelineLayout(m_Device, &mesh_pipeline_layout_info, nullptr, &m_MeshPipelineLayout));
-
-    //
-    // Build red triangle pipeline
-    //
-
-    //clear the shader stages for the builder
-    pipelineBuilder.shaderStages.clear();
-
-    //add the other shaders
-    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, redTriangleVertexShader));
-    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, redTriangleFragShader));
-
-    //build the red triangle pipeline
-    m_RedTrianglePipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
-
-    //
-    // Build the mesh pipeline
-    //
+    Fish::VertexInputDescription vertexDescription = Fish::Vertex::get_vertex_description();
 
     //connect the pipeline builder vertex input info to the one we get from Vertex
-    Fish::VertexInputDescription vertexDescription = Fish::Vertex::get_vertex_description();
     pipelineBuilder.vertexInputState.pVertexAttributeDescriptions = vertexDescription.attributes.data();
     pipelineBuilder.vertexInputState.vertexAttributeDescriptionCount = vertexDescription.attributes.size();
+
     pipelineBuilder.vertexInputState.pVertexBindingDescriptions = vertexDescription.bindings.data();
     pipelineBuilder.vertexInputState.vertexBindingDescriptionCount = vertexDescription.bindings.size();
 
-    //clear the shader stages for the builder
-    pipelineBuilder.shaderStages.clear();
-
-    //add the other shaders
-    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, triangleMeshShader));
-
-    //make sure that triangleFragShader is holding the compiled colored_triangle.frag
-    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, defaultLitShader));
-
-    // hook in the new layout
-    pipelineBuilder.pipelineLayout = m_MeshPipelineLayout;
-
     //build the mesh triangle pipeline
-    m_MeshPipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
+    VkPipeline meshPipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
 
-    create_material(m_MeshPipeline, m_MeshPipelineLayout, "defaultmesh");
+    create_material(meshPipeline, meshPipLayout, "defaultmesh");
 
-    //
-    // Clean
-    //
+    pipelineBuilder.shaderStages.clear();
+    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
 
-    //destroy all shader modules, outside of the queue
-    vkDestroyShaderModule(m_Device, redTriangleVertexShader, nullptr);
-    vkDestroyShaderModule(m_Device, redTriangleFragShader, nullptr);
-    vkDestroyShaderModule(m_Device, defaultLitShader, nullptr);
-    vkDestroyShaderModule(m_Device, triangleVertexShader, nullptr);
-    vkDestroyShaderModule(m_Device, triangleMeshShader, nullptr);
+    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, texturedMeshShader));
+
+    pipelineBuilder.pipelineLayout = texturedPipeLayout;
+    VkPipeline texPipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
+    create_material(texPipeline, texturedPipeLayout, "texturedmesh");
+
+    vkDestroyShaderModule(m_Device, meshVertShader, nullptr);
+    vkDestroyShaderModule(m_Device, colorMeshShader, nullptr);
+    vkDestroyShaderModule(m_Device, texturedMeshShader, nullptr);
 
     m_DeletionQueue.push_function([=]() {
-        //destroy the 2 pipelines we have created
-        vkDestroyPipeline(m_Device, m_RedTrianglePipeline, nullptr);
-        vkDestroyPipeline(m_Device, m_ColouredTrianglePipeline, nullptr);
-        vkDestroyPipeline(m_Device, m_MeshPipeline, nullptr);
+        vkDestroyPipeline(m_Device, meshPipeline, nullptr);
+        vkDestroyPipeline(m_Device, texPipeline, nullptr);
 
-        //destroy the pipeline layout that they use
-        vkDestroyPipelineLayout(m_Device, m_TrianglePipelineLayout, nullptr);
-        vkDestroyPipelineLayout(m_Device, m_MeshPipelineLayout, nullptr);
+        vkDestroyPipelineLayout(m_Device, meshPipLayout, nullptr);
+        vkDestroyPipelineLayout(m_Device, texturedPipeLayout, nullptr);
     });
 }
 
@@ -771,6 +736,40 @@ void VulkanEngine::init_scene()
             m_RenderObjects.push_back(triangle);
         }
     }
+
+    RenderObject map;
+    map.pMesh = get_mesh("empire");
+    map.pMaterial = get_material("texturedmesh");
+    map.transformMatrix = glm::translate(glm::vec3{ 5,-10,0 });
+    m_RenderObjects.push_back(map);
+
+    //create a sampler for the texture
+    VkSamplerCreateInfo samplerInfo = vkinit::sampler_create_info(VK_FILTER_NEAREST);
+
+    VkSampler blockySampler;
+    vkCreateSampler(m_Device, &samplerInfo, nullptr, &blockySampler);
+
+    Material* texturedMat = get_material("texturedmesh");
+
+    //allocate the descriptor set for single-texture to use on the material
+    VkDescriptorSetAllocateInfo allocInfo = {};
+    allocInfo.pNext = nullptr;
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = m_DescriptorPool;
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = &m_SingleTextureSetLayout;
+
+    vkAllocateDescriptorSets(m_Device, &allocInfo, &texturedMat->textureSet);
+
+    //write to the descriptor set so that it points to our empire_diffuse texture
+    VkDescriptorImageInfo imageBufferInfo;
+    imageBufferInfo.sampler = blockySampler;
+    imageBufferInfo.imageView = m_Textures["empire_diffuse"].imageView;
+    imageBufferInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+    VkWriteDescriptorSet texture1 = vkinit::write_descriptor_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, texturedMat->textureSet, &imageBufferInfo, 0);
+
+    vkUpdateDescriptorSets(m_Device, 1, &texture1, 0, nullptr);
 }
 
 void VulkanEngine::create_swapchain(uint32_t width, uint32_t height)
@@ -1083,12 +1082,27 @@ void VulkanEngine::load_meshes()
 
     // load mesh
     m_MonkeyMesh.load_from_obj("../../assets/monkey_smooth.obj");
+    m_LostEmpireMesh.load_from_obj("../../assets/lost_empire.obj");
 
     upload_mesh(m_TriangleMesh);
     upload_mesh(m_MonkeyMesh);
+    upload_mesh(m_LostEmpireMesh);
 
     m_Meshes["monkey"] = m_MonkeyMesh;
     m_Meshes["triangle"] = m_TriangleMesh;
+    m_Meshes["empire"] = m_LostEmpireMesh;
+}
+
+void VulkanEngine::load_images()
+{
+    Texture lostEmpire;
+
+    Fish::Textures::load_image_from_file(*this, "../../assets/lost_empire-RGBA.png", lostEmpire.image);
+
+    VkImageViewCreateInfo imageinfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, lostEmpire.image.image, VK_IMAGE_ASPECT_COLOR_BIT);
+    vkCreateImageView(m_Device, &imageinfo, nullptr, &lostEmpire.imageView);
+
+    m_Textures["empire_diffuse"] = lostEmpire;
 }
 
 void VulkanEngine::upload_mesh(Fish::Mesh& mesh)
@@ -1250,6 +1264,17 @@ void VulkanEngine::render_objects(VkCommandBuffer cmd, RenderObject* first, int 
 
             //object data descriptor
             vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.pMaterial->pipelineLayout, 1, 1, &get_current_frame().objectDescriptor, 0, nullptr);
+
+            //texture descriptor
+            if (object.pMaterial->textureSet != VK_NULL_HANDLE) {
+                vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.pMaterial->pipelineLayout, 2, 1, &object.pMaterial->textureSet, 0, nullptr);
+            }
+
+
+
+
+
+
         }
 
         glm::mat4 model = object.transformMatrix;
