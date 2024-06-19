@@ -70,6 +70,12 @@ struct RenderObject {
 	glm::mat4 transformMatrix;
 };
 
+struct UploadContext {
+	VkFence uploadFence;
+	VkCommandPool commandPool;
+	VkCommandBuffer commandBuffer;
+};
+
 constexpr unsigned int kFrameOverlap = 2;
 
 struct GPUCameraData {
@@ -164,6 +170,8 @@ private:
 	// pad the size of something to the alignment boundary
 	// with thanks to https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer
 	size_t pad_uniform_buffer_size(size_t originalSize);
+
+	void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function);
 	
 	VkExtent2D m_WindowExtents{ 1700 , 900 };							// Size of the window we are going to open (in pixels).
 	struct SDL_Window* m_pWindow{ nullptr };							// A pointer to our window, using SDL2 (notably a forward-declaration).
@@ -222,4 +230,6 @@ private:
 
 	GPUSceneData m_SceneParameters;										//
 	AllocatedBuffer m_SceneParametersBuffer;							//
+
+	UploadContext m_UploadContext;										//
 };

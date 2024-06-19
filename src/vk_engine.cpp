@@ -241,9 +241,22 @@ void VulkanEngine::init_commands()
         VkCommandBufferAllocateInfo cmdAllocInfo = vkinit::command_buffer_allocate_info(m_Frames[i].m_CommandPool, 1);
 
         VK_CHECK(vkAllocateCommandBuffers(m_Device, &cmdAllocInfo, &m_Frames[i].m_CommandBuffer));
-
+                
         m_DeletionQueue.push_function([=]() { vkDestroyCommandPool(m_Device, m_Frames[i].m_CommandPool, nullptr); });
     }    
+
+    //create pool for upload context
+    VkCommandPoolCreateInfo uploadCommandPoolInfo = vkinit::command_pool_create_info(m_GraphicsQueueFamily);
+    VK_CHECK(vkCreateCommandPool(m_Device, &uploadCommandPoolInfo, nullptr, &m_UploadContext.commandPool));
+
+    m_DeletionQueue.push_function([=]() {
+        vkDestroyCommandPool(m_Device, m_UploadContext.commandPool, nullptr);
+    });
+
+    //allocate the default command buffer that we will use for rendering
+    VkCommandBufferAllocateInfo cmdAllocInfo = vkinit::command_buffer_allocate_info(m_UploadContext.commandPool, 1);
+
+    VK_CHECK(vkAllocateCommandBuffers(m_Device, &cmdAllocInfo, &m_UploadContext.commandBuffer));
 }
 
 void VulkanEngine::init_main_renderpass()
@@ -712,9 +725,15 @@ void VulkanEngine::init_synchronisation_structures()
     for (int i = 0; i < kFrameOverlap; ++i)
     {
         VK_CHECK(vkCreateFence(m_Device, &fenceCreateInfo, nullptr, &m_Frames[i].m_RenderFence));
+        
+        VkFenceCreateInfo uploadFenceCreateInfo = vkinit::fence_create_info();
+        VK_CHECK(vkCreateFence(m_Device, &uploadFenceCreateInfo, nullptr, &m_UploadContext.uploadFence));
 
-        // queue destruction of fence.
-        m_DeletionQueue.push_function([=]() { vkDestroyFence(m_Device, m_Frames[i].m_RenderFence, nullptr); });
+        // queue destruction of fences.
+        m_DeletionQueue.push_function([=]() { 
+            vkDestroyFence(m_Device, m_Frames[i].m_RenderFence, nullptr); 
+            vkDestroyFence(m_Device, m_UploadContext.uploadFence, nullptr);
+        });
 
         VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &m_Frames[i].m_PresentSemaphore));
         VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &m_Frames[i].m_RenderSemaphore));
@@ -1074,34 +1093,66 @@ void VulkanEngine::load_meshes()
 
 void VulkanEngine::upload_mesh(Fish::Mesh& mesh)
 {
-    // allocate a buffer for the data of this mesh.
-    // map the memory from the mesh into the newly allocated buffer.
+    const size_t bufferSize = mesh.vertices.size() * sizeof(Fish::Vertex);
+    //allocate staging buffer
+    VkBufferCreateInfo stagingBufferInfo = {};
+    stagingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    stagingBufferInfo.pNext = nullptr;
 
-    //allocate vertex buffer
-    VkBufferCreateInfo bufferInfo = {};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    //this is the total size, in bytes, of the buffer we are allocating
-    bufferInfo.size = mesh.vertices.size() * sizeof(Fish::Vertex);
-    //this buffer is going to be used as a Vertex Buffer
-    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    stagingBufferInfo.size = bufferSize;
+    stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
-    //let the VMA library know that this data should be writeable by CPU, but also readable by GPU
+    //let the VMA library know that this data should be on CPU RAM
     VmaAllocationCreateInfo vmaallocInfo = {};
-    vmaallocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+    vmaallocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+
+    AllocatedBuffer stagingBuffer;
 
     //allocate the buffer
-    VK_CHECK(vmaCreateBuffer(m_Allocator, &bufferInfo, &vmaallocInfo, &mesh.vertexBuffer.buffer, &mesh.vertexBuffer.allocation, nullptr));
+    VK_CHECK(vmaCreateBuffer(m_Allocator, &stagingBufferInfo, &vmaallocInfo, &stagingBuffer.buffer, &stagingBuffer.allocation, nullptr));
 
-    //add the destruction of triangle mesh buffer to the deletion queue
-    m_DeletionQueue.push_function([=]() { vmaDestroyBuffer(m_Allocator, mesh.vertexBuffer.buffer, mesh.vertexBuffer.allocation); });
+    //
 
     //copy vertex data
     void* data;
-    vmaMapMemory(m_Allocator, mesh.vertexBuffer.allocation, &data);
+    vmaMapMemory(m_Allocator, stagingBuffer.allocation, &data);
 
     memcpy(data, mesh.vertices.data(), mesh.vertices.size() * sizeof(Fish::Vertex));
 
-    vmaUnmapMemory(m_Allocator, mesh.vertexBuffer.allocation);
+    vmaUnmapMemory(m_Allocator, stagingBuffer.allocation);
+
+    //
+
+    //allocate vertex buffer
+    VkBufferCreateInfo vertexBufferInfo = {};
+    vertexBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    vertexBufferInfo.pNext = nullptr;
+    //this is the total size, in bytes, of the buffer we are allocating
+    vertexBufferInfo.size = bufferSize;
+    //this buffer is going to be used as a Vertex Buffer
+    vertexBufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+    //let the VMA library know that this data should be GPU native
+    vmaallocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+    //allocate the buffer
+    VK_CHECK(vmaCreateBuffer(m_Allocator, &vertexBufferInfo, &vmaallocInfo, &mesh.vertexBuffer.buffer, &mesh.vertexBuffer.allocation, nullptr));
+
+    //
+
+    immediate_submit([=](VkCommandBuffer cmd) {
+        VkBufferCopy copy;
+        copy.dstOffset = 0;
+        copy.srcOffset = 0;
+        copy.size = bufferSize;
+        vkCmdCopyBuffer(cmd, stagingBuffer.buffer, mesh.vertexBuffer.buffer, 1, &copy);
+    });
+
+    //
+
+    //add the destruction of mesh buffer to the deletion queue
+    m_DeletionQueue.push_function([=]() { vmaDestroyBuffer(m_Allocator, mesh.vertexBuffer.buffer, mesh.vertexBuffer.allocation); });
+    vmaDestroyBuffer(m_Allocator, stagingBuffer.buffer, stagingBuffer.allocation);
 }
 
 Material* VulkanEngine::create_material(VkPipeline pipeline, VkPipelineLayout layout, const std::string& name)
@@ -1258,6 +1309,33 @@ size_t VulkanEngine::pad_uniform_buffer_size(size_t originalSize)
         alignedSize = (alignedSize + minUboAlignment - 1) & ~(minUboAlignment - 1);
     }
     return alignedSize;
+}
+
+void VulkanEngine::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function)
+{
+    VkCommandBuffer cmd = m_UploadContext.commandBuffer;
+
+    //begin the command buffer recording. We will use this command buffer exactly once before resetting, so we tell vulkan that
+    VkCommandBufferBeginInfo cmdBeginInfo = vkinit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+    VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
+
+    //execute the function
+    function(cmd);
+
+    VK_CHECK(vkEndCommandBuffer(cmd));
+
+    VkSubmitInfo submit = vkinit::submit_info(&cmd);
+
+    //submit command buffer to the queue and execute it.
+    // _uploadFence will now block until the graphic commands finish execution
+    VK_CHECK(vkQueueSubmit(m_GraphicsQueue, 1, &submit, m_UploadContext.uploadFence));
+
+    vkWaitForFences(m_Device, 1, &m_UploadContext.uploadFence, true, 9999999999);
+    vkResetFences(m_Device, 1, &m_UploadContext.uploadFence);
+
+    // reset the command buffers inside the command pool
+    vkResetCommandPool(m_Device, m_UploadContext.commandPool, 0);
 }
 
 bool VulkanEngine::load_shader_module(const char* filePath, VkShaderModule* outShaderModule)
