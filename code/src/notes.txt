@@ -9,6 +9,10 @@ You now support Vulkan API version 1.3
 
 -----------------------------------------------------------------------------------------------------------------------------
 
+The GPU has a minimum buffer alignment of 64
+
+-----------------------------------------------------------------------------------------------------------------------------
+
 Shader files
 
 Using this command in the directory of the *.vert or *.frag file: glslangValidator.exe "shader.vert" -V -l -o "shader.vert.spv"

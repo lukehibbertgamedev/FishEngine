@@ -245,13 +245,11 @@ VkDescriptorSetLayoutCreateInfo vkinit::descriptorset_layout_create_info(VkDescr
     return info;
 }
 
-VkWriteDescriptorSet vkinit::write_descriptor_image(VkDescriptorType type, VkDescriptorSet dstSet,
-    VkDescriptorImageInfo* imageInfo, uint32_t binding)
+VkWriteDescriptorSet vkinit::write_descriptor_image(VkDescriptorType type, VkDescriptorSet dstSet, VkDescriptorImageInfo* imageInfo, uint32_t binding)
 {
     VkWriteDescriptorSet write = {};
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     write.pNext = nullptr;
-
     write.dstBinding = binding;
     write.dstSet = dstSet;
     write.descriptorCount = 1;
@@ -261,13 +259,11 @@ VkWriteDescriptorSet vkinit::write_descriptor_image(VkDescriptorType type, VkDes
     return write;
 }
 
-VkWriteDescriptorSet vkinit::write_descriptor_buffer(VkDescriptorType type, VkDescriptorSet dstSet,
-    VkDescriptorBufferInfo* bufferInfo, uint32_t binding)
+VkWriteDescriptorSet vkinit::write_descriptor_buffer(VkDescriptorType type, VkDescriptorSet dstSet, VkDescriptorBufferInfo* bufferInfo, uint32_t binding)
 {
     VkWriteDescriptorSet write = {};
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     write.pNext = nullptr;
-
     write.dstBinding = binding;
     write.dstSet = dstSet;
     write.descriptorCount = 1;

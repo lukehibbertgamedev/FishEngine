@@ -87,6 +87,14 @@ struct FrameData {
 	VkDescriptorSet globalDescriptor;									// Holds the matrices that we need.
 };
 
+struct GPUSceneData {
+	glm::vec4 fogColour;												// W is for exponent.
+	glm::vec4 fogDistances;												// X for min. Y for max. ZW unused.
+	glm::vec4 ambientColour;
+	glm::vec4 sunlightDirection;										// W is for intensity/power.
+	glm::vec4 sunlightColour;
+};
+
 class VulkanEngine {
 public:
 
@@ -144,6 +152,10 @@ private:
 
 	// abstracted buffer creation.
 	AllocatedBuffer create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+
+	// pad the size of something to the alignment boundary
+	// with thanks to https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer
+	size_t pad_uniform_buffer_size(size_t originalSize);
 	
 	VkExtent2D m_WindowExtents{ 1700 , 900 };							// Size of the window we are going to open (in pixels).
 	struct SDL_Window* m_pWindow{ nullptr };							// A pointer to our window, using SDL2 (notably a forward-declaration).
@@ -196,4 +208,9 @@ private:
 
 	VkDescriptorSetLayout m_GlobalSetLayout;							//
 	VkDescriptorPool m_DescriptorPool;									//
+	
+	VkPhysicalDeviceProperties m_GPUProperties;							// 
+
+	GPUSceneData m_SceneParameters;										//
+	AllocatedBuffer m_SceneParametersBuffer;							//
 };
