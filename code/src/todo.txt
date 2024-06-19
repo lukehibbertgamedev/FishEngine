@@ -59,6 +59,8 @@ Next time:
 
 	- [ ] Implement the ImGui section of the vulkan guide (https://vkguide.dev/docs/extra-chapter/implementing_imgui/)
 
+	- [ ] Read up and review the code surrounding descriptor sets
+
 	- [ ] Complete the exercises from the finale of chapter 3
 	- [ ] Add WASD control to the camera (modify matricies in the render function)
 	- [ ] Sort the render objects container before rendering by Pipeline and Mesh, reducing number of binds

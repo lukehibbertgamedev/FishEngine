@@ -72,11 +72,19 @@ struct RenderObject {
 
 constexpr unsigned int kFrameOverlap = 2;
 
+struct GPUCameraData {
+	glm::mat4 viewMatrix;
+	glm::mat4 projectionMatrix;
+	glm::mat4 viewProjectionMatrix;
+};
+
 struct FrameData {
 	VkCommandPool m_CommandPool;										// A collection of command buffers. Resetting the command pool resets all command buffers allocated from it.
 	VkCommandBuffer m_CommandBuffer;									// All commands are recorded into a command buffer, this won't do anything unless submitted to the GPU.
 	VkFence m_RenderFence;												// Used for GPU -> CPU communication.
 	VkSemaphore m_PresentSemaphore, m_RenderSemaphore;					// Used for GPU -> GPU synchronisation.
+	AllocatedBuffer cameraBuffer;										// Buffer holding a single GPUCameraData to use during rendering.
+	VkDescriptorSet globalDescriptor;									// Holds the matrices that we need.
 };
 
 class VulkanEngine {
@@ -103,8 +111,9 @@ private:
 	void init_commands();
 	void init_main_renderpass();
 	void init_framebuffers();
-	void init_pipelines();
 	void init_synchronisation_structures(); // for fences and semaphores
+	void init_descriptors();
+	void init_pipelines();
 	void init_scene();
 
 	void create_swapchain(uint32_t width, uint32_t height);
@@ -132,6 +141,9 @@ private:
 
 	// return frame we are rendering to right now.
 	FrameData& get_current_frame();
+
+	// abstracted buffer creation.
+	AllocatedBuffer create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 	
 	VkExtent2D m_WindowExtents{ 1700 , 900 };							// Size of the window we are going to open (in pixels).
 	struct SDL_Window* m_pWindow{ nullptr };							// A pointer to our window, using SDL2 (notably a forward-declaration).
@@ -182,4 +194,6 @@ private:
 
 	FrameData m_Frames[kFrameOverlap];									//
 
+	VkDescriptorSetLayout m_GlobalSetLayout;							//
+	VkDescriptorPool m_DescriptorPool;									//
 };
