@@ -83,8 +83,16 @@ struct FrameData {
 	VkCommandBuffer m_CommandBuffer;									// All commands are recorded into a command buffer, this won't do anything unless submitted to the GPU.
 	VkFence m_RenderFence;												// Used for GPU -> CPU communication.
 	VkSemaphore m_PresentSemaphore, m_RenderSemaphore;					// Used for GPU -> GPU synchronisation.
+
 	AllocatedBuffer cameraBuffer;										// Buffer holding a single GPUCameraData to use during rendering.
 	VkDescriptorSet globalDescriptor;									// Holds the matrices that we need.
+
+	AllocatedBuffer objectBuffer;										//
+	VkDescriptorSet objectDescriptor;									// Holds the matrices that we need.
+};
+
+struct GPUObjectData {
+	glm::mat4 modelMatrix;												
 };
 
 struct GPUSceneData {
@@ -207,6 +215,7 @@ private:
 	FrameData m_Frames[kFrameOverlap];									//
 
 	VkDescriptorSetLayout m_GlobalSetLayout;							//
+	VkDescriptorSetLayout m_ObjectSetLayout;							//
 	VkDescriptorPool m_DescriptorPool;									//
 	
 	VkPhysicalDeviceProperties m_GPUProperties;							// 

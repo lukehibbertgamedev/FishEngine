@@ -47,11 +47,14 @@ Previously:
 	- [X] Merge this branch into develop and branch off to Feature/Renderer					14/06
 	- [X] Implemented spinning triangle with camera position and view matrix				14/06
 	- [X] Implemented depth buffer to fix and complete model loading for one model			14/06
- 	- [X] Complete chapter 3 of the vulkan guide											14/06
+ 	- [X] Complete chapter 3 of the vulkan guide, drawing meshes							14/06
 	- [X] Implemented double-buffering														14/06
 
+	- [X] Implemented descriptor sets (including dynamic)									19/06
+	- [X] Implemented storage buffers														19/06
+	- [X] Complete chapter 4 of the vulkan guide, buffers and shader input/output			19/06
+
 Next time:
-	- [ ] Continue on from setting up descriptor sets (https://vkguide.dev/docs/chapter-4/descriptors_code/)
 
 	- [ ] Complete chapter 4 of the vulkan guide (https://vkguide.dev/docs/chapter_4)
 	- [ ] Complete chapter 5 of the vulkan guide (https://vkguide.dev/docs/chapter_5)
@@ -60,6 +63,7 @@ Next time:
 	- [ ] Implement the ImGui section of the vulkan guide (https://vkguide.dev/docs/extra-chapter/implementing_imgui/)
 
 	- [ ] Read up and review the code surrounding descriptor sets
+	- [ ] Fix the subtle flickering 
 
 	- [ ] Complete the exercises from the finale of chapter 3
 	- [ ] Add WASD control to the camera (modify matricies in the render function)
