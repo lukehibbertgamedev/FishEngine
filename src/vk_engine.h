@@ -6,8 +6,9 @@
 #pragma once
 
 #include <vk_types.h>
-#include <mesh.h>
-#include <timer.h>
+
+#include <fish_timer.h>
+#include <fish_resource_manager.h>
 
 #include <unordered_map>
 
@@ -60,17 +61,17 @@ struct MeshPushConstants {
 	glm::mat4 matrix;
 };
 
-struct Material {
-	VkDescriptorSet textureSet{ VK_NULL_HANDLE }; //texture defaulted to null
-	VkPipeline pipeline;
-	VkPipelineLayout pipelineLayout;
-};
+//struct Material {
+//	VkDescriptorSet textureSet{ VK_NULL_HANDLE }; //texture defaulted to null
+//	VkPipeline pipeline;
+//	VkPipelineLayout pipelineLayout;
+//};
 
-struct RenderObject {	
-	Fish::Mesh* pMesh;
-	Material* pMaterial;
-	glm::mat4 transformMatrix;
-};
+//struct RenderObject {	
+//	Fish::Resource::Mesh* pMesh;
+//	Fish::Resource::Material* pMaterial;
+//	glm::mat4 transformMatrix;
+//};
 
 struct UploadContext {
 	VkFence uploadFence;
@@ -111,10 +112,7 @@ struct GPUSceneData {
 	glm::vec4 sunlightColour;
 };
 
-struct Texture {
-	AllocatedImage image;
-	VkImageView imageView;
-};
+
 
 class VulkanEngine {
 public:
@@ -140,6 +138,9 @@ public:
 
 	// returns a reference
 	DeletionQueue& GetDeletionQueue() { return m_DeletionQueue; }
+	VkDevice& GetDevice() { return m_Device; }
+	VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }
+	VkDescriptorSetLayout& GetSingleTextureSetLayout() { return m_SingleTextureSetLayout; }
 
 private:
 
@@ -153,7 +154,7 @@ private:
 	void init_synchronisation_structures(); // for fences and semaphores
 	void init_descriptors();
 	void init_pipelines();
-	void init_scene();
+	//void init_scene();
 
 	void create_swapchain(uint32_t width, uint32_t height);
 	void destroy_swapchain();
@@ -168,20 +169,20 @@ private:
 	void render_imgui();
 
 	// sets up a mesh structure and uploads it (this is technically load_triangle())
-	void load_meshes();
+	//void load_meshes();
 
-	void load_images();
+	//void load_images();
 
 	// allocate and map the mesh memory to a buffer
-	void upload_mesh(Fish::Mesh& mesh);
+	//void upload_mesh(Fish::Resource::Mesh& mesh);
 
-	Material* create_material(VkPipeline pipeline, VkPipelineLayout layout, const std::string& name);
+	//Fish::Resource::Material* create_material(VkPipeline pipeline, VkPipelineLayout layout, const std::string& name);
 	// returns nullptr if cannot find
-	Material* get_material(const std::string& name); 
+	//Fish::Resource::Material* get_material(const std::string& name);
 	// returns nullptr if cannot find
-	Fish::Mesh* get_mesh(const std::string& name);
+	//Fish::Resource::Mesh* get_mesh(const std::string& name);
 
-	void render_objects(VkCommandBuffer cmd, RenderObject* first, int count);
+	void render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObject* first, int count);
 
 	// return frame we are rendering to right now.
 	FrameData& get_current_frame();
@@ -228,18 +229,18 @@ private:
 	VkPipelineLayout m_TexturePipelineLayout;							// A full Vulkan object that contains all information about shader inputs for our textures.
 
 	SelectedShader m_SelectedShader = SelectedShader::MeshPipeline;		// A way to determine which pipeline we are currently rendering.
-	Fish::Mesh m_TriangleMesh;											// The current mesh we are working with (the triangle).
-	Fish::Mesh m_MonkeyMesh;											// Obj loaded mesh.
-	Fish::Mesh m_LostEmpireMesh;										// Obj loaded mesh.
+	Fish::Resource::Mesh m_TriangleMesh;											// The current mesh we are working with (the triangle).
+	Fish::Resource::Mesh m_MonkeyMesh;											// Obj loaded mesh.
+	Fish::Resource::Mesh m_LostEmpireMesh;										// Obj loaded mesh.
 
 	AllocatedImage m_DepthImage;										// Depth image handle to configure z-testing with a depth buffer.
 	VkImageView m_DepthImageView;										// Metadata for the depth image.
 	VkFormat m_DepthFormat;												// Cached format of the depth image for reuse.
 
-	std::vector<RenderObject> m_RenderObjects;							// All renderable objects.
-	std::unordered_map<std::string, Material> m_Materials;				// Map of name to material.
-	std::unordered_map<std::string, Fish::Mesh> m_Meshes;				// Map of name to mesh.
-	std::unordered_map<std::string, Texture> m_Textures;				// Map of name to texture.
+	//std::vector<RenderObject> m_RenderObjects;							// All renderable objects.
+	//std::unordered_map<std::string, Material> m_Materials;				// Map of name to material.
+	//std::unordered_map<std::string, Fish::Resource::Mesh> m_Meshes;		// Map of name to mesh.
+	//std::unordered_map<std::string, Fish::Resource::Texture> m_Textures;// Map of name to texture.
 
 	FrameData m_Frames[kFrameOverlap];									//
 
@@ -260,4 +261,6 @@ private:
 	VkDescriptorPool m_ImGuiDescriptorPool;								// 
 
 	Fish::Timer::EngineTimer timer;
+
+	Fish::ResourceManager* m_pResourceManager;
 };

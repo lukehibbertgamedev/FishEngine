@@ -1,6 +1,8 @@
 
 #pragma once
 
+// GameTimer with thanks to https://terrorgum.com/tfox/books/introductionto3dgameprogrammingwithdirectx12.pdf
+
 namespace Fish {
 
 	namespace Timer {

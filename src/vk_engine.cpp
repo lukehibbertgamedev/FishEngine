@@ -8,8 +8,6 @@
 #include <vk_images.h>
 #include <vk_initializers.h>
 
-#include <texture.h>
-
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
 
@@ -24,7 +22,7 @@
 #include <imgui_impl_sdl2.h>
 #include <iostream>
 
-#include <timer.h>
+#include <loader.h>
 
 
 // We set a *global* pointer for the vulkan engine singleton reference. 
@@ -69,11 +67,8 @@ void VulkanEngine::init()
 
     init_pipelines();
 
-    load_images();
-
-    load_meshes();
-
-    init_scene();
+    // load textures -> meshes -> scene
+    Fish::ResourceManager::Get().init();
 
     // must be done after all vulkan initialisation.
     init_imgui();
@@ -646,7 +641,7 @@ void VulkanEngine::init_pipelines()
 
     //build the mesh pipeline
 
-    Fish::VertexInputDescription vertexDescription = Fish::Vertex::get_vertex_description();
+    Fish::Resource::VertexInputDescription vertexDescription = Fish::Resource::Vertex::get_vertex_description();
 
     //connect the pipeline builder vertex input info to the one we get from Vertex
     pipelineBuilder.vertexInputState.pVertexAttributeDescriptions = vertexDescription.attributes.data();
@@ -658,7 +653,7 @@ void VulkanEngine::init_pipelines()
     //build the mesh triangle pipeline
     VkPipeline meshPipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
 
-    create_material(meshPipeline, meshPipLayout, "defaultmesh");
+    Fish::ResourceManager::Get().create_material(meshPipeline, meshPipLayout, "defaultmesh");
 
     pipelineBuilder.shaderStages.clear();
     pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
@@ -667,7 +662,7 @@ void VulkanEngine::init_pipelines()
 
     pipelineBuilder.pipelineLayout = texturedPipeLayout;
     VkPipeline texPipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
-    create_material(texPipeline, texturedPipeLayout, "texturedmesh");
+    Fish::ResourceManager::Get().create_material(texPipeline, texturedPipeLayout, "texturedmesh");
 
     vkDestroyShaderModule(m_Device, meshVertShader, nullptr);
     vkDestroyShaderModule(m_Device, colorMeshShader, nullptr);
@@ -721,66 +716,66 @@ void VulkanEngine::init_synchronisation_structures()
     }    
 }
 
-void VulkanEngine::init_scene()
-{
-    RenderObject monkey;
-    monkey.pMesh = get_mesh("monkey");
-    monkey.pMaterial = get_material("defaultmesh");
-    monkey.transformMatrix = glm::mat4{ 1.0f };
-
-    m_RenderObjects.push_back(monkey);
-
-    // We create 1 monkey, add it as the first thing to the renderables array, 
-    // and then we create a lot of triangles in a grid, and put them around the monkey.
-
-    for (int x = -20; x <= 20; x++) {
-        for (int y = -20; y <= 20; y++) {
-
-            RenderObject triangle;
-            triangle.pMesh = get_mesh("triangle");
-            triangle.pMaterial = get_material("defaultmesh");
-            glm::mat4 translation = glm::translate(glm::mat4{ 1.0 }, glm::vec3(x, 0, y));
-            glm::mat4 scale = glm::scale(glm::mat4{ 1.0 }, glm::vec3(0.2, 0.2, 0.2));
-            triangle.transformMatrix = translation * scale;
-
-            m_RenderObjects.push_back(triangle);
-        }
-    }
-
-    RenderObject map;
-    map.pMesh = get_mesh("empire");
-    map.pMaterial = get_material("texturedmesh");
-    map.transformMatrix = glm::translate(glm::vec3{ 5,-10,0 });
-    m_RenderObjects.push_back(map);
-
-    //create a sampler for the texture
-    VkSamplerCreateInfo samplerInfo = vkinit::sampler_create_info(VK_FILTER_NEAREST);
-
-    VkSampler blockySampler;
-    vkCreateSampler(m_Device, &samplerInfo, nullptr, &blockySampler);
-
-    Material* texturedMat = get_material("texturedmesh");
-
-    //allocate the descriptor set for single-texture to use on the material
-    VkDescriptorSetAllocateInfo allocInfo = {};
-    allocInfo.pNext = nullptr;
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = m_DescriptorPool;
-    allocInfo.descriptorSetCount = 1;
-    allocInfo.pSetLayouts = &m_SingleTextureSetLayout;
-
-    vkAllocateDescriptorSets(m_Device, &allocInfo, &texturedMat->textureSet);
-
-    //write to the descriptor set so that it points to our empire_diffuse texture
-    VkDescriptorImageInfo imageBufferInfo;
-    imageBufferInfo.sampler = blockySampler;
-    imageBufferInfo.imageView = m_Textures["empire_diffuse"].imageView;
-    imageBufferInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-    VkWriteDescriptorSet texture1 = vkinit::write_descriptor_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, texturedMat->textureSet, &imageBufferInfo, 0);
-
-    vkUpdateDescriptorSets(m_Device, 1, &texture1, 0, nullptr);
-}
+//void VulkanEngine::init_scene()
+//{
+//    RenderObject monkey;
+//    monkey.pMesh = get_mesh("monkey");
+//    monkey.pMaterial = get_material("defaultmesh");
+//    monkey.transformMatrix = glm::mat4{ 1.0f };
+//
+//    m_RenderObjects.push_back(monkey);
+//
+//    // We create 1 monkey, add it as the first thing to the renderables array, 
+//    // and then we create a lot of triangles in a grid, and put them around the monkey.
+//
+//    for (int x = -20; x <= 20; x++) {
+//        for (int y = -20; y <= 20; y++) {
+//
+//            RenderObject triangle;
+//            triangle.pMesh = get_mesh("triangle");
+//            triangle.pMaterial = get_material("defaultmesh");
+//            glm::mat4 translation = glm::translate(glm::mat4{ 1.0 }, glm::vec3(x, 0, y));
+//            glm::mat4 scale = glm::scale(glm::mat4{ 1.0 }, glm::vec3(0.2, 0.2, 0.2));
+//            triangle.transformMatrix = translation * scale;
+//
+//            m_RenderObjects.push_back(triangle);
+//        }
+//    }
+//
+//    RenderObject map;
+//    map.pMesh = get_mesh("empire");
+//    map.pMaterial = get_material("texturedmesh");
+//    map.transformMatrix = glm::translate(glm::vec3{ 5,-10,0 });
+//    m_RenderObjects.push_back(map);
+//
+//    //create a sampler for the texture
+//    VkSamplerCreateInfo samplerInfo = vkinit::sampler_create_info(VK_FILTER_NEAREST);
+//
+//    VkSampler blockySampler;
+//    vkCreateSampler(m_Device, &samplerInfo, nullptr, &blockySampler);
+//
+//    Material* texturedMat = get_material("texturedmesh");
+//
+//    //allocate the descriptor set for single-texture to use on the material
+//    VkDescriptorSetAllocateInfo allocInfo = {};
+//    allocInfo.pNext = nullptr;
+//    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+//    allocInfo.descriptorPool = m_DescriptorPool;
+//    allocInfo.descriptorSetCount = 1;
+//    allocInfo.pSetLayouts = &m_SingleTextureSetLayout;
+//
+//    vkAllocateDescriptorSets(m_Device, &allocInfo, &texturedMat->textureSet);
+//
+//    //write to the descriptor set so that it points to our empire_diffuse texture
+//    VkDescriptorImageInfo imageBufferInfo;
+//    imageBufferInfo.sampler = blockySampler;
+//    imageBufferInfo.imageView = m_Textures["empire_diffuse"].imageView;
+//    imageBufferInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+//
+//    VkWriteDescriptorSet texture1 = vkinit::write_descriptor_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, texturedMat->textureSet, &imageBufferInfo, 0);
+//
+//    vkUpdateDescriptorSets(m_Device, 1, &texture1, 0, nullptr);
+//}
 
 void VulkanEngine::create_swapchain(uint32_t width, uint32_t height)
 {
@@ -952,7 +947,11 @@ void VulkanEngine::render()
     // 
     
     // Object Render Pass.
-    render_objects(cmd, m_RenderObjects.data(), m_RenderObjects.size());
+    render_objects(
+        cmd, 
+        Fish::ResourceManager::Get().get_current_scene().GetSceneObjects().data(), 
+        Fish::ResourceManager::Get().get_current_scene().GetSceneObjects().size()
+    );
 
     // Kind of ImGui Render Pass.
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
@@ -1110,145 +1109,145 @@ void VulkanEngine::run()
     }
 }
 
-void VulkanEngine::load_meshes()
-{
-    //make the array 3 vertices long
-    m_TriangleMesh.vertices.resize(3);
+//void VulkanEngine::load_meshes()
+//{
+//    //make the array 3 vertices long
+//    m_TriangleMesh.vertices.resize(3);
+//
+//    //vertex positions
+//    m_TriangleMesh.vertices[0].position = { 1.f, 1.f, 0.0f };
+//    m_TriangleMesh.vertices[1].position = { -1.f, 1.f, 0.0f };
+//    m_TriangleMesh.vertices[2].position = { 0.f,-1.f, 0.0f };
+//
+//    //vertex colors, all green
+//    m_TriangleMesh.vertices[0].colour = { 0.f, 1.f, 0.0f }; //pure green
+//    m_TriangleMesh.vertices[1].colour = { 0.f, 1.f, 0.0f }; //pure green
+//    m_TriangleMesh.vertices[2].colour = { 0.f, 1.f, 0.0f }; //pure green
+//
+//    //we don't care about the vertex normals
+//
+//    // load mesh
+//    m_MonkeyMesh.load_from_obj("../../assets/monkey_smooth.obj");
+//    m_LostEmpireMesh.load_from_obj("../../assets/lost_empire.obj");
+//
+//    upload_mesh(m_TriangleMesh);
+//    upload_mesh(m_MonkeyMesh);
+//    upload_mesh(m_LostEmpireMesh);
+//
+//    m_Meshes["monkey"] = m_MonkeyMesh;
+//    m_Meshes["triangle"] = m_TriangleMesh;
+//    m_Meshes["empire"] = m_LostEmpireMesh;
+//}
+//
+//void VulkanEngine::load_images()
+//{
+//    Fish::Resource::Texture lostEmpire;
+//
+//    Fish::Loader::load_image_from_file(*this, "../../assets/lost_empire-RGBA.png", lostEmpire.image);
+//
+//    VkImageViewCreateInfo imageinfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, lostEmpire.image.image, VK_IMAGE_ASPECT_COLOR_BIT);
+//    vkCreateImageView(m_Device, &imageinfo, nullptr, &lostEmpire.imageView);
+//
+//    m_Textures["empire_diffuse"] = lostEmpire;
+//}
 
-    //vertex positions
-    m_TriangleMesh.vertices[0].position = { 1.f, 1.f, 0.0f };
-    m_TriangleMesh.vertices[1].position = { -1.f, 1.f, 0.0f };
-    m_TriangleMesh.vertices[2].position = { 0.f,-1.f, 0.0f };
+//void VulkanEngine::upload_mesh(Fish::Resource::Mesh& mesh)
+//{
+//    const size_t bufferSize = mesh.vertices.size() * sizeof(Fish::Resource::Vertex);
+//    //allocate staging buffer
+//    VkBufferCreateInfo stagingBufferInfo = {};
+//    stagingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+//    stagingBufferInfo.pNext = nullptr;
+//
+//    stagingBufferInfo.size = bufferSize;
+//    stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+//
+//    //let the VMA library know that this data should be on CPU RAM
+//    VmaAllocationCreateInfo vmaallocInfo = {};
+//    vmaallocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+//
+//    AllocatedBuffer stagingBuffer;
+//
+//    //allocate the buffer
+//    VK_CHECK(vmaCreateBuffer(m_Allocator, &stagingBufferInfo, &vmaallocInfo, &stagingBuffer.buffer, &stagingBuffer.allocation, nullptr));
+//
+//    //
+//
+//    //copy vertex data
+//    void* data;
+//    vmaMapMemory(m_Allocator, stagingBuffer.allocation, &data);
+//
+//    memcpy(data, mesh.vertices.data(), mesh.vertices.size() * sizeof(Fish::Resource::Vertex));
+//
+//    vmaUnmapMemory(m_Allocator, stagingBuffer.allocation);
+//
+//    //
+//
+//    //allocate vertex buffer
+//    VkBufferCreateInfo vertexBufferInfo = {};
+//    vertexBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+//    vertexBufferInfo.pNext = nullptr;
+//    //this is the total size, in bytes, of the buffer we are allocating
+//    vertexBufferInfo.size = bufferSize;
+//    //this buffer is going to be used as a Vertex Buffer
+//    vertexBufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+//
+//    //let the VMA library know that this data should be GPU native
+//    vmaallocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+//
+//    //allocate the buffer
+//    VK_CHECK(vmaCreateBuffer(m_Allocator, &vertexBufferInfo, &vmaallocInfo, &mesh.vertexBuffer.buffer, &mesh.vertexBuffer.allocation, nullptr));
+//
+//    //
+//
+//    immediate_submit([=](VkCommandBuffer cmd) {
+//        VkBufferCopy copy;
+//        copy.dstOffset = 0;
+//        copy.srcOffset = 0;
+//        copy.size = bufferSize;
+//        vkCmdCopyBuffer(cmd, stagingBuffer.buffer, mesh.vertexBuffer.buffer, 1, &copy);
+//    });
+//
+//    //
+//
+//    //add the destruction of mesh buffer to the deletion queue
+//    m_DeletionQueue.push_function([=]() { vmaDestroyBuffer(m_Allocator, mesh.vertexBuffer.buffer, mesh.vertexBuffer.allocation); });
+//    vmaDestroyBuffer(m_Allocator, stagingBuffer.buffer, stagingBuffer.allocation);
+//}
 
-    //vertex colors, all green
-    m_TriangleMesh.vertices[0].colour = { 0.f, 1.f, 0.0f }; //pure green
-    m_TriangleMesh.vertices[1].colour = { 0.f, 1.f, 0.0f }; //pure green
-    m_TriangleMesh.vertices[2].colour = { 0.f, 1.f, 0.0f }; //pure green
+//Material* VulkanEngine::create_material(VkPipeline pipeline, VkPipelineLayout layout, const std::string& name)
+//{
+//    Material mat;
+//    mat.pipeline = pipeline;
+//    mat.pipelineLayout = layout;
+//    m_Materials[name] = mat;
+//    return &m_Materials[name];
+//}
+//
+//Material* VulkanEngine::get_material(const std::string& name)
+//{
+//    //search for the object, and return nullptr if not found
+//    auto it = m_Materials.find(name);
+//    if (it == m_Materials.end()) {
+//        return nullptr;
+//    }
+//    else {
+//        return &(*it).second;
+//    }
+//}
 
-    //we don't care about the vertex normals
+//Fish::Resource::Mesh* VulkanEngine::get_mesh(const std::string& name)
+//{
+//    auto it = m_Meshes.find(name);
+//    if (it == m_Meshes.end()) {
+//        return nullptr;
+//    }
+//    else {
+//        return &(*it).second;
+//    }
+//}
 
-    // load mesh
-    m_MonkeyMesh.load_from_obj("../../assets/monkey_smooth.obj");
-    m_LostEmpireMesh.load_from_obj("../../assets/lost_empire.obj");
-
-    upload_mesh(m_TriangleMesh);
-    upload_mesh(m_MonkeyMesh);
-    upload_mesh(m_LostEmpireMesh);
-
-    m_Meshes["monkey"] = m_MonkeyMesh;
-    m_Meshes["triangle"] = m_TriangleMesh;
-    m_Meshes["empire"] = m_LostEmpireMesh;
-}
-
-void VulkanEngine::load_images()
-{
-    Texture lostEmpire;
-
-    Fish::Textures::load_image_from_file(*this, "../../assets/lost_empire-RGBA.png", lostEmpire.image);
-
-    VkImageViewCreateInfo imageinfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, lostEmpire.image.image, VK_IMAGE_ASPECT_COLOR_BIT);
-    vkCreateImageView(m_Device, &imageinfo, nullptr, &lostEmpire.imageView);
-
-    m_Textures["empire_diffuse"] = lostEmpire;
-}
-
-void VulkanEngine::upload_mesh(Fish::Mesh& mesh)
-{
-    const size_t bufferSize = mesh.vertices.size() * sizeof(Fish::Vertex);
-    //allocate staging buffer
-    VkBufferCreateInfo stagingBufferInfo = {};
-    stagingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    stagingBufferInfo.pNext = nullptr;
-
-    stagingBufferInfo.size = bufferSize;
-    stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-
-    //let the VMA library know that this data should be on CPU RAM
-    VmaAllocationCreateInfo vmaallocInfo = {};
-    vmaallocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
-
-    AllocatedBuffer stagingBuffer;
-
-    //allocate the buffer
-    VK_CHECK(vmaCreateBuffer(m_Allocator, &stagingBufferInfo, &vmaallocInfo, &stagingBuffer.buffer, &stagingBuffer.allocation, nullptr));
-
-    //
-
-    //copy vertex data
-    void* data;
-    vmaMapMemory(m_Allocator, stagingBuffer.allocation, &data);
-
-    memcpy(data, mesh.vertices.data(), mesh.vertices.size() * sizeof(Fish::Vertex));
-
-    vmaUnmapMemory(m_Allocator, stagingBuffer.allocation);
-
-    //
-
-    //allocate vertex buffer
-    VkBufferCreateInfo vertexBufferInfo = {};
-    vertexBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    vertexBufferInfo.pNext = nullptr;
-    //this is the total size, in bytes, of the buffer we are allocating
-    vertexBufferInfo.size = bufferSize;
-    //this buffer is going to be used as a Vertex Buffer
-    vertexBufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-
-    //let the VMA library know that this data should be GPU native
-    vmaallocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-
-    //allocate the buffer
-    VK_CHECK(vmaCreateBuffer(m_Allocator, &vertexBufferInfo, &vmaallocInfo, &mesh.vertexBuffer.buffer, &mesh.vertexBuffer.allocation, nullptr));
-
-    //
-
-    immediate_submit([=](VkCommandBuffer cmd) {
-        VkBufferCopy copy;
-        copy.dstOffset = 0;
-        copy.srcOffset = 0;
-        copy.size = bufferSize;
-        vkCmdCopyBuffer(cmd, stagingBuffer.buffer, mesh.vertexBuffer.buffer, 1, &copy);
-    });
-
-    //
-
-    //add the destruction of mesh buffer to the deletion queue
-    m_DeletionQueue.push_function([=]() { vmaDestroyBuffer(m_Allocator, mesh.vertexBuffer.buffer, mesh.vertexBuffer.allocation); });
-    vmaDestroyBuffer(m_Allocator, stagingBuffer.buffer, stagingBuffer.allocation);
-}
-
-Material* VulkanEngine::create_material(VkPipeline pipeline, VkPipelineLayout layout, const std::string& name)
-{
-    Material mat;
-    mat.pipeline = pipeline;
-    mat.pipelineLayout = layout;
-    m_Materials[name] = mat;
-    return &m_Materials[name];
-}
-
-Material* VulkanEngine::get_material(const std::string& name)
-{
-    //search for the object, and return nullptr if not found
-    auto it = m_Materials.find(name);
-    if (it == m_Materials.end()) {
-        return nullptr;
-    }
-    else {
-        return &(*it).second;
-    }
-}
-
-Fish::Mesh* VulkanEngine::get_mesh(const std::string& name)
-{
-    auto it = m_Meshes.find(name);
-    if (it == m_Meshes.end()) {
-        return nullptr;
-    }
-    else {
-        return &(*it).second;
-    }
-}
-
-void VulkanEngine::render_objects(VkCommandBuffer cmd, RenderObject* first, int count)
+void VulkanEngine::render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObject* first, int count)
 {
     //make a model view matrix for rendering the object
     //camera view
@@ -1288,16 +1287,16 @@ void VulkanEngine::render_objects(VkCommandBuffer cmd, RenderObject* first, int 
     GPUObjectData* objectSSBO = (GPUObjectData*)objectData;
     for (int i = 0; i < count; i++)
     {
-        RenderObject& object = first[i];
+        Fish::Resource::RenderObject& object = first[i];
         objectSSBO[i].modelMatrix = object.transformMatrix;
     }
     vmaUnmapMemory(m_Allocator, get_current_frame().objectBuffer.allocation);
 
-    Fish::Mesh* lastMesh = nullptr;
-    Material* lastMaterial = nullptr;
+    Fish::Resource::Mesh* lastMesh = nullptr;
+    Fish::Resource::Material* lastMaterial = nullptr;
     for (int i = 0; i < count; i++)
     {
-        RenderObject& object = first[i];
+        Fish::Resource::RenderObject& object = first[i];
 
         //only bind the pipeline if it doesn't match with the already bound one
         if (object.pMaterial != lastMaterial) {
@@ -1316,11 +1315,6 @@ void VulkanEngine::render_objects(VkCommandBuffer cmd, RenderObject* first, int 
             if (object.pMaterial->textureSet != VK_NULL_HANDLE) {
                 vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.pMaterial->pipelineLayout, 2, 1, &object.pMaterial->textureSet, 0, nullptr);
             }
-
-
-
-
-
 
         }
 

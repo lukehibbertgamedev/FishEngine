@@ -1,4 +1,4 @@
-#include "texture.h"
+#include "loader.h"
 
 #include <iostream>
 #include <vk_initializers.h>
@@ -8,9 +8,9 @@
 
 namespace Fish {
 
-	namespace Textures {
+	namespace Loader {
 
-		bool Fish::Textures::load_image_from_file(VulkanEngine& engine, const char* file, AllocatedImage& outImage)
+		bool Fish::Loader::load_image_from_file(VulkanEngine& engine, const char* file, AllocatedImage& outImage)
 		{
 			int texWidth, texHeight, texChannels;
 

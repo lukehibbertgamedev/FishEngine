@@ -19,10 +19,16 @@ add_executable (engine
   camera.h
   mesh.h
   mesh.cpp
-  texture.h
-  texture.cpp
-  timer.h
-  timer.cpp
+  loader.h
+  loader.cpp
+  fish_timer.h
+  fish_timer.cpp
+  fish_resource_manager.h
+  fish_resource_manager.cpp
+  fish_resource.h
+  fish_resource.cpp
+  fish_scene.h
+  fish_scene.cpp
   tiny_obj_loader.h
 )
 

@@ -31,10 +31,19 @@
     <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\texture.cpp">
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\timer.cpp">
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_timer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_resource_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_resource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -66,10 +75,19 @@
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\texture.h">
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\timer.h">
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_resource_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\tiny_obj_loader.h">

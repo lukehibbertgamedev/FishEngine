@@ -1,4 +1,5 @@
-#include "timer.h"
+#include "fish_timer.h"
+
 #include <windows.h>
 
 namespace Fish {
