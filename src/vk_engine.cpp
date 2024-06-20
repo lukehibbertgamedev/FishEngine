@@ -947,11 +947,9 @@ void VulkanEngine::render()
     // 
     
     // Object Render Pass.
-    render_objects(
-        cmd, 
-        Fish::ResourceManager::Get().get_current_scene().GetSceneObjects().data(), 
-        Fish::ResourceManager::Get().get_current_scene().GetSceneObjects().size()
-    );
+
+    std::vector<Fish::Resource::RenderObject> renderable = Fish::ResourceManager::Get().get_current_scene().m_SceneObjects;
+    render_objects(cmd, renderable.data(), renderable.size());
 
     // Kind of ImGui Render Pass.
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);

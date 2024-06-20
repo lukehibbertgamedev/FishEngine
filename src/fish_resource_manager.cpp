@@ -44,34 +44,15 @@ void Fish::ResourceManager::load_all_textures()
 
 void Fish::ResourceManager::load_scene()
 {
-    Fish::Resource::RenderObject monkey;
-    monkey.pMesh = get_mesh_by_name("monkey");
-    monkey.pMaterial = get_material_by_name("defaultmesh");
-    monkey.transformMatrix = glm::mat4{ 1.0f };
-    m_Scene.GetSceneObjects().push_back(monkey);
+    // Load the minecraft texture object.
+    Fish::Resource::RenderObject obj = {};
+    obj.pMesh = get_mesh_by_name("empire");
+    obj.pMaterial = get_material_by_name("texturedmesh");
+    obj.transformMatrix = glm::translate(glm::vec3{ 5,-10,0 });
+    m_Scene.m_SceneObjects.push_back(obj);
 
-    // We create 1 monkey, add it as the first thing to the renderables array, 
-    // and then we create a lot of triangles in a grid, and put them around the monkey.
-
-    for (int x = -20; x <= 20; x++) {
-        for (int y = -20; y <= 20; y++) {
-
-            Fish::Resource::RenderObject triangle;
-            triangle.pMesh = get_mesh_by_name("triangle");
-            triangle.pMaterial = get_material_by_name("defaultmesh");
-            glm::mat4 translation = glm::translate(glm::mat4{ 1.0 }, glm::vec3(x, 0, y));
-            glm::mat4 scale = glm::scale(glm::mat4{ 1.0 }, glm::vec3(0.2, 0.2, 0.2));
-            triangle.transformMatrix = translation * scale;
-
-            m_Scene.GetSceneObjects().push_back(triangle);
-        }
-    }
-
-    Fish::Resource::RenderObject map;
-    map.pMesh = get_mesh_by_name("empire");
-    map.pMaterial = get_material_by_name("texturedmesh");
-    map.transformMatrix = glm::translate(glm::vec3{ 5,-10,0 });
-    m_Scene.GetSceneObjects().push_back(map);
+    // Load next object...
+    obj = {};
 
     //
 
