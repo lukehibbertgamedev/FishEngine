@@ -163,6 +163,9 @@ private:
 	//draw loop responsible for synchronisation and the recording of command buffers.
 	void render();
 
+	// commands responsible for rendering imgui.
+	void render_imgui();
+
 	// sets up a mesh structure and uploads it (this is technically load_triangle())
 	void load_meshes();
 
@@ -251,4 +254,7 @@ private:
 	UploadContext m_UploadContext;										//
 
 	VkDescriptorSetLayout m_SingleTextureSetLayout;						//
+
+	// ImGui section
+	VkDescriptorPool m_ImGuiDescriptorPool;								// 
 };

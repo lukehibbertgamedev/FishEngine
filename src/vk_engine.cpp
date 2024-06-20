@@ -51,9 +51,7 @@ void VulkanEngine::init()
         window_flags);
 
     init_vulkan();
-
-    //init_imgui(); // disabled until chapter 5
-
+        
     init_swapchain();
 
     init_commands();
@@ -73,6 +71,9 @@ void VulkanEngine::init()
     load_meshes();
 
     init_scene();
+
+    // must be done after all vulkan initialisation.
+    init_imgui();
 
     // everything went fine
     m_IsInitialized = true;
@@ -163,67 +164,70 @@ void VulkanEngine::init_vulkan()
 
 void VulkanEngine::init_imgui()
 {
-    ////1: create descriptor pool for IMGUI
-    //// the size of the pool is very oversize, but it's copied from imgui demo itself.
-    //VkDescriptorPoolSize pool_sizes[] =
-    //{
-    //    { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
-    //    { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
-    //    { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
-    //    { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
-    //    { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
-    //    { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
-    //    { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
-    //    { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
-    //    { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
-    //    { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
-    //    { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
-    //};
+    //1: create descriptor pool for IMGUI
+    // the size of the pool is very oversize, but it's copied from imgui demo itself.
+    VkDescriptorPoolSize pool_sizes[] =
+    {
+        { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+        { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+        { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+    };
 
-    //VkDescriptorPoolCreateInfo pool_info = {};
-    //pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    //pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-    //pool_info.maxSets = 1000;
-    //pool_info.poolSizeCount = std::size(pool_sizes);
-    //pool_info.pPoolSizes = pool_sizes;
+    VkDescriptorPoolCreateInfo pool_info = {};
+    pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    pool_info.maxSets = 1000;
+    pool_info.poolSizeCount = std::size(pool_sizes);
+    pool_info.pPoolSizes = pool_sizes;
 
-    //VkDescriptorPool imguiPool;
-    //VK_CHECK(vkCreateDescriptorPool(m_Device, &pool_info, nullptr, &imguiPool));
+    VK_CHECK(vkCreateDescriptorPool(m_Device, &pool_info, nullptr, &m_ImGuiDescriptorPool));
 
-    //// 2: initialize imgui library
+    // 2: initialize imgui library
 
-    ////this initializes the core structures of imgui
-    //ImGui::CreateContext();
+    //this initializes the core structures of imgui
+    ImGui::CreateContext();
 
-    ////this initializes imgui for SDL
-    //ImGui_ImplSDL2_InitForVulkan(m_pWindow);
+    //this initializes imgui for SDL
+    bool ret = true;
+    ret = ImGui_ImplSDL2_InitForVulkan(m_pWindow);
+    assert(ret && "Failed to initialise ImGui for SDL2.\n");
 
-    ////this initializes imgui for Vulkan
-    //ImGui_ImplVulkan_InitInfo init_info = {};
-    //init_info.Instance = m_VkInstance;
-    //init_info.PhysicalDevice = m_PhysicalDevice;
-    //init_info.Device = m_Device;
-    //init_info.Queue = m_GraphicsQueue;
-    //init_info.DescriptorPool = imguiPool;
-    //init_info.MinImageCount = 3;
-    //init_info.ImageCount = 3;
-    //init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    //this initializes imgui for Vulkan
+    ImGui_ImplVulkan_InitInfo init_info = {};
+    init_info.Instance = m_VkInstance;
+    init_info.PhysicalDevice = m_PhysicalDevice;
+    init_info.Device = m_Device;
+    init_info.Queue = m_GraphicsQueue;
+    init_info.DescriptorPool = m_ImGuiDescriptorPool;
+    init_info.MinImageCount = 3;
+    init_info.ImageCount = 3;
+    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
-    //ImGui_ImplVulkan_Init(&init_info, m_MainRenderPass);
+    ImGui_ImplVulkan_Init(&init_info, m_MainRenderPass);
 
-    ////execute a gpu command to upload imgui font textures
-    //immediate_submit([&](VkCommandBuffer cmd) {
-    //    ImGui_ImplVulkan_CreateFontsTexture(cmd);
-    //});
+    //execute a gpu command to upload imgui font textures
+    VkCommandBuffer cmd = get_current_frame().m_CommandBuffer;
 
-    ////clear font textures from cpu data
-    //ImGui_ImplVulkan_DestroyFontUploadObjects();
+    immediate_submit([=](VkCommandBuffer cmd) {
+        ImGui_ImplVulkan_CreateFontsTexture(cmd);
+    });
 
-    ////add the destroy the imgui created structures
-    //m_DeletionQueue.push_function([=]() {
-    //    vkDestroyDescriptorPool(m_Device, imguiPool, nullptr);
-    //    ImGui_ImplVulkan_Shutdown();
-    //});
+    //clear font textures from cpu data
+    ImGui_ImplVulkan_DestroyFontUploadObjects();
+
+    //add the destroy the imgui created structures
+    m_DeletionQueue.push_function([=]() {
+        vkDestroyDescriptorPool(m_Device, m_ImGuiDescriptorPool, nullptr);
+        ImGui_ImplVulkan_Shutdown();
+    });
 }
 
 void VulkanEngine::init_swapchain()
@@ -876,6 +880,8 @@ void VulkanEngine::cleanup()
 
 void VulkanEngine::render()
 {
+    ImGui::Render();
+
     const unsigned int timeout = 1000000000;
 
     // wait until the gpu has finished rendering the last frame. Timeout of 1 second
@@ -933,24 +939,17 @@ void VulkanEngine::render()
 
     vkCmdBeginRenderPass(cmd, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+    //
+    // 
     // Actually send out rendering commands:
     // 
     // 
     
-    if (m_SelectedShader == SelectedShader::ColouredPipeline)
-    {
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ColouredTrianglePipeline);
-        vkCmdDraw(cmd, 3, 1, 0, 0);
-    }
-    else if (m_SelectedShader == SelectedShader::RedPipeline)
-    {
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_RedTrianglePipeline);
-        vkCmdDraw(cmd, 3, 1, 0, 0);
-    }
-    else if (m_SelectedShader == SelectedShader::MeshPipeline)
-    {
-        render_objects(cmd, m_RenderObjects.data(), m_RenderObjects.size());
-    } 
+    // Object Render Pass.
+    render_objects(cmd, m_RenderObjects.data(), m_RenderObjects.size());
+
+    // Kind of ImGui Render Pass.
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
 
     //finalize the render pass
     vkCmdEndRenderPass(cmd);
@@ -1003,6 +1002,17 @@ void VulkanEngine::render()
     m_FrameNumber++;
 }
 
+void VulkanEngine::render_imgui()
+{
+    // ImGui new frame.
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplSDL2_NewFrame(m_pWindow);
+    ImGui::NewFrame();
+
+    // ImGui commands.
+    ImGui::ShowDemoWindow();
+}
+
 void VulkanEngine::run()
 {
     SDL_Event e;
@@ -1016,31 +1026,33 @@ void VulkanEngine::run()
         // during the last frame. Here, we can check for things like keyboard events, mouse input, etc...
         while (SDL_PollEvent(&e) != 0) {
 
+            // Have ImGui process the events.
+            ImGui_ImplSDL2_ProcessEvent(&e);
+
             // close the window when user alt-f4s or clicks the X button
             if (e.type == SDL_QUIT) {
                 bQuit = true;
             }
 
-            // Quick example of getting a keypress event and logging it.
+            // Key down events.
             else if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
                 case SDLK_SPACE:
+                    //// Increment shader 
+                    //m_SelectedShader = (SelectedShader)((int)m_SelectedShader + 1);
 
-                    // Increment shader 
-                    m_SelectedShader = (SelectedShader)((int)m_SelectedShader + 1);
+                    //// Don't exceed max shader
+                    //if (m_SelectedShader == SelectedShader::MaxPipelines) {
 
-                    // Don't exceed max shader
-                    if (m_SelectedShader == SelectedShader::MaxPipelines) {
-
-                        // Reset shader 
-                        m_SelectedShader = (SelectedShader)(0);
-                    }
-                    fmt::println("Toggle next shader: ", (int)m_SelectedShader);
+                    //    // Reset shader 
+                    //    m_SelectedShader = (SelectedShader)(0);
+                    //}
+                    //fmt::println("Toggle next shader: ", (int)m_SelectedShader);
                     break;
                 }
-
             }
             
+            // Window events.
             else if (e.type == SDL_WINDOWEVENT) {
                 if (e.window.event == SDL_WINDOWEVENT_MINIMIZED) {
                     m_StopRendering = true;
@@ -1049,9 +1061,10 @@ void VulkanEngine::run()
                     m_StopRendering = false;
                 }
             }
-        }
 
-        // do not draw if condition is met
+        } // End event loop.
+
+        // do not draw.
         if (m_StopRendering) {
 
             // throttle the speed to avoid the endless spinning
@@ -1059,7 +1072,11 @@ void VulkanEngine::run()
             continue;
         }
 
-        render();
+        // imgui render.
+        render_imgui();
+
+        // Main draw loop.
+        render();        
     }
 }
 

@@ -58,11 +58,14 @@ Previously:
 	- [X] Implemented texture loading and rendering											19/06
 	- [X] Complete chapter 5 of the vulkan guide, textures									19/06 *
 
+	- [X] Implement the ImGui section of the vulkan guide									20/06
+	- [X] Open the ImGui demo window														20/06
+
+
 Next time:
 
 	- [ ] Complete extra chapter of the vulkan guide (https://vkguide.dev/docs/extra_chapter)
 
-	- [ ] Implement the ImGui section of the vulkan guide (https://vkguide.dev/docs/extra-chapter/implementing_imgui/)
 
 	- [ ] Read up and review the code surrounding descriptor sets
 
@@ -73,3 +76,6 @@ Next time:
 	- [ ] Load more meshes
 
 	- [ ] Go through the console window on termination and attempt to clear the validation errors/warnings
+
+	- [ ] Refactor all code to abstract certain features. i.e. resource management singleton
+	- [ ] Refactor all code to match the 1.3 support for Vulkan
