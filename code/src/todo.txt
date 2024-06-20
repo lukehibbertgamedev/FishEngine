@@ -58,9 +58,9 @@ Previously:
 	- [X] Implemented texture loading and rendering											19/06
 	- [X] Complete chapter 5 of the vulkan guide, textures									19/06 *
 
-	- [X] Implement the ImGui section of the vulkan guide									20/06
+	- [X] Implement the ImGui section of the vulkan guide									20/06 *
 	- [X] Open the ImGui demo window														20/06
-
+	- [X] Custom ImGui window with timer metrics											20/06
 
 Next time:
 

@@ -21,6 +21,8 @@ add_executable (engine
   mesh.cpp
   texture.h
   texture.cpp
+  timer.h
+  timer.cpp
   tiny_obj_loader.h
 )
 

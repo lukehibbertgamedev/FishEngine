@@ -24,6 +24,9 @@
 #include <imgui_impl_sdl2.h>
 #include <iostream>
 
+#include <timer.h>
+
+
 // We set a *global* pointer for the vulkan engine singleton reference. 
 // We do that instead of a typical singleton because we want to control explicitly when is the class initalized and destroyed. 
 // The normal Cpp singleton pattern doesnt give us control over that.
@@ -74,6 +77,9 @@ void VulkanEngine::init()
 
     // must be done after all vulkan initialisation.
     init_imgui();
+
+    Fish::Timer::EngineTimer _timer;
+    timer = _timer;
 
     // everything went fine
     m_IsInitialized = true;
@@ -1004,13 +1010,31 @@ void VulkanEngine::render()
 
 void VulkanEngine::render_imgui()
 {
-    // ImGui new frame.
+    // Configuration.
+    ImGuiIO io = ImGui::GetIO();
+
+    // Style.
+    ImGuiStyle* style = &ImGui::GetStyle();
+    style->FrameBorderSize = 1;
+
+    // New Frame.
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplSDL2_NewFrame(m_pWindow);
     ImGui::NewFrame();
 
-    // ImGui commands.
+    // Commands.
     ImGui::ShowDemoWindow();
+
+    ImGui::Begin("Debug Overlay", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
+
+    ImGui::Text("Debug data for Fish engine.");
+
+    ImGui::Text("time elapsed: %f", timer.engine_time());
+    ImGui::Text("delta time: %f", timer.delta_time());
+
+    ImGui::End(); // Debug Overlay.
+
+
 }
 
 void VulkanEngine::run()
@@ -1018,9 +1042,11 @@ void VulkanEngine::run()
     SDL_Event e;
     bool bQuit = false;
 
+    timer.reset();
+
     // main loop
     while (!bQuit) {
-
+        
         // Handle events on queue.
         // This will ask SDL for all of the events that the OS has sent to the application
         // during the last frame. Here, we can check for things like keyboard events, mouse input, etc...
@@ -1072,11 +1098,15 @@ void VulkanEngine::run()
             continue;
         }
 
+        timer.tick();
+
         // imgui render.
         render_imgui();
 
         // Main draw loop.
-        render();        
+        render();       
+
+       
     }
 }
 

@@ -7,6 +7,7 @@
 
 #include <vk_types.h>
 #include <mesh.h>
+#include <timer.h>
 
 #include <unordered_map>
 
@@ -257,4 +258,6 @@ private:
 
 	// ImGui section
 	VkDescriptorPool m_ImGuiDescriptorPool;								// 
+
+	Fish::Timer::EngineTimer timer;
 };
