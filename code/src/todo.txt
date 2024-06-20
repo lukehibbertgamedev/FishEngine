@@ -1,26 +1,6 @@
 
 Future Todo:
-	- Fix the Vulkan API, somehow the configurator thinks you have version 1.2 something. But I installed the 1.3.283 SDK, so? 
-		The init_vulkan() require_api_version(1, 3) currently does not work because of it, same with physical device selector.
-		I changed this to be desire_api_version and it works for now. This may cause issues.
-
-		This may be fixed by copying these 3 files (https://github.com/charles-lunarg/vk-bootstrap/tree/main/src) into third_party/vkbootstrap/
-
-	- Validation error in console (related to the vulkan api version)
-		
-		[ERROR: Validation]
-		Validation Error: [ VUID-VkDeviceCreateInfo-pNext-pNext ] Object 0: handle = 0x1f4f2164b20, type = VK_OBJECT_TYPE_INSTANCE; 
-		| MessageID = 0x901f59ec | vkCreateDevice(): pCreateInfo->pNext includes a pointer to a VkStructureType 
-		(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES) which was added in VK_API_VERSION_1_3 but the current effective API
-		version is 1.2.155 (0x0040209b). The Vulkan spec states: Each pNext member of any structure (including this one) in the pNext
-		chain must be either NULL or a pointer to a valid struct for extending VkDeviceCreateInfo 
-		(https://vulkan.lunarg.com/doc/view/1.3.283.0/windows/1.3-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pNext-pNext)
-
-	Once fixed, go over the (https://vkguide.dev/docs/new_chapter_1/vulkan_mainloop_code/) tutorial and change the functions back
-	to utilise the use of type2 structures. I replaced them with type structures to get this to work as type2 comes with the 1.3 API.
-
-
-	Continue to swap shaders
+	- [ ]
 
 Previously:
 	- [X] Recreated a new project using Vulkan and SDL as opposed to Vulkan and GLFW.		05/06
@@ -65,15 +45,18 @@ Previously:
 
 Next time:
 
-	- [ ] Complete extra chapter of the vulkan guide (https://vkguide.dev/docs/extra_chapter)
+	- [ ] Add WASD control to the camera (https://vkguide.dev/docs/new_chapter_5/interactive_camera/)
 
+	- [ ] Render several different models using different textures
+
+	- [ ] Further abstract vk_engine.h separating the components from the engine
 
 	- [ ] Read up and review the code surrounding descriptor sets
 
 	- [ ] Complete the exercises from the finale of chapter 3
-	- [ ] Add WASD control to the camera (modify matricies in the render function)
+
 	- [ ] Sort the render objects container before rendering by Pipeline and Mesh, reducing number of binds
-	- [ ] Clean up all hardcoded pipelines and meshes
+	
 	- [ ] Load more meshes
 
 	- [ ] Go through the console window on termination and attempt to clear the validation errors/warnings
