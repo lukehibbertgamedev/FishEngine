@@ -11,6 +11,7 @@
 #include <fish_resource_manager.h>
 
 #include <unordered_map>
+#include <fish_camera.h>
 
 class PipelineBuilder {
 public:
@@ -264,4 +265,6 @@ private:
 	Fish::Timer::EngineTimer timer;
 
 	Fish::ResourceManager* m_pResourceManager;
+
+	Fish::Camera m_Camera;
 };

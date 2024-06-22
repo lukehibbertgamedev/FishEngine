@@ -1028,6 +1028,8 @@ void VulkanEngine::render_imgui()
 
     ImGui::Text("time elapsed: %f", timer.engine_time());
     ImGui::Text("delta time: %f", timer.delta_time());
+    ImGui::Text("camera pos: %f, %f, %f", m_Camera.m_Position.x, m_Camera.m_Position.y, m_Camera.m_Position.z);
+    ImGui::Text("camera pitch, yaw: %f, %f", m_Camera.m_Pitch, m_Camera.m_Yaw);
 
     ImGui::End(); // Debug Overlay.
 
@@ -1049,6 +1051,9 @@ void VulkanEngine::run()
         // during the last frame. Here, we can check for things like keyboard events, mouse input, etc...
         while (SDL_PollEvent(&e) != 0) {
 
+            // Have the camera process the events.
+            m_Camera.processSDLEvent(e);
+
             // Have ImGui process the events.
             ImGui_ImplSDL2_ProcessEvent(&e);
 
@@ -1061,16 +1066,6 @@ void VulkanEngine::run()
             else if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
                 case SDLK_SPACE:
-                    //// Increment shader 
-                    //m_SelectedShader = (SelectedShader)((int)m_SelectedShader + 1);
-
-                    //// Don't exceed max shader
-                    //if (m_SelectedShader == SelectedShader::MaxPipelines) {
-
-                    //    // Reset shader 
-                    //    m_SelectedShader = (SelectedShader)(0);
-                    //}
-                    //fmt::println("Toggle next shader: ", (int)m_SelectedShader);
                     break;
                 }
             }
@@ -1101,9 +1096,7 @@ void VulkanEngine::run()
         render_imgui();
 
         // Main draw loop.
-        render();       
-
-       
+        render();   
     }
 }
 
@@ -1249,9 +1242,10 @@ void VulkanEngine::render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObj
 {
     //make a model view matrix for rendering the object
     //camera view
-    glm::vec3 camPos = { 0.f, -6.f, -10.f };
+    m_Camera.update();
 
-    glm::mat4 view = glm::translate(glm::mat4(1.f), camPos);
+    glm::mat4 view = glm::translate(glm::mat4(1.f), m_Camera.m_Position);
+    view = m_Camera.get_view_matrix();
 
     //camera projection
     glm::mat4 projection = glm::perspective(glm::radians(70.f), 1700.f / 900.f, 0.1f, 200.0f); // todo remove magic numbers

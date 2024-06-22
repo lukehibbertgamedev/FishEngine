@@ -14,9 +14,9 @@ add_executable (engine
   vk_engine.h
   vk_engine.cpp
   vk_loader.h
-  vk_loader.cpp
-  camera.cpp
-  camera.h
+  vk_loader.cpp 
+  fish_camera.cpp
+  fish_camera.h
   mesh.h
   mesh.cpp
   loader.h
@@ -28,7 +28,7 @@ add_executable (engine
   fish_resource.h
   fish_resource.cpp
   fish_scene.h
-  fish_scene.cpp
+  fish_scene.cpp  
   tiny_obj_loader.h
 )
 

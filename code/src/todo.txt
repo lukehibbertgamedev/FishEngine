@@ -43,6 +43,8 @@ Previously:
 	- [X] Custom ImGui window with timer metrics											20/06
 	- [X] Refactor engine to use resource manager and scenes								20/06
 
+	- [X] Added WASD/QE control to the camera												22/06
+
 Next time:
 
 	- [ ] Add WASD control to the camera (https://vkguide.dev/docs/new_chapter_5/interactive_camera/)
@@ -62,3 +64,5 @@ Next time:
 	- [ ] Go through the console window on termination and attempt to clear the validation errors/warnings
 
 	- [ ] Refactor all code to match the 1.3 support for Vulkan
+
+	- [ ] Privatise unnecessary variables and provide const correct accessors
