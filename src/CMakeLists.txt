@@ -29,6 +29,8 @@ add_executable (engine
   fish_resource.cpp
   fish_scene.h
   fish_scene.cpp  
+  fish_gpu_data.h
+  fish_pipeline.h
   tiny_obj_loader.h
 )
 

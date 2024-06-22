@@ -25,6 +25,8 @@
 
 constexpr bool kUseValidationLayers = true;
 
+constexpr unsigned int kFrameOverlap = 2;
+
 struct AllocatedImage {
     VkImage image;
     VmaAllocation allocation;

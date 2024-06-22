@@ -90,6 +90,12 @@
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_gpu_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_pipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\tiny_obj_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
