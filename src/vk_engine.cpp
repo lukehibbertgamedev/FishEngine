@@ -968,6 +968,17 @@ void VulkanEngine::render_imgui()
     ImGui::Text("camera pos: %f, %f, %f", m_Camera.m_Position.x, m_Camera.m_Position.y, m_Camera.m_Position.z);
     ImGui::Text("camera pitch, yaw: %f, %f", m_Camera.m_Pitch, m_Camera.m_Yaw);
 
+    ImGui::NewLine();
+
+    // Reference is required here.
+    Fish::Resource::RenderObject& horse = Fish::ResourceManager::Get().get_current_scene().m_SceneObjects[0];
+
+    static float pos[3] = { horse.transformMatrix[3][0], horse.transformMatrix[3][1], horse.transformMatrix[3][2] };
+    ImGui::DragFloat3("horse position", pos, 0.5f, -FLT_MAX, +FLT_MAX);
+    horse.transformMatrix[3][0] = pos[0];
+    horse.transformMatrix[3][1] = pos[1];
+    horse.transformMatrix[3][2] = pos[2];
+
     ImGui::End(); // Debug Overlay.
 
 

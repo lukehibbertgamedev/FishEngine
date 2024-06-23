@@ -47,6 +47,7 @@ Previously:
 	- [X] Further abstracted vk_engine.h separating gpu data and pipeline builder			22/06
 
 	- [X] Added toggle for the camera mouse motion											23/06
+	- [X] Hardcoded runtime movement for the horse model									23/06
 
 Next time:
 
