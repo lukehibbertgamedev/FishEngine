@@ -973,11 +973,23 @@ void VulkanEngine::render_imgui()
     // Reference is required here.
     Fish::Resource::RenderObject& horse = Fish::ResourceManager::Get().get_current_scene().m_SceneObjects[0];
 
+    // Position.
     static float pos[3] = { horse.transformMatrix[3][0], horse.transformMatrix[3][1], horse.transformMatrix[3][2] };
     ImGui::DragFloat3("horse position", pos, 0.5f, -FLT_MAX, +FLT_MAX);
-    horse.transformMatrix[3][0] = pos[0];
-    horse.transformMatrix[3][1] = pos[1];
-    horse.transformMatrix[3][2] = pos[2];
+    glm::mat4 transmat = glm::translate(glm::vec3(pos[0], pos[1], pos[2]));
+
+    // Rotation.
+    static float rot[3] = { glm::degrees(horse.transform.eulerAngles.x), glm::degrees(horse.transform.eulerAngles.y), glm::degrees(horse.transform.eulerAngles.z) };
+    ImGui::DragFloat3("horse rotation", rot, 0.5f, -FLT_MAX, +FLT_MAX);
+    glm::mat4 rotmat = glm::rotate(glm::radians(rot[2]), glm::vec3(0.f, 0.f, 1.f)) * glm::rotate(glm::radians(rot[1]), glm::vec3(0.f, 1.f, 0.f)) * glm::rotate(glm::radians(rot[0]), glm::vec3(1.f, 0.f, 0.f)); // z * y * x
+
+    // Scale
+    static float scl[3] = { horse.transformMatrix[0][0], horse.transformMatrix[1][1], horse.transformMatrix[2][2] };
+    ImGui::DragFloat3("horse scale", scl, 0.1f, -FLT_MAX, +FLT_MAX);
+    glm::mat4 scalemat = glm::scale(glm::vec3(scl[0], scl[1], scl[2]));
+    
+    // Calculate transformation.
+    horse.transformMatrix = scalemat * rotmat * transmat; 
 
     ImGui::End(); // Debug Overlay.
 

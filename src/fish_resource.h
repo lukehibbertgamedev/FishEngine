@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vk_types.h>
+#include <fish_components.h>
 #include <vector>
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
@@ -44,6 +45,7 @@ namespace Fish {
 		};
 
 		struct RenderObject {
+			Fish::Component::Transform transform; 
 			Mesh* pMesh;
 			Material* pMaterial;
 			glm::mat4 transformMatrix;

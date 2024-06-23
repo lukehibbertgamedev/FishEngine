@@ -48,6 +48,7 @@ Previously:
 
 	- [X] Added toggle for the camera mouse motion											23/06
 	- [X] Hardcoded runtime movement for the horse model									23/06
+	- [X] Modify horse at runtime (position, rotation, scale)								23/06
 
 Next time:
 
