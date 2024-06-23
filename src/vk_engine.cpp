@@ -656,7 +656,6 @@ void VulkanEngine::init_pipelines()
 
     pipelineBuilder.shaderStages.clear();
     pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
-
     pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, texturedMeshShader));
 
     pipelineBuilder.pipelineLayout = texturedPipeLayout;

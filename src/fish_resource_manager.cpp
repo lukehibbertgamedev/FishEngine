@@ -19,40 +19,44 @@ void Fish::ResourceManager::load_all_meshes()
     Fish::Resource::Mesh mesh;
 
     // Load lost empire.
-    mesh.load_from_obj("../../assets/lost_empire.obj");
-    upload_mesh(mesh);
-    m_Meshes["empire"] = mesh;
+    //mesh.load_from_obj("../../assets/lost_empire.obj");
+    //upload_mesh(mesh);
+    //m_Meshes["minecraft"] = mesh;
 
-    // Load smooth monkey.
-    mesh.load_from_obj("../../assets/monkey_smooth.obj");
+    mesh = create_default_triangle();
     upload_mesh(mesh);
-    m_Meshes["monkey"] = mesh;
+    m_Meshes["triangle"] = mesh;
+
+    //
+
+    mesh = create_default_quad();
+    upload_mesh(mesh);
+    m_Meshes["quad"] = mesh;
+
 }
 
 void Fish::ResourceManager::load_all_textures()
 {
-    Fish::Resource::Texture texture;
+    Fish::Resource::Texture texture = {};
 
-    // Load lost empire.
+    // Load horse texture.
     Fish::Loader::load_image_from_file(VulkanEngine::Get(), "../../assets/lost_empire-RGBA.png", texture.image);
     VkImageViewCreateInfo imageInfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, texture.image.image, VK_IMAGE_ASPECT_COLOR_BIT);
     vkCreateImageView(VulkanEngine::Get().GetDevice(), &imageInfo, nullptr, &texture.imageView);
-    m_Textures["empire_diffuse"] = texture;
+    m_Textures["minecraft_texture"] = texture;
 
     // Load next texture...
 }
 
 void Fish::ResourceManager::load_scene()
 {
-    // Load the minecraft texture object.
     Fish::Resource::RenderObject obj = {};
-    obj.pMesh = get_mesh_by_name("empire");
+
+    // Load the little horsey.
+    obj.pMesh = get_mesh_by_name("minecraft");
     obj.pMaterial = get_material_by_name("texturedmesh");
     obj.transformMatrix = glm::translate(glm::vec3{ 5,-10,0 });
     m_Scene.m_SceneObjects.push_back(obj);
-
-    // Load next object...
-    obj = {};
 
     //
 
@@ -77,7 +81,7 @@ void Fish::ResourceManager::load_scene()
     //write to the descriptor set so that it points to our empire_diffuse texture
     VkDescriptorImageInfo imageBufferInfo;
     imageBufferInfo.sampler = blockySampler;
-    imageBufferInfo.imageView = m_Textures["empire_diffuse"].imageView;
+    imageBufferInfo.imageView = m_Textures["minecraft_texture"].imageView;
     imageBufferInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
     VkWriteDescriptorSet texture1 = vkinit::write_descriptor_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, texturedMat->textureSet, &imageBufferInfo, 0);
@@ -85,7 +89,7 @@ void Fish::ResourceManager::load_scene()
     vkUpdateDescriptorSets(VulkanEngine::Get().GetDevice(), 1, &texture1, 0, nullptr);
 }
 
-Fish::Resource::Mesh& Fish::ResourceManager::create_default_triangle()
+Fish::Resource::Mesh Fish::ResourceManager::create_default_triangle()
 {
     Fish::Resource::Mesh mesh;
 
@@ -101,6 +105,30 @@ Fish::Resource::Mesh& Fish::ResourceManager::create_default_triangle()
     mesh.vertices[0].colour = { 0.f, 1.f, 0.0f }; //pure green
     mesh.vertices[1].colour = { 0.f, 1.f, 0.0f }; //pure green
     mesh.vertices[2].colour = { 0.f, 1.f, 0.0f }; //pure green
+
+    //we don't care about the vertex normals
+
+    return mesh;
+}
+
+Fish::Resource::Mesh Fish::ResourceManager::create_default_quad()
+{
+    Fish::Resource::Mesh mesh;
+
+    //make the array 4 vertices long
+    mesh.vertices.resize(4);
+
+    //vertex positions
+    mesh.vertices[0].position = { -1.f, 1.f, 0.0f };
+    mesh.vertices[1].position = { -1.f, -1.f, 0.0f };
+    mesh.vertices[2].position = { 1.f,1.f, 0.0f };
+    mesh.vertices[3].position = { 1.f,-1.f, 0.0f };
+
+    //vertex colors, all green
+    mesh.vertices[0].colour = { 1.f, 0.f, 0.0f }; //pure green
+    mesh.vertices[1].colour = { 0.f, 1.f, 0.0f }; //pure green
+    mesh.vertices[2].colour = { 0.f, 1.f, 0.0f }; //pure green
+    mesh.vertices[3].colour = { 1.f, 0.f, 0.0f }; //pure green
 
     //we don't care about the vertex normals
 

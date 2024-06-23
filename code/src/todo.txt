@@ -44,14 +44,13 @@ Previously:
 	- [X] Refactor engine to use resource manager and scenes								20/06
 
 	- [X] Added WASD/QE control to the camera												22/06
+	- [X] Further abstracted vk_engine.h separating gpu data and pipeline builder			22/06
 
 Next time:
 
-	- [ ] Add WASD control to the camera (https://vkguide.dev/docs/new_chapter_5/interactive_camera/)
-
 	- [ ] Render several different models using different textures
-
-	- [ ] Further abstract vk_engine.h separating the components from the engine
+	- [ ] Render a generated quad, similar to the triangle
+	- [ ] Render a generated cube, expanded from the quad
 
 	- [ ] Read up and review the code surrounding descriptor sets
 
