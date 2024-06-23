@@ -49,7 +49,8 @@ Previously:
 Next time:
 
 	- [ ] Render several different models using different textures
-	- [ ] Render a generated quad, similar to the triangle
+
+	- [ ] Render a generated quad, similar to the triangle (hint vkCmdBindIndexBuffer line 1127)
 	- [ ] Render a generated cube, expanded from the quad
 
 	- [ ] Read up and review the code surrounding descriptor sets
