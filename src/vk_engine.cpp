@@ -970,26 +970,42 @@ void VulkanEngine::render_imgui()
 
     ImGui::NewLine();
 
+    // Temporary object selector to be later expanded into reading all scene objects.
+    const char* items[] = { "Triangle", "Quad" };
+    int obj_index = 0;
+    /*if (ImGui::BeginCombo("Selected object", items[obj_index], ImGuiComboFlags_None)) {
+        for (int i = 0; i < IM_ARRAYSIZE(items); ++i) {
+            const bool selected = (obj_index == i);
+            if (ImGui::Selectable(items[i], selected)) {
+                obj_index = i;
+            }
+            if (selected)
+                ImGui::SetItemDefaultFocus();
+        }    
+        ImGui::EndCombo();
+    }*/
+
     // Reference is required here.
-    Fish::Resource::RenderObject& horse = Fish::ResourceManager::Get().get_current_scene().m_SceneObjects[0];
+    Fish::Resource::RenderObject& obj = Fish::ResourceManager::Get().get_current_scene().m_SceneObjects[obj_index];
 
     // Position.
-    static float pos[3] = { horse.transformMatrix[3][0], horse.transformMatrix[3][1], horse.transformMatrix[3][2] };
+    static float pos[3] = { obj.transformMatrix[3][0], obj.transformMatrix[3][1], obj.transformMatrix[3][2] };
     ImGui::DragFloat3("horse position", pos, 0.5f, -FLT_MAX, +FLT_MAX);
     glm::mat4 transmat = glm::translate(glm::vec3(pos[0], pos[1], pos[2]));
 
     // Rotation.
-    static float rot[3] = { glm::degrees(horse.transform.eulerAngles.x), glm::degrees(horse.transform.eulerAngles.y), glm::degrees(horse.transform.eulerAngles.z) };
+    static float rot[3] = { glm::degrees(obj.transform.eulerAngles.x), glm::degrees(obj.transform.eulerAngles.y), glm::degrees(obj.transform.eulerAngles.z) };
     ImGui::DragFloat3("horse rotation", rot, 0.5f, -FLT_MAX, +FLT_MAX);
     glm::mat4 rotmat = glm::rotate(glm::radians(rot[2]), glm::vec3(0.f, 0.f, 1.f)) * glm::rotate(glm::radians(rot[1]), glm::vec3(0.f, 1.f, 0.f)) * glm::rotate(glm::radians(rot[0]), glm::vec3(1.f, 0.f, 0.f)); // z * y * x
 
     // Scale
-    static float scl[3] = { horse.transformMatrix[0][0], horse.transformMatrix[1][1], horse.transformMatrix[2][2] };
+    static float scl[3] = { obj.transformMatrix[0][0], obj.transformMatrix[1][1], obj.transformMatrix[2][2] };
     ImGui::DragFloat3("horse scale", scl, 0.1f, -FLT_MAX, +FLT_MAX);
     glm::mat4 scalemat = glm::scale(glm::vec3(scl[0], scl[1], scl[2]));
-    
+
     // Calculate transformation.
-    horse.transformMatrix = scalemat * rotmat * transmat; 
+    obj.transformMatrix = scalemat * rotmat * transmat;
+     
 
     ImGui::End(); // Debug Overlay.
 
@@ -1143,15 +1159,18 @@ void VulkanEngine::render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObj
         //upload the mesh to the GPU via push constants
         vkCmdPushConstants(cmd, object.pMaterial->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MeshPushConstants), &constants);
 
+        //bind the mesh buffers with offset 0
+        VkDeviceSize vertexOffset = 0, indexOffset = 0;
+
         //only bind the mesh if it's a different one from last bind
         if (object.pMesh != lastMesh) {
-            //bind the mesh vertex buffer with offset 0
-            VkDeviceSize offset = 0;
-            vkCmdBindVertexBuffers(cmd, 0, 1, &object.pMesh->vertexBuffer.buffer, &offset);
+            vkCmdBindVertexBuffers(cmd, 0, 1, &object.pMesh->vertexBuffer.buffer, &vertexOffset);
+            vkCmdBindIndexBuffer(cmd, object.pMesh->indexBuffer.buffer, indexOffset, VK_INDEX_TYPE_UINT32);
             lastMesh = object.pMesh;
         }
         //we can now draw
-        vkCmdDraw(cmd, object.pMesh->vertices.size(), 1, 0, i);
+        //vkCmdDraw(cmd, object.pMesh->vertices.size(), 1, 0, i);
+        vkCmdDrawIndexed(cmd, object.pMesh->indices.size(), 1, 0, vertexOffset, i);
     }
 }
 

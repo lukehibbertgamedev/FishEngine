@@ -22,9 +22,9 @@ namespace Fish {
 		void load_scene();
 
 		Fish::Resource::Mesh create_default_triangle();
-
-		// todo (required indices, fourth vertex not rendered)
 		Fish::Resource::Mesh create_default_quad();
+
+		Fish::Resource::Mesh create_default_cube();
 
 		Fish::Resource::Mesh* get_mesh_by_name(const std::string& name);
 

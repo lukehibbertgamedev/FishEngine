@@ -49,13 +49,15 @@ Previously:
 	- [X] Added toggle for the camera mouse motion											23/06
 	- [X] Hardcoded runtime movement for the horse model									23/06
 	- [X] Modify horse at runtime (position, rotation, scale)								23/06
+	- [X] Quad primitive rendering															23/06
 
 Next time:
 
 	- [ ] Render several different models using different textures
 
-	- [ ] Render a generated quad, similar to the triangle (hint vkCmdBindIndexBuffer line 1127)
-	- [ ] Render a generated cube, expanded from the quad
+	- [ ] Render a generated cube, expanded from the quad (needs fixing)
+
+	- [ ] Fix the rotation origin point for each render object (currently not around the origin)
 
 	- [ ] Read up and review the code surrounding descriptor sets
 

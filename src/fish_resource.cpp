@@ -111,12 +111,12 @@ namespace Fish {
 						new_vert.position.x = vx;
 						new_vert.position.y = vy;
 						new_vert.position.z = vz;
-
+						
 						new_vert.normal.x = nx;
 						new_vert.normal.y = ny;
 						new_vert.normal.z = nz;
 
-						//we are setting the vertex color as the vertex normal. This is just for display purposes
+						//important: we are setting the vertex color as the vertex normal. This is just for display purposes
 						new_vert.colour = new_vert.normal;
 
 						//vertex uv

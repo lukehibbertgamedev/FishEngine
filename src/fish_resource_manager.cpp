@@ -37,6 +37,12 @@ void Fish::ResourceManager::load_all_meshes()
     upload_mesh(mesh);
     m_Meshes["quad"] = mesh;
 
+    //
+    
+    mesh = create_default_cube();
+    upload_mesh(mesh);
+    m_Meshes["cube"] = mesh;
+
 }
 
 void Fish::ResourceManager::load_all_textures()
@@ -66,9 +72,19 @@ void Fish::ResourceManager::load_scene()
     Fish::Resource::RenderObject obj = {};
 
     // Load the little horsey.
-    obj.pMesh = get_mesh_by_name("horse");
+    obj.pMesh = get_mesh_by_name("triangle");
     obj.pMaterial = get_material_by_name("texturedmesh");
     obj.transformMatrix = glm::translate(glm::vec3{ 5,-10,0 });
+    //m_Scene.m_SceneObjects.push_back(obj);
+
+    obj.pMesh = get_mesh_by_name("quad");
+    obj.pMaterial = get_material_by_name("texturedmesh");
+    obj.transformMatrix = glm::translate(glm::vec3{ 0,-10,0 });
+    //m_Scene.m_SceneObjects.push_back(obj);
+
+    obj.pMesh = get_mesh_by_name("cube");
+    obj.pMaterial = get_material_by_name("texturedmesh");
+    obj.transformMatrix = glm::translate(glm::vec3{ 0,0,0 });
     m_Scene.m_SceneObjects.push_back(obj);
 
     //
@@ -121,6 +137,10 @@ Fish::Resource::Mesh Fish::ResourceManager::create_default_triangle()
 
     //we don't care about the vertex normals
 
+    // indices
+    mesh.indices.resize(3);
+    mesh.indices = { 0, 1, 2 };
+
     return mesh;
 }
 
@@ -144,6 +164,77 @@ Fish::Resource::Mesh Fish::ResourceManager::create_default_quad()
     mesh.vertices[3].colour = { 1.f, 0.f, 0.0f }; //pure green
 
     //we don't care about the vertex normals
+
+    // indices 
+    mesh.indices.resize(6);
+    mesh.indices = { 0, 1, 3, 0, 2, 3 };
+
+    return mesh;
+}
+
+Fish::Resource::Mesh Fish::ResourceManager::create_default_cube()
+{
+    Fish::Resource::Mesh mesh;
+
+    mesh.vertices.resize(36);
+
+    // indices 
+    mesh.indices.resize(36);
+    mesh.indices = {
+        // +-x
+        0,1,4,	4,1,5,
+        2,3,6,	6,3,7,
+        // +-y
+        1,0,2,	2,0,3,
+        4,5,6,	4,6,7,
+        // +-z
+        2,5,1,	2,6,5,
+        3,0,4,	3,4,7
+    };
+
+    //vertex positions
+    glm::vec3 extents = { 1.f, 1.f, 1.f };
+    glm::vec3 corners[] =
+    {
+        { -extents.x,  extents.y,  extents.z },		// V0 = -0.5,  0.5,  0.5
+        { -extents.x,  extents.y, -extents.z },		// V1 = -0.5,  0.5, -0.5
+        {  extents.x,  extents.y, -extents.z },		// V2 =  0.5,  0.5, -0.5
+        {  extents.x,  extents.y,  extents.z },		// V3 =  0.5,  0.5,  0.5
+        { -extents.x, -extents.y,  extents.z },		// V4 = -0.5, -0.5,  0.5
+        { -extents.x, -extents.y, -extents.z },		// V5 = -0.5, -0.5, -0.5
+        {  extents.x, -extents.y, -extents.z },		// V6 =  0.5, -0.5, -0.5
+        {  extents.x, -extents.y,  extents.z }		// V7 =  0.5, -0.5,  0.5
+    };
+    for (size_t i = 0; i < mesh.vertices.size(); i++)
+    {
+        mesh.vertices[i].position = corners[mesh.indices[i]];
+        mesh.vertices[i].colour = { 0.f, 1.f, 0.0f }; //pure green
+    }
+
+    //vertex normals
+    for (size_t i = 0; i < mesh.vertices.size(); i+=3)
+    {
+        // Get verts of current tri
+        glm::vec3 v0 = mesh.vertices[i + 0].position;
+        glm::vec3 v1 = mesh.vertices[i + 1].position;
+        glm::vec3 v2 = mesh.vertices[i + 2].position;
+
+        // Calculate edges
+        glm::vec3 edge0 = v0 - v1;
+        glm::vec3 edge1 = v1 - v2;
+
+        // Calculate cross product
+        glm::vec3 crossPrd = glm::cross(edge0, edge1);
+        // Normalise
+        crossPrd = glm::normalize(crossPrd);
+
+        // Set normals
+        //mesh.vertices[i + 0].normal = crossPrd;
+        //mesh.vertices[i + 1].normal = crossPrd;
+        //mesh.vertices[i + 2].normal = crossPrd;
+    }
+
+    
 
     return mesh;
 }
@@ -183,16 +274,16 @@ void Fish::ResourceManager::upload_mesh(Fish::Resource::Mesh& mesh)
     //
 
     //copy vertex data
-    void* data;
-    vmaMapMemory(VulkanEngine::Get().GetAllocator(), stagingBuffer.allocation, &data);
+    void* vertexData;
+    vmaMapMemory(VulkanEngine::Get().GetAllocator(), stagingBuffer.allocation, &vertexData);
 
-    memcpy(data, mesh.vertices.data(), mesh.vertices.size() * sizeof(Fish::Resource::Vertex));
+    memcpy(vertexData, mesh.vertices.data(), mesh.vertices.size() * sizeof(Fish::Resource::Vertex));
 
     vmaUnmapMemory(VulkanEngine::Get().GetAllocator(), stagingBuffer.allocation);
 
     //
 
-    //allocate vertex buffer
+    //allocate index buffer
     VkBufferCreateInfo vertexBufferInfo = {};
     vertexBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     vertexBufferInfo.pNext = nullptr;
@@ -217,10 +308,46 @@ void Fish::ResourceManager::upload_mesh(Fish::Resource::Mesh& mesh)
         vkCmdCopyBuffer(cmd, stagingBuffer.buffer, mesh.vertexBuffer.buffer, 1, &copy);
     });
 
+    //copy index data
+    void* indexData;
+    vmaMapMemory(VulkanEngine::Get().GetAllocator(), stagingBuffer.allocation, &indexData);
+
+    memcpy(indexData, mesh.indices.data(), mesh.indices.size() * sizeof(uint32_t));
+
+    vmaUnmapMemory(VulkanEngine::Get().GetAllocator(), stagingBuffer.allocation);
+
+    //
+
+    //allocate vertex buffer
+    VkBufferCreateInfo indexBufferInfo = {};
+    indexBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    indexBufferInfo.pNext = nullptr;
+    //this is the total size, in bytes, of the buffer we are allocating
+    indexBufferInfo.size = bufferSize;
+    //this buffer is going to be used as a Index Buffer
+    indexBufferInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+    //let the VMA library know that this data should be GPU native
+    vmaallocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+    //allocate the buffer
+    VK_CHECK(vmaCreateBuffer(VulkanEngine::Get().GetAllocator(), &indexBufferInfo, &vmaallocInfo, &mesh.indexBuffer.buffer, &mesh.indexBuffer.allocation, nullptr));
+
+    //
+
+    VulkanEngine::Get().immediate_submit([=](VkCommandBuffer cmd) {
+        VkBufferCopy copy;
+        copy.dstOffset = 0;
+        copy.srcOffset = 0;
+        copy.size = bufferSize;
+        vkCmdCopyBuffer(cmd, stagingBuffer.buffer, mesh.indexBuffer.buffer, 1, &copy);
+    });
+
     //
 
     //add the destruction of mesh buffer to the deletion queue
     VulkanEngine::Get().GetDeletionQueue().push_function([=]() { vmaDestroyBuffer(VulkanEngine::Get().GetAllocator(), mesh.vertexBuffer.buffer, mesh.vertexBuffer.allocation); });
+    VulkanEngine::Get().GetDeletionQueue().push_function([=]() { vmaDestroyBuffer(VulkanEngine::Get().GetAllocator(), mesh.indexBuffer.buffer, mesh.indexBuffer.allocation); });
     vmaDestroyBuffer(VulkanEngine::Get().GetAllocator(), stagingBuffer.buffer, stagingBuffer.allocation);
 }
 
