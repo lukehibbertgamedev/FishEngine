@@ -23,6 +23,10 @@ void Fish::ResourceManager::load_all_meshes()
     //upload_mesh(mesh);
     //m_Meshes["minecraft"] = mesh;
 
+    mesh.load_from_obj("../../assets/Horse.obj");
+    upload_mesh(mesh);
+    m_Meshes["horse"] = mesh;
+
     mesh = create_default_triangle();
     upload_mesh(mesh);
     m_Meshes["triangle"] = mesh;
@@ -37,15 +41,24 @@ void Fish::ResourceManager::load_all_meshes()
 
 void Fish::ResourceManager::load_all_textures()
 {
-    Fish::Resource::Texture texture = {};
 
     // Load horse texture.
-    Fish::Loader::load_image_from_file(VulkanEngine::Get(), "../../assets/lost_empire-RGBA.png", texture.image);
-    VkImageViewCreateInfo imageInfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, texture.image.image, VK_IMAGE_ASPECT_COLOR_BIT);
-    vkCreateImageView(VulkanEngine::Get().GetDevice(), &imageInfo, nullptr, &texture.imageView);
-    m_Textures["minecraft_texture"] = texture;
+    {
+        Fish::Resource::Texture texture = {};
+        Fish::Loader::load_image_from_file(VulkanEngine::Get(), "../../assets/lost_empire-RGBA.png", texture.image);
+        VkImageViewCreateInfo imageInfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, texture.image.image, VK_IMAGE_ASPECT_COLOR_BIT);
+        vkCreateImageView(VulkanEngine::Get().GetDevice(), &imageInfo, nullptr, &texture.imageView);
+        m_Textures["minecraft_texture"] = texture;
+    }
 
     // Load next texture...
+    {
+        Fish::Resource::Texture texture = {};
+        Fish::Loader::load_image_from_file(VulkanEngine::Get(), "../../assets/MaterialBrown.png", texture.image);
+        VkImageViewCreateInfo imageInfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, texture.image.image, VK_IMAGE_ASPECT_COLOR_BIT);
+        vkCreateImageView(VulkanEngine::Get().GetDevice(), &imageInfo, nullptr, &texture.imageView);
+        m_Textures["horse_brown_texture"] = texture;
+    }
 }
 
 void Fish::ResourceManager::load_scene()
@@ -53,7 +66,7 @@ void Fish::ResourceManager::load_scene()
     Fish::Resource::RenderObject obj = {};
 
     // Load the little horsey.
-    obj.pMesh = get_mesh_by_name("minecraft");
+    obj.pMesh = get_mesh_by_name("horse");
     obj.pMaterial = get_material_by_name("texturedmesh");
     obj.transformMatrix = glm::translate(glm::vec3{ 5,-10,0 });
     m_Scene.m_SceneObjects.push_back(obj);
@@ -81,7 +94,7 @@ void Fish::ResourceManager::load_scene()
     //write to the descriptor set so that it points to our empire_diffuse texture
     VkDescriptorImageInfo imageBufferInfo;
     imageBufferInfo.sampler = blockySampler;
-    imageBufferInfo.imageView = m_Textures["minecraft_texture"].imageView;
+    imageBufferInfo.imageView = m_Textures["horse_brown_texture"].imageView;
     imageBufferInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
     VkWriteDescriptorSet texture1 = vkinit::write_descriptor_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, texturedMat->textureSet, &imageBufferInfo, 0);

@@ -132,6 +132,7 @@ namespace Fish {
 				}
 			}
 
+			std::cout << "Mesh loaded successfully " << filename << std::endl;
 			return true;
 		}
 
