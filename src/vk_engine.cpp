@@ -818,8 +818,6 @@ void VulkanEngine::cleanup()
 
 void VulkanEngine::render()
 {
-    ImGui::Render();
-
     const unsigned int timeout = 1000000000;
 
     // wait until the gpu has finished rendering the last frame. Timeout of 1 second
@@ -852,7 +850,7 @@ void VulkanEngine::render()
     VkClearValue clearValue;
     float framePeriod = 120.f;
     float flash = std::abs(std::sin(m_FrameNumber / framePeriod));
-    clearValue.color = { { 0.0f, 0.0f, flash, 1.0f } };
+    clearValue.color = { { 0.0f, 0.0f, 0.9f, 1.0f } };
 
     // clear at a depth of 1
     VkClearValue depthClear;
@@ -956,9 +954,9 @@ void VulkanEngine::render_imgui()
     ImGui_ImplSDL2_NewFrame(m_pWindow);
     ImGui::NewFrame();
 
-    // Commands.
-    ImGui::ShowDemoWindow();
+    //ImGui::ShowDemoWindow();
 
+    // Begin Debug Overlay
     ImGui::Begin("Debug Overlay", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::Text("Debug data for Fish engine.");
@@ -969,6 +967,7 @@ void VulkanEngine::render_imgui()
     ImGui::Text("camera pitch, yaw: %f, %f", m_Camera.m_Pitch, m_Camera.m_Yaw);
 
     ImGui::NewLine();
+    ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), "Pink");
 
     // Temporary object selector to be later expanded into reading all scene objects.
     const char* items[] = { "Triangle", "Quad" };
@@ -990,26 +989,30 @@ void VulkanEngine::render_imgui()
 
     // Position.
     static float pos[3] = { obj.transformMatrix[3][0], obj.transformMatrix[3][1], obj.transformMatrix[3][2] };
-    ImGui::DragFloat3("horse position", pos, 0.5f, -FLT_MAX, +FLT_MAX);
+    ImGui::DragFloat3("position", pos, 0.5f, -FLT_MAX, +FLT_MAX);
     glm::mat4 transmat = glm::translate(glm::vec3(pos[0], pos[1], pos[2]));
 
     // Rotation.
     static float rot[3] = { glm::degrees(obj.transform.eulerAngles.x), glm::degrees(obj.transform.eulerAngles.y), glm::degrees(obj.transform.eulerAngles.z) };
-    ImGui::DragFloat3("horse rotation", rot, 0.5f, -FLT_MAX, +FLT_MAX);
+    ImGui::DragFloat3("rotation", rot, 0.5f, -FLT_MAX, +FLT_MAX);
     glm::mat4 rotmat = glm::rotate(glm::radians(rot[2]), glm::vec3(0.f, 0.f, 1.f)) * glm::rotate(glm::radians(rot[1]), glm::vec3(0.f, 1.f, 0.f)) * glm::rotate(glm::radians(rot[0]), glm::vec3(1.f, 0.f, 0.f)); // z * y * x
 
     // Scale
     static float scl[3] = { obj.transformMatrix[0][0], obj.transformMatrix[1][1], obj.transformMatrix[2][2] };
-    ImGui::DragFloat3("horse scale", scl, 0.1f, -FLT_MAX, +FLT_MAX);
+    ImGui::DragFloat3("scale", scl, 0.1f, -FLT_MAX, +FLT_MAX);
     glm::mat4 scalemat = glm::scale(glm::vec3(scl[0], scl[1], scl[2]));
 
     // Calculate transformation.
-    obj.transformMatrix = scalemat * rotmat * transmat;
-     
+    obj.transformMatrix = scalemat * rotmat * transmat;     
 
-    ImGui::End(); // Debug Overlay.
+    ImGui::End(); 
+    // End Debug Overlay.
 
+    //
+    //
+    //
 
+    ImGui::Render(); // Must either be at the very end of this function, or within the render loop (ideally at the beginning).
 }
 
 void VulkanEngine::run()
@@ -1168,9 +1171,11 @@ void VulkanEngine::render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObj
             vkCmdBindIndexBuffer(cmd, object.pMesh->indexBuffer.buffer, indexOffset, VK_INDEX_TYPE_UINT32);
             lastMesh = object.pMesh;
         }
-        //we can now draw
-        //vkCmdDraw(cmd, object.pMesh->vertices.size(), 1, 0, i);
-        vkCmdDrawIndexed(cmd, object.pMesh->indices.size(), 1, 0, vertexOffset, i);
+
+        //we can now draw - this may or may not cause an error doing both of these here
+        //if you are stuck rendering and see this, try one or the other of the below lines instead of both.
+        vkCmdDraw(cmd, object.pMesh->vertices.size(), 1, 0, i);                         // Draw via vertices.
+        vkCmdDrawIndexed(cmd, object.pMesh->indices.size(), 1, 0, vertexOffset, i);     // Draw via indicies and a vertex offset.
     }
 }
 

@@ -16,29 +16,29 @@ void Fish::ResourceManager::init()
 
 void Fish::ResourceManager::load_all_meshes()
 {
-    Fish::Resource::Mesh mesh;
+    Fish::Resource::Mesh mesh = {};
 
     // Load lost empire.
     //mesh.load_from_obj("../../assets/lost_empire.obj");
     //upload_mesh(mesh);
     //m_Meshes["minecraft"] = mesh;
 
+    mesh = {};
     mesh.load_from_obj("../../assets/Horse.obj");
     upload_mesh(mesh);
     m_Meshes["horse"] = mesh;
 
+    mesh = {};
     mesh = create_default_triangle();
     upload_mesh(mesh);
     m_Meshes["triangle"] = mesh;
 
-    //
-
+    mesh = {};
     mesh = create_default_quad();
     upload_mesh(mesh);
     m_Meshes["quad"] = mesh;
 
-    //
-    
+    mesh = {};
     mesh = create_default_cube();
     upload_mesh(mesh);
     m_Meshes["cube"] = mesh;
@@ -48,7 +48,7 @@ void Fish::ResourceManager::load_all_meshes()
 void Fish::ResourceManager::load_all_textures()
 {
 
-    // Load horse texture.
+    // Load texture.
     {
         Fish::Resource::Texture texture = {};
         Fish::Loader::load_image_from_file(VulkanEngine::Get(), "../../assets/lost_empire-RGBA.png", texture.image);
@@ -75,16 +75,21 @@ void Fish::ResourceManager::load_scene()
     obj.pMesh = get_mesh_by_name("triangle");
     obj.pMaterial = get_material_by_name("texturedmesh");
     obj.transformMatrix = glm::translate(glm::vec3{ 5,-10,0 });
-    //m_Scene.m_SceneObjects.push_back(obj);
+    m_Scene.m_SceneObjects.push_back(obj);
 
     obj.pMesh = get_mesh_by_name("quad");
     obj.pMaterial = get_material_by_name("texturedmesh");
     obj.transformMatrix = glm::translate(glm::vec3{ 0,-10,0 });
-    //m_Scene.m_SceneObjects.push_back(obj);
+    m_Scene.m_SceneObjects.push_back(obj);
 
     obj.pMesh = get_mesh_by_name("cube");
     obj.pMaterial = get_material_by_name("texturedmesh");
     obj.transformMatrix = glm::translate(glm::vec3{ 0,0,0 });
+    //m_Scene.m_SceneObjects.push_back(obj);
+
+    obj.pMesh = get_mesh_by_name("horse");
+    obj.pMaterial = get_material_by_name("texturedmesh");
+    obj.transformMatrix = glm::translate(glm::vec3{ 5,0,0 });
     m_Scene.m_SceneObjects.push_back(obj);
 
     //
