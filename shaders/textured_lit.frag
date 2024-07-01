@@ -20,6 +20,5 @@ layout(set = 2, binding = 0) uniform sampler2D tex1;
 
 void main()
 {
-	vec3 colour = texture(tex1, texCoord).xyz;
-	outFragColor = vec4(colour, 1.0f);
+	outFragColor = vec4(texture(tex1, texCoord).xyz, 1.0f);
 }

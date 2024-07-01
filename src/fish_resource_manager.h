@@ -31,7 +31,9 @@ namespace Fish {
 		Fish::Resource::Material* create_material(VkPipeline pipeline, VkPipelineLayout layout, const std::string& name);
 		Fish::Resource::Material* get_material_by_name(const std::string& name); //search for the object, and return nullptr if not found
 
-		Fish::Scene& get_current_scene() { return m_Scene; }
+		Fish::Scene* get_current_scene() { return &m_Scene; }
+
+		//void sample_texture(const std::string& name, VkSamplerCreateInfo samplerInfo, VkSampler blockySampler, VkDescriptorSetAllocateInfo allocInfo, VkWriteDescriptorSet texture1);
 
 		// singleton implementation.
 		static ResourceManager& Get() { static ResourceManager instance; return instance; }

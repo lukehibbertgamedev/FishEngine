@@ -91,7 +91,7 @@ private:
 
 	// bet you cant guess what these functions do...
 	void init_vulkan();
-	void init_imgui(); // disabled until chapter 5
+	void init_imgui(); 
 	void init_swapchain();
 	void init_commands();
 	void init_main_renderpass();

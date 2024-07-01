@@ -566,55 +566,37 @@ void VulkanEngine::init_pipelines()
       
 
     //build the stage-create-info for both vertex and fragment stages. This lets the pipeline know the shader modules per stage
-    Fish::PipelineBuilder pipelineBuilder;
+    Fish::PipelineBuilder pipelineBuilder;   
 
     pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
     pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, colorMeshShader));
-
-    //we start from just the default empty pipeline layout info
+    
     VkPipelineLayoutCreateInfo mesh_pipeline_layout_info = vkinit::pipeline_layout_create_info();
-
-    //setup push constants
     VkPushConstantRange push_constant;
-    //offset 0
     push_constant.offset = 0;
-    //size of a MeshPushConstant struct
     push_constant.size = sizeof(MeshPushConstants);
-    //for the vertex shader
     push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
     mesh_pipeline_layout_info.pPushConstantRanges = &push_constant;
-    mesh_pipeline_layout_info.pushConstantRangeCount = 1;
-
+    mesh_pipeline_layout_info.pushConstantRangeCount = 1; 
     VkDescriptorSetLayout setLayouts[] = { m_GlobalSetLayout, m_ObjectSetLayout };
-
     mesh_pipeline_layout_info.setLayoutCount = 2;
     mesh_pipeline_layout_info.pSetLayouts = setLayouts;
-
+    
+    // Create the mesh pipeline layout.
     VkPipelineLayout meshPipLayout;
     VK_CHECK(vkCreatePipelineLayout(m_Device, &mesh_pipeline_layout_info, nullptr, &meshPipLayout));
 
-    //we start from  the normal mesh layout
+    // Change necessary values for creation of the texture pipeline layout.
     VkPipelineLayoutCreateInfo textured_pipeline_layout_info = mesh_pipeline_layout_info;
-
     VkDescriptorSetLayout texturedSetLayouts[] = { m_GlobalSetLayout, m_ObjectSetLayout, m_SingleTextureSetLayout };
-
     textured_pipeline_layout_info.setLayoutCount = 3;
     textured_pipeline_layout_info.pSetLayouts = texturedSetLayouts;
-
     VkPipelineLayout texturedPipeLayout;
     VK_CHECK(vkCreatePipelineLayout(m_Device, &textured_pipeline_layout_info, nullptr, &texturedPipeLayout));
 
-    //hook the push constants layout
     pipelineBuilder.pipelineLayout = meshPipLayout;
-
-    //vertex input controls how to read vertices from vertex buffers. We arent using it yet
-    pipelineBuilder.vertexInputState = vkinit::vertex_input_state_create_info();
-
-    //input assembly is the configuration for drawing triangle lists, strips, or individual points.
-    //we are just going to draw triangle list
+    pipelineBuilder.vertexInputState = vkinit::vertex_input_state_create_info(); // how to read vertices from vertex buffers
     pipelineBuilder.inputAssembly = vkinit::input_assembly_create_info(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-
     //build viewport and scissor from the swapchain extents
     pipelineBuilder.viewport.x = 0.0f;
     pipelineBuilder.viewport.y = 0.0f;
@@ -622,36 +604,26 @@ void VulkanEngine::init_pipelines()
     pipelineBuilder.viewport.height = (float)m_WindowExtents.height;
     pipelineBuilder.viewport.minDepth = 0.0f;
     pipelineBuilder.viewport.maxDepth = 1.0f;
-
     pipelineBuilder.scissor.offset = { 0, 0 };
     pipelineBuilder.scissor.extent = m_WindowExtents;
-
     //configure the rasterizer to draw filled triangles
     pipelineBuilder.rasterizer = vkinit::rasterization_state_create_info(VK_POLYGON_MODE_FILL);
-
     //we dont use multisampling, so just run the default one
     pipelineBuilder.multisampler = vkinit::multisampling_state_create_info();
-
     //a single blend attachment with no blending and writing to RGBA
     pipelineBuilder.colourBlendAttachment = vkinit::color_blend_attachment_state();
-
     //default depthtesting
     pipelineBuilder.depthStencil = vkinit::depth_stencil_create_info(true, true, VK_COMPARE_OP_LESS_OR_EQUAL);
 
-    //build the mesh pipeline
-
-    Fish::Resource::VertexInputDescription vertexDescription = Fish::Resource::Vertex::get_vertex_description();
-
     //connect the pipeline builder vertex input info to the one we get from Vertex
+    Fish::Resource::VertexInputDescription vertexDescription = Fish::Resource::Vertex::get_vertex_description();
     pipelineBuilder.vertexInputState.pVertexAttributeDescriptions = vertexDescription.attributes.data();
     pipelineBuilder.vertexInputState.vertexAttributeDescriptionCount = vertexDescription.attributes.size();
-
     pipelineBuilder.vertexInputState.pVertexBindingDescriptions = vertexDescription.bindings.data();
     pipelineBuilder.vertexInputState.vertexBindingDescriptionCount = vertexDescription.bindings.size();
 
     //build the mesh triangle pipeline
     VkPipeline meshPipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
-
     Fish::ResourceManager::Get().create_material(meshPipeline, meshPipLayout, "defaultmesh");
 
     pipelineBuilder.shaderStages.clear();
@@ -883,7 +855,7 @@ void VulkanEngine::render()
     
     // Object Render Pass.
 
-    std::vector<Fish::Resource::RenderObject> renderable = Fish::ResourceManager::Get().get_current_scene().m_SceneObjects;
+    std::vector<Fish::Resource::RenderObject> renderable = Fish::ResourceManager::Get().get_current_scene()->m_SceneObjects;
     render_objects(cmd, renderable.data(), renderable.size());
 
     // Kind of ImGui Render Pass.
@@ -966,44 +938,53 @@ void VulkanEngine::render_imgui()
     ImGui::Text("camera pos: %f, %f, %f", m_Camera.m_Position.x, m_Camera.m_Position.y, m_Camera.m_Position.z);
     ImGui::Text("camera pitch, yaw: %f, %f", m_Camera.m_Pitch, m_Camera.m_Yaw);
 
-    ImGui::NewLine();
-    ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), "Pink");
+    // Loop every scene object...
+    std::vector<Fish::Resource::RenderObject>& objects = Fish::ResourceManager::Get().get_current_scene()->m_SceneObjects;
+    
+    if (ImGui::TreeNode("Render objects:")) {
+        for (size_t i = 0; i < objects.size(); ++i) {
+            std::string name = "Object #" + i;
+            if (ImGui::TreeNode(name.c_str())) {
+                Fish::Resource::RenderObject& obj = objects[i];
 
-    // Temporary object selector to be later expanded into reading all scene objects.
-    const char* items[] = { "Triangle", "Quad" };
-    int obj_index = 0;
-    /*if (ImGui::BeginCombo("Selected object", items[obj_index], ImGuiComboFlags_None)) {
-        for (int i = 0; i < IM_ARRAYSIZE(items); ++i) {
-            const bool selected = (obj_index == i);
-            if (ImGui::Selectable(items[i], selected)) {
-                obj_index = i;
-            }
-            if (selected)
-                ImGui::SetItemDefaultFocus();
-        }    
-        ImGui::EndCombo();
-    }*/
+                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Object #%d", i);
 
-    // Reference is required here.
-    Fish::Resource::RenderObject& obj = Fish::ResourceManager::Get().get_current_scene().m_SceneObjects[obj_index];
+                // Position.
+                float pos[3] = { obj.transformMatrix[3][0], obj.transformMatrix[3][1], obj.transformMatrix[3][2] };
+                ImGui::DragFloat3("position", pos, 0.5f, -FLT_MAX, +FLT_MAX);
+                glm::mat4 transmat = glm::translate(glm::vec3(pos[0], pos[1], pos[2]));
+                ImGui::NewLine();
+                ImGui::TreePop();
+            }            
+        }
+        ImGui::TreePop(); // Must be after every node.
+    }
 
-    // Position.
-    static float pos[3] = { obj.transformMatrix[3][0], obj.transformMatrix[3][1], obj.transformMatrix[3][2] };
-    ImGui::DragFloat3("position", pos, 0.5f, -FLT_MAX, +FLT_MAX);
-    glm::mat4 transmat = glm::translate(glm::vec3(pos[0], pos[1], pos[2]));
+    for (size_t i = 0; i < objects.size(); ++i) {
+        
+        //ImGui::NewLine();
 
-    // Rotation.
-    static float rot[3] = { glm::degrees(obj.transform.eulerAngles.x), glm::degrees(obj.transform.eulerAngles.y), glm::degrees(obj.transform.eulerAngles.z) };
-    ImGui::DragFloat3("rotation", rot, 0.5f, -FLT_MAX, +FLT_MAX);
-    glm::mat4 rotmat = glm::rotate(glm::radians(rot[2]), glm::vec3(0.f, 0.f, 1.f)) * glm::rotate(glm::radians(rot[1]), glm::vec3(0.f, 1.f, 0.f)) * glm::rotate(glm::radians(rot[0]), glm::vec3(1.f, 0.f, 0.f)); // z * y * x
+        //// Reference is required here.
+        //Fish::Resource::RenderObject& obj = Fish::ResourceManager::Get().get_current_scene().m_SceneObjects[i];
 
-    // Scale
-    static float scl[3] = { obj.transformMatrix[0][0], obj.transformMatrix[1][1], obj.transformMatrix[2][2] };
-    ImGui::DragFloat3("scale", scl, 0.1f, -FLT_MAX, +FLT_MAX);
-    glm::mat4 scalemat = glm::scale(glm::vec3(scl[0], scl[1], scl[2]));
+        //// Position.
+        //float pos[3] = { obj.transformMatrix[3][0], obj.transformMatrix[3][1], obj.transformMatrix[3][2] };
+        //ImGui::DragFloat3("position", pos, 0.5f, -FLT_MAX, +FLT_MAX);
+        //glm::mat4 transmat = glm::translate(glm::vec3(pos[0], pos[1], pos[2]));
 
-    // Calculate transformation.
-    obj.transformMatrix = scalemat * rotmat * transmat;     
+        //// Rotation.
+        //float rot[3] = { glm::degrees(obj.transform.eulerAngles.x), glm::degrees(obj.transform.eulerAngles.y), glm::degrees(obj.transform.eulerAngles.z) };
+        //ImGui::DragFloat3("rotation", rot, 0.5f, -FLT_MAX, +FLT_MAX);
+        //glm::mat4 rotmat = glm::rotate(glm::radians(rot[2]), glm::vec3(0.f, 0.f, 1.f)) * glm::rotate(glm::radians(rot[1]), glm::vec3(0.f, 1.f, 0.f)) * glm::rotate(glm::radians(rot[0]), glm::vec3(1.f, 0.f, 0.f)); // z * y * x
+
+        //// Scale
+        //float scl[3] = { obj.transformMatrix[0][0], obj.transformMatrix[1][1], obj.transformMatrix[2][2] };
+        //ImGui::DragFloat3("scale", scl, 0.1f, -FLT_MAX, +FLT_MAX);
+        //glm::mat4 scalemat = glm::scale(glm::vec3(scl[0], scl[1], scl[2]));
+
+        //// Calculate transformation.
+        //obj.transformMatrix = scalemat * rotmat * transmat;
+    }         
 
     ImGui::End(); 
     // End Debug Overlay.

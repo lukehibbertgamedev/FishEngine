@@ -90,14 +90,14 @@ void Fish::ResourceManager::load_scene()
     obj.pMesh = get_mesh_by_name("horse");
     obj.pMaterial = get_material_by_name("texturedmesh");
     obj.transformMatrix = glm::translate(glm::vec3{ 5,0,0 });
-    m_Scene.m_SceneObjects.push_back(obj);
+    m_Scene.m_SceneObjects.push_back(obj); 
+    
 
-    //
+    // Texture loading/sampling...
 
     //create a sampler for the texture
     VkSamplerCreateInfo samplerInfo = vkinit::sampler_create_info(VK_FILTER_NEAREST);
-
-    VkSampler blockySampler;
+    VkSampler blockySampler = {};
     vkCreateSampler(VulkanEngine::Get().GetDevice(), &samplerInfo, nullptr, &blockySampler);
 
     Fish::Resource::Material* texturedMat = get_material_by_name("texturedmesh");
@@ -112,15 +112,15 @@ void Fish::ResourceManager::load_scene()
 
     vkAllocateDescriptorSets(VulkanEngine::Get().GetDevice(), &allocInfo, &texturedMat->textureSet);
 
-    //write to the descriptor set so that it points to our empire_diffuse texture
-    VkDescriptorImageInfo imageBufferInfo;
+    // Write to the descriptor set so that it points to our texture
+    VkDescriptorImageInfo imageBufferInfo = {};
     imageBufferInfo.sampler = blockySampler;
     imageBufferInfo.imageView = m_Textures["horse_brown_texture"].imageView;
     imageBufferInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-    VkWriteDescriptorSet texture1 = vkinit::write_descriptor_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, texturedMat->textureSet, &imageBufferInfo, 0);
+    VkWriteDescriptorSet textureImg = vkinit::write_descriptor_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, texturedMat->textureSet, &imageBufferInfo, 0);
 
-    vkUpdateDescriptorSets(VulkanEngine::Get().GetDevice(), 1, &texture1, 0, nullptr);
+    vkUpdateDescriptorSets(VulkanEngine::Get().GetDevice(), 1, &textureImg, 0, nullptr);
 }
 
 Fish::Resource::Mesh Fish::ResourceManager::create_default_triangle()
@@ -131,14 +131,14 @@ Fish::Resource::Mesh Fish::ResourceManager::create_default_triangle()
     mesh.vertices.resize(3);
 
     //vertex positions
-    mesh.vertices[0].position = { 1.f, 1.f, 0.0f };
-    mesh.vertices[1].position = { -1.f, 1.f, 0.0f };
-    mesh.vertices[2].position = { 0.f,-1.f, 0.0f };
+    mesh.vertices[0].position = { 0.0f, 0.0f, 0.0f };
+    mesh.vertices[1].position = { 1.0f, 0.0f, 0.0f };
+    mesh.vertices[2].position = { 0.0f, 1.0f, 0.0f };
 
-    //vertex colors, all green
-    mesh.vertices[0].colour = { 0.f, 1.f, 0.0f }; //pure green
-    mesh.vertices[1].colour = { 0.f, 1.f, 0.0f }; //pure green
-    mesh.vertices[2].colour = { 0.f, 1.f, 0.0f }; //pure green
+    //vertex colors, defaulted to white
+    for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+        mesh.vertices[i].colour = { 0.0f, 0.0f, 0.0f };
+    }
 
     //we don't care about the vertex normals
 
@@ -162,11 +162,10 @@ Fish::Resource::Mesh Fish::ResourceManager::create_default_quad()
     mesh.vertices[2].position = { 1.f,1.f, 0.0f };
     mesh.vertices[3].position = { 1.f,-1.f, 0.0f };
 
-    //vertex colors, all green
-    mesh.vertices[0].colour = { 1.f, 0.f, 0.0f }; //pure green
-    mesh.vertices[1].colour = { 0.f, 1.f, 0.0f }; //pure green
-    mesh.vertices[2].colour = { 0.f, 1.f, 0.0f }; //pure green
-    mesh.vertices[3].colour = { 1.f, 0.f, 0.0f }; //pure green
+    //vertex colors, defaulted to white
+    for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+        mesh.vertices[i].colour = { 0.0f, 0.0f, 0.0f };
+    } 
 
     //we don't care about the vertex normals
 
@@ -219,7 +218,6 @@ Fish::Resource::Mesh Fish::ResourceManager::create_default_cube()
     mesh.vertices[22].position = { 1.0f, 1.0f, 1.0f }; // point 2 raised on y
     mesh.vertices[23].position = { 0.0f, 1.0f, 1.0f }; // point 3 raised on y
 
-
     // indices 
     mesh.indices.resize(36);
     mesh.indices = {
@@ -230,6 +228,11 @@ Fish::Resource::Mesh Fish::ResourceManager::create_default_cube()
         16,17,18, 18,19,16,
         20,21,22, 22,23,20
     };
+
+    //vertex colors, defaulted to white
+    for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+        mesh.vertices[i].colour = { 0.0f, 0.0f, 0.0f };
+    }
 
     return mesh;
 
@@ -286,9 +289,6 @@ Fish::Resource::Mesh Fish::ResourceManager::create_default_cube()
     //    //mesh.vertices[i + 1].normal = crossPrd;
     //    //mesh.vertices[i + 2].normal = crossPrd;
     //}
-
-    
-
 }
 
 Fish::Resource::Mesh* Fish::ResourceManager::get_mesh_by_name(const std::string& name)
@@ -422,3 +422,33 @@ Fish::Resource::Material* Fish::ResourceManager::get_material_by_name(const std:
         return &(*it).second;
     }
 }
+
+//void Fish::ResourceManager::sample_texture(const std::string& name, VkSamplerCreateInfo samplerInfo, VkSampler blockySampler, VkDescriptorSetAllocateInfo allocInfo, VkWriteDescriptorSet texture1)
+//{
+//    //create a sampler for the texture
+//    samplerInfo = vkinit::sampler_create_info(VK_FILTER_NEAREST);
+//
+//    vkCreateSampler(VulkanEngine::Get().GetDevice(), &samplerInfo, nullptr, &blockySampler);
+//
+//    Fish::Resource::Material* texturedMat = get_material_by_name("texturedmesh");
+//
+//    //allocate the descriptor set for single-texture to use on the material
+//    allocInfo = {};
+//    allocInfo.pNext = nullptr;
+//    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+//    allocInfo.descriptorSetCount = 1;
+//    allocInfo.descriptorPool = VulkanEngine::Get().GetDescriptorPool();
+//    allocInfo.pSetLayouts = &VulkanEngine::Get().GetSingleTextureSetLayout();
+//
+//    vkAllocateDescriptorSets(VulkanEngine::Get().GetDevice(), &allocInfo, &texturedMat->textureSet);
+//
+//    //write to the descriptor set so that it points to our texture
+//    VkDescriptorImageInfo imageBufferInfo = {};
+//    imageBufferInfo.sampler = blockySampler;
+//    imageBufferInfo.imageView = m_Textures[name].imageView;
+//    imageBufferInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+//
+//    texture1 = vkinit::write_descriptor_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, texturedMat->textureSet, &imageBufferInfo, 0);
+//
+//    vkUpdateDescriptorSets(VulkanEngine::Get().GetDevice(), 1, &texture1, 0, nullptr);
+//}

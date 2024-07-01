@@ -1,6 +1,9 @@
 
 Future Todo:
-	- [ ]
+	
+	- [ ] Optimise the cube primitive rendering (currently 24 vertices, should really only be 8)
+	- [ ] Fix the rotation origin point for each render object (currently not around the origin)
+	- [ ] Privatise unnecessary variables and provide const correct accessors
 
 Previously:
 	- [X] Recreated a new project using Vulkan and SDL as opposed to Vulkan and GLFW.		05/06
@@ -55,22 +58,10 @@ Previously:
 
 Next time:
 
-	- [ ] Render several different models using different textures
+	- [ ] Render several different models using different textures (see https://kylehalladay.com/blog/tutorial/vulkan/2018/01/28/Textue-Arrays-Vulkan.html)
 
-	- [ ] Optimise the cube primitive rendering (currently 24 vertices, should really only be 8)
-
-	- [ ] Fix the rotation origin point for each render object (currently not around the origin)
-
-	- [ ] Read up and review the code surrounding descriptor sets
-
-	- [ ] Complete the exercises from the finale of chapter 3
-
-	- [ ] Sort the render objects container before rendering by Pipeline and Mesh, reducing number of binds
-	
-	- [ ] Load more meshes
+	- [ ] Sort the render objects container before rendering by Pipeline and Mesh, reducing number of binds (see Chpt 3)
 
 	- [ ] Go through the console window on termination and attempt to clear the validation errors/warnings
 
 	- [ ] Refactor all code to match the 1.3 support for Vulkan
-
-	- [ ] Privatise unnecessary variables and provide const correct accessors
