@@ -51,11 +51,13 @@ Previously:
 	- [X] Modify horse at runtime (position, rotation, scale)								23/06
 	- [X] Quad primitive rendering															23/06
 
+	- [X] Cube primitive rendering															01/07
+
 Next time:
 
 	- [ ] Render several different models using different textures
 
-	- [ ] Render a generated cube, expanded from the quad (needs fixing)
+	- [ ] Optimise the cube primitive rendering (currently 24 vertices, should really only be 8)
 
 	- [ ] Fix the rotation origin point for each render object (currently not around the origin)
 

@@ -72,20 +72,20 @@ void Fish::ResourceManager::load_scene()
     Fish::Resource::RenderObject obj = {};
 
     // Load the little horsey.
-    obj.pMesh = get_mesh_by_name("triangle");
-    obj.pMaterial = get_material_by_name("texturedmesh");
-    obj.transformMatrix = glm::translate(glm::vec3{ 5,-10,0 });
-    m_Scene.m_SceneObjects.push_back(obj);
-
     obj.pMesh = get_mesh_by_name("quad");
     obj.pMaterial = get_material_by_name("texturedmesh");
     obj.transformMatrix = glm::translate(glm::vec3{ 0,-10,0 });
     m_Scene.m_SceneObjects.push_back(obj);
 
+    obj.pMesh = get_mesh_by_name("triangle");
+    obj.pMaterial = get_material_by_name("texturedmesh");
+    obj.transformMatrix = glm::translate(glm::vec3{ 5,-10,0 });
+    m_Scene.m_SceneObjects.push_back(obj);
+
     obj.pMesh = get_mesh_by_name("cube");
     obj.pMaterial = get_material_by_name("texturedmesh");
     obj.transformMatrix = glm::translate(glm::vec3{ 0,0,0 });
-    //m_Scene.m_SceneObjects.push_back(obj);
+    m_Scene.m_SceneObjects.push_back(obj);
 
     obj.pMesh = get_mesh_by_name("horse");
     obj.pMaterial = get_material_by_name("texturedmesh");
@@ -183,65 +183,112 @@ Fish::Resource::Mesh Fish::ResourceManager::create_default_cube()
 
     mesh.vertices.resize(36);
 
+    // bottom face
+    mesh.vertices[0].position = { 0.0f, 0.0f, 0.0f };
+    mesh.vertices[1].position = { 1.0f, 0.0f, 0.0f };
+    mesh.vertices[2].position = { 1.0f, 0.0f, 1.0f };
+    mesh.vertices[3].position = { 0.0f, 0.0f, 1.0f };
+
+   // right face 
+    mesh.vertices[4].position = { 1.0f, 0.0f, 0.0f }; // point 1
+    mesh.vertices[5].position = { 1.0f, 1.0f, 0.0f }; // point 1 raised on y
+    mesh.vertices[6].position = { 1.0f, 1.0f, 1.0f }; // point 2 raised on y
+    mesh.vertices[7].position = { 1.0f, 0.0f, 1.0f }; // point 2
+
+    // back face
+    mesh.vertices[8].position = { 0.0f, 0.0f, 0.0f }; // point 0
+    mesh.vertices[9].position = { 0.0f, 1.0f, 0.0f }; // point 0 raised on y
+    mesh.vertices[10].position = { 1.0f, 1.0f, 0.0f }; // point 1 raised on y
+    mesh.vertices[11].position = { 1.0f, 0.0f, 0.0f }; // point 1
+
+    // left face
+    mesh.vertices[12].position = { 0.0f, 0.0f, 0.0f }; // point 0
+    mesh.vertices[13].position = { 0.0f, 1.0f, 0.0f }; // point 0 raised on y
+    mesh.vertices[14].position = { 0.0f, 1.0f, 1.0f }; // point 3 raised on y
+    mesh.vertices[15].position = { 0.0f, 0.0f, 1.0f }; // point 3
+
+    // front face
+    mesh.vertices[16].position = { 0.0f, 0.0f, 1.0f }; // point 3
+    mesh.vertices[17].position = { 0.0f, 1.0f, 1.0f }; // point 3 raised on y
+    mesh.vertices[18].position = { 1.0f, 1.0f, 1.0f }; // point 2 raised on y
+    mesh.vertices[19].position = { 1.0f, 0.0f, 1.0f }; // point 2
+
+    // top face
+    mesh.vertices[20].position = { 0.0f, 1.0f, 0.0f }; // point 0 raised on y
+    mesh.vertices[21].position = { 1.0f, 1.0f, 0.0f }; // point 1 raised on y
+    mesh.vertices[22].position = { 1.0f, 1.0f, 1.0f }; // point 2 raised on y
+    mesh.vertices[23].position = { 0.0f, 1.0f, 1.0f }; // point 3 raised on y
+
+
     // indices 
     mesh.indices.resize(36);
     mesh.indices = {
-        // +-x
-        0,1,4,	4,1,5,
-        2,3,6,	6,3,7,
-        // +-y
-        1,0,2,	2,0,3,
-        4,5,6,	4,6,7,
-        // +-z
-        2,5,1,	2,6,5,
-        3,0,4,	3,4,7
+        0,1,2, 2,3,0,
+        4,5,6, 6,7,4,
+        8,9,10, 10,11,8,
+        12,13,14, 14,15,12,
+        16,17,18, 18,19,16,
+        20,21,22, 22,23,20
     };
+
+    return mesh;
+
+    //mesh.indices = {
+    //    // +-x
+    //    0,1,4,	4,1,5,
+    //    2,3,6,	6,3,7,
+    //    // +-y
+    //    1,0,2,	2,0,3,
+    //    4,5,6,	4,6,7,
+    //    // +-z
+    //    2,5,1,	2,6,5,
+    //    3,0,4,	3,4,7
+    //};
 
     //vertex positions
-    glm::vec3 extents = { 1.f, 1.f, 1.f };
-    glm::vec3 corners[] =
-    {
-        { -extents.x,  extents.y,  extents.z },		// V0 = -0.5,  0.5,  0.5
-        { -extents.x,  extents.y, -extents.z },		// V1 = -0.5,  0.5, -0.5
-        {  extents.x,  extents.y, -extents.z },		// V2 =  0.5,  0.5, -0.5
-        {  extents.x,  extents.y,  extents.z },		// V3 =  0.5,  0.5,  0.5
-        { -extents.x, -extents.y,  extents.z },		// V4 = -0.5, -0.5,  0.5
-        { -extents.x, -extents.y, -extents.z },		// V5 = -0.5, -0.5, -0.5
-        {  extents.x, -extents.y, -extents.z },		// V6 =  0.5, -0.5, -0.5
-        {  extents.x, -extents.y,  extents.z }		// V7 =  0.5, -0.5,  0.5
-    };
-    for (size_t i = 0; i < mesh.vertices.size(); i++)
-    {
-        mesh.vertices[i].position = corners[mesh.indices[i]];
-        mesh.vertices[i].colour = { 0.f, 1.f, 0.0f }; //pure green
-    }
+    //glm::vec3 extents = { 1.f, 1.f, 1.f };
+    //glm::vec3 corners[] =
+    //{
+    //    { -extents.x,  extents.y,  extents.z },		// V0 = -0.5,  0.5,  0.5
+    //    { -extents.x,  extents.y, -extents.z },		// V1 = -0.5,  0.5, -0.5
+    //    {  extents.x,  extents.y, -extents.z },		// V2 =  0.5,  0.5, -0.5
+    //    {  extents.x,  extents.y,  extents.z },		// V3 =  0.5,  0.5,  0.5
+    //    { -extents.x, -extents.y,  extents.z },		// V4 = -0.5, -0.5,  0.5
+    //    { -extents.x, -extents.y, -extents.z },		// V5 = -0.5, -0.5, -0.5
+    //    {  extents.x, -extents.y, -extents.z },		// V6 =  0.5, -0.5, -0.5
+    //    {  extents.x, -extents.y,  extents.z }		// V7 =  0.5, -0.5,  0.5
+    //};
+    //for (size_t i = 0; i < mesh.vertices.size(); i++)
+    //{
+    //    mesh.vertices[i].position = corners[mesh.indices[i]];
+    //    mesh.vertices[i].colour = { 0.f, 1.f, 0.0f }; //pure green
+    //}
 
     //vertex normals
-    for (size_t i = 0; i < mesh.vertices.size(); i+=3)
-    {
-        // Get verts of current tri
-        glm::vec3 v0 = mesh.vertices[i + 0].position;
-        glm::vec3 v1 = mesh.vertices[i + 1].position;
-        glm::vec3 v2 = mesh.vertices[i + 2].position;
+    //for (size_t i = 0; i < mesh.vertices.size(); i+=3)
+    //{
+    //    // Get verts of current tri
+    //    glm::vec3 v0 = mesh.vertices[i + 0].position;
+    //    glm::vec3 v1 = mesh.vertices[i + 1].position;
+    //    glm::vec3 v2 = mesh.vertices[i + 2].position;
 
-        // Calculate edges
-        glm::vec3 edge0 = v0 - v1;
-        glm::vec3 edge1 = v1 - v2;
+    //    // Calculate edges
+    //    glm::vec3 edge0 = v0 - v1;
+    //    glm::vec3 edge1 = v1 - v2;
 
-        // Calculate cross product
-        glm::vec3 crossPrd = glm::cross(edge0, edge1);
-        // Normalise
-        crossPrd = glm::normalize(crossPrd);
+    //    // Calculate cross product
+    //    glm::vec3 crossPrd = glm::cross(edge0, edge1);
+    //    // Normalise
+    //    crossPrd = glm::normalize(crossPrd);
 
-        // Set normals
-        //mesh.vertices[i + 0].normal = crossPrd;
-        //mesh.vertices[i + 1].normal = crossPrd;
-        //mesh.vertices[i + 2].normal = crossPrd;
-    }
+    //    // Set normals
+    //    //mesh.vertices[i + 0].normal = crossPrd;
+    //    //mesh.vertices[i + 1].normal = crossPrd;
+    //    //mesh.vertices[i + 2].normal = crossPrd;
+    //}
 
     
 
-    return mesh;
 }
 
 Fish::Resource::Mesh* Fish::ResourceManager::get_mesh_by_name(const std::string& name)

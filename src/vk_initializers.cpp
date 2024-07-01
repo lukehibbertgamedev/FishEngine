@@ -424,7 +424,7 @@ VkPipelineRasterizationStateCreateInfo vkinit::rasterization_state_create_info(V
     //discards all primitives before the rasterization stage if enabled which we don't want
     info.rasterizerDiscardEnable = VK_FALSE;
 
-    info.polygonMode = polygonMode;
+    info.polygonMode = VK_POLYGON_MODE_FILL;
     info.lineWidth = 1.0f;
     //no backface cull
     info.cullMode = VK_CULL_MODE_NONE;
