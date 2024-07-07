@@ -4,6 +4,8 @@ Future Todo:
 	- [ ] Optimise the cube primitive rendering (currently 24 vertices, should really only be 8)
 	- [ ] Fix the rotation origin point for each render object (currently not around the origin)
 	- [ ] Privatise unnecessary variables and provide const correct accessors
+	- [ ] Define an error code and proper logging for Fish (i.e. FISH_ERROR, FISH_WARN, FISH_FATAL, FISH_LOG) potentially coloured in the console
+	- [ ] Begin implementing the 1.3 API as our currently implementation uses outdated code
 
 Previously:
 	- [X] Recreated a new project using Vulkan and SDL as opposed to Vulkan and GLFW.		05/06
@@ -46,7 +48,7 @@ Previously:
 	- [X] Custom ImGui window with timer metrics											20/06
 	- [X] Refactor engine to use resource manager and scenes								20/06
 
-	- [X] Added WASD/QE control to the camera												22/06
+	- [X] Added WASD/QE control to the camera												22/06 *
 	- [X] Further abstracted vk_engine.h separating gpu data and pipeline builder			22/06
 
 	- [X] Added toggle for the camera mouse motion											23/06
@@ -56,7 +58,18 @@ Previously:
 
 	- [X] Cube primitive rendering															01/07
 
+	- [X] Attempted listing all scene objects and modifying them at runtime	(failed)		07/07
+
 Next time:
+
+	- [ ] List all scene objects within ImGui and be able to modify them at runtime
+	`-> Currently changes are not applied and model matrix is reversed to identity matrix at each
+	`-> loop of the program. Without this identity matrix, the rotation matrix messes up the model 
+	`-> matrix and things go weird. Objects are listed correctly though so don't change that.
+
+	- [ ] Implement the base entity component system code, slightly refactored from ACL
+	`-> See Trello for the reference implementation to use here, just make the implementation a little
+	`-> nicer than we did for the ACL engine.
 
 	- [ ] Render several different models using different textures (see https://kylehalladay.com/blog/tutorial/vulkan/2018/01/28/Textue-Arrays-Vulkan.html)
 
