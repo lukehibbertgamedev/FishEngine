@@ -47,10 +47,10 @@ namespace Fish {
 		};
 
 		struct RenderObject {
-			Fish::Component::Transform transform; 
-			Mesh* pMesh;
-			Material* pMaterial;
-			glm::mat4 transformMatrix;
+			Fish::Component::Transform transform = {};
+			Mesh* pMesh = nullptr;
+			Material* pMaterial = nullptr;
+			glm::mat4 transformMatrix = glm::mat4(1.0f);
 		};
 	}
 }
