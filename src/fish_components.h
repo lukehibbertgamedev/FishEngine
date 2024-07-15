@@ -14,5 +14,14 @@ namespace Fish {
 			glm::vec3 scale = glm::vec3(1.0f);
 			glm::vec3 eulerRotation = glm::vec3(0.0f);
 		};
+
+		struct RigidBody {
+			glm::vec3 velocity;
+			glm::vec3 acceleration;
+		};
+
+		struct Gravity {
+			glm::vec3 force;
+		};
 	}
 }

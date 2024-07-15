@@ -61,12 +61,25 @@ Previously:
 	- [X] Attempted listing all scene objects and modifying them at runtime	(failed)		07/07
 
 	- [X] Objects listed in ImGui and modified at runtime									15/07
+	- [X] Implemented the codebase for use of the entity component system					15/07 *
 
 Next time:
 
-	- [ ] Implement the base entity component system code, slightly refactored from ACL
-	`-> See Trello for the reference implementation to use here, just make the implementation a little
-	`-> nicer than we did for the ACL engine.
+	- [ ] Create new folders in the project file explorer for different parts(i.e. Backend, Core, Ecs)
+
+	- [ ] Separate the ECS classes into their own respective files
+
+	- [ ] Begin refactoring current code to reflect the ECS demo (have current scene objects fall to gravity)
+
+	- [ ] Implement the new scene button functionality
+	
+	- [ ] Implement the save scene button functionality
+	
+	- [ ] Implement the load scene button functionality
+
+	- [ ] Implement a framework class that refactors the way our engine is loaded (similar to ACL/Tyro)
+	`-> Included in this is to refactor the vk_engine class to a fish_vulkan_backend class with classes for individual components.
+
 
 	- [ ] Render several different models using different textures (see https://kylehalladay.com/blog/tutorial/vulkan/2018/01/28/Textue-Arrays-Vulkan.html)
 
