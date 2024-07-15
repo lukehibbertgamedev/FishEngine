@@ -55,20 +55,11 @@ namespace Fish {
 
 			void update_model_matrix()
 			{
-				// Translation
-				glm::mat4 translation = glm::translate(transform.position);
-
-				// Rotation
-				glm::mat4 x = glm::rotate(glm::radians(transform.eulerRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-				glm::mat4 y = glm::rotate(glm::radians(transform.eulerRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-				glm::mat4 z = glm::rotate(glm::radians(transform.eulerRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-				glm::mat4 rotation = z * y * x;
-
-				// Scale
-				glm::mat4 scale = glm::scale(transform.scale);
-
-				// Model
-				transformMatrix = scale * rotation * translation;
+				transformMatrix = glm::translate(transform.position) *
+					glm::rotate(glm::radians(transform.eulerRotation.x), glm::vec3(1.0f, 0.0f, 0.0f)) *
+					glm::rotate(glm::radians(transform.eulerRotation.y), glm::vec3(0.0f, 1.0f, 0.0f)) *
+					glm::rotate(glm::radians(transform.eulerRotation.z), glm::vec3(0.0f, 0.0f, 1.0f)) *
+					glm::scale(transform.scale);
 			}
 		};
 	}

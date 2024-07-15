@@ -951,111 +951,47 @@ void VulkanEngine::render_imgui()
             {           
                 ImGui::NewLine();
 
-                // Doing this doesn't allow changes to be applied but messes up if not here.
-                //obj.transformMatrix = glm::mat4(1.0f); 
+                // Local cache, with thanks to MellOH for the idea and functional implementation.
+                float position[4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
+                float rotation[4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
+                float scale[4]      = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-                float position[3] = { obj.transform.position.x, obj.transform.position.y, obj.transform.position.z };
+                // Read transform.
+                position[0] = obj.transform.position.x;
+                position[1] = obj.transform.position.y;
+                position[2] = obj.transform.position.z;
+                rotation[0] = obj.transform.eulerRotation.x;
+                rotation[1] = obj.transform.eulerRotation.y;
+                rotation[2] = obj.transform.eulerRotation.z;
+                scale[0] = obj.transform.scale.x;
+                scale[1] = obj.transform.scale.y;
+                scale[2] = obj.transform.scale.z;
+
+                // Modify transform.
                 ImGui::DragFloat3("position", position);
-                obj.transform.set(FISH_TRANSFORM_POSITION, glm::vec3(position[0], position[1], position[2]));
-
-                float rotation[3] = { obj.transform.eulerRotation.x, obj.transform.eulerRotation.y, obj.transform.eulerRotation.z };
                 ImGui::DragFloat3("rotation", rotation);
-                obj.transform.set(FISH_TRANSFORM_EULER, glm::vec3(rotation[0], rotation[1], rotation[2]));
-
-                float scale[3] = { obj.transform.scale.x, obj.transform.scale.y, obj.transform.scale.z };
                 ImGui::DragFloat3("scale", scale);
-                obj.transform.set(FISH_TRANSFORM_POSITION, glm::vec3(scale[0], scale[1], scale[2]));
 
-                // Next time:
-                // [X] 1. Read render object transform position, rotation, scale.
-                // [X] 2. Use ImGui to set those new values (to obj transform).
-                // [ ] 3. Add a function to render object which updates the model matrix (called each frame)
-                
-                // e.g.
-                // float position[3] = { obj.transform.position.x, obj.transform.position.y, obj.transform.position.z };
-                // ImGui::DragFloat3("Position", position);
-                // obj.transform.set_position(position);
+                // Write transform.
+                obj.transform.position.x = position[0];
+                obj.transform.position.y = position[1];
+                obj.transform.position.z = position[2];
+                obj.transform.eulerRotation.x = rotation[0];
+                obj.transform.eulerRotation.y = rotation[1];
+                obj.transform.eulerRotation.z = rotation[2];
+                obj.transform.scale.x = scale[0];
+                obj.transform.scale.y = scale[1];
+                obj.transform.scale.z = scale[2];
 
-                // Then before the render loop within run, call an update function to update all model matrices.
-                // obj[i].update_model_matrix();
-
-                //// Position
-                //float position[3] = { obj.transformMatrix[3][0], obj.transformMatrix[3][1], obj.transformMatrix[3][2] };
-                //ImGui::DragFloat3("Position", position);
-                ////obj.transformMatrix[3][0] = position[0];
-                ////obj.transformMatrix[3][1] = position[1];
-                ////obj.transformMatrix[3][2] = position[2];
-                //glm::mat4 t = glm::translate(glm::vec3(position[0], position[1], position[2]));
-
-                //// Rotation
-                //float rotation[3] = { obj.transform.eulerRotation.x, obj.transform.eulerRotation.y, obj.transform.eulerRotation.z };
-                //ImGui::DragFloat3("rotation", rotation);
-                //glm::mat4 x = glm::rotate(glm::radians(rotation[0]), glm::vec3(1.0f, 0.0f, 0.0f));
-                //glm::mat4 y = glm::rotate(glm::radians(rotation[1]), glm::vec3(0.0f, 1.0f, 0.0f));
-                //glm::mat4 z = glm::rotate(glm::radians(rotation[2]), glm::vec3(0.0f, 0.0f, 1.0f));
-                //glm::mat4 r = z * y * x;
-
-                //// Scale
-                //float scale[3] = { obj.transformMatrix[0][0], obj.transformMatrix[1][1], obj.transformMatrix[2][2] };
-                //ImGui::DragFloat3("scale", scale);
-                //glm::mat4 s = glm::scale(glm::vec3(scale[0], scale[1], scale[2]));
-                ////obj.transformMatrix[0][0] = scale[0];
-                ////obj.transformMatrix[1][1] = scale[1];
-                ////obj.transformMatrix[2][2] = scale[2];                
-
-                //glm::mat4 final = s * r * t;
-                //obj.transformMatrix = final;
+                obj.update_model_matrix();
 
                 ImGui::TreePop(); // Must be after every node.
             }
             i++;
         }
 
-        //for (size_t i = 0; i < objects.size(); ++i) {
-        //    std::string name = "Object #" + i;
-        //    if (ImGui::TreeNode(name.c_str())) {
-
-        //        Fish::Resource::RenderObject& obj = objects[i];
-
-        //        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Object #%d", i);
-
-        //        // Position.
-        //        float pos[3] = { obj.transformMatrix[3][0], obj.transformMatrix[3][1], obj.transformMatrix[3][2] };
-        //        ImGui::DragFloat3("position", pos, 0.5f, -FLT_MAX, +FLT_MAX);
-        //        glm::mat4 transmat = glm::translate(glm::vec3(pos[0], pos[1], pos[2]));
-        //        ImGui::NewLine();
-
-        //        ImGui::TreePop();
-        //    }            
-        //}
         ImGui::TreePop(); // Must be after every node.
-    }
-
-    //for (size_t i = 0; i < objects.size(); ++i) {
-        
-        //ImGui::NewLine();
-
-        //// Reference is required here.
-        //Fish::Resource::RenderObject& obj = Fish::ResourceManager::Get().get_current_scene().m_SceneObjects[i];
-
-        //// Position.
-        //float pos[3] = { obj.transformMatrix[3][0], obj.transformMatrix[3][1], obj.transformMatrix[3][2] };
-        //ImGui::DragFloat3("position", pos, 0.5f, -FLT_MAX, +FLT_MAX);
-        //glm::mat4 transmat = glm::translate(glm::vec3(pos[0], pos[1], pos[2]));
-
-        //// Rotation.
-        //float rot[3] = { glm::degrees(obj.transform.eulerAngles.x), glm::degrees(obj.transform.eulerAngles.y), glm::degrees(obj.transform.eulerAngles.z) };
-        //ImGui::DragFloat3("rotation", rot, 0.5f, -FLT_MAX, +FLT_MAX);
-        //glm::mat4 rotmat = glm::rotate(glm::radians(rot[2]), glm::vec3(0.f, 0.f, 1.f)) * glm::rotate(glm::radians(rot[1]), glm::vec3(0.f, 1.f, 0.f)) * glm::rotate(glm::radians(rot[0]), glm::vec3(1.f, 0.f, 0.f)); // z * y * x
-
-        //// Scale
-        //float scl[3] = { obj.transformMatrix[0][0], obj.transformMatrix[1][1], obj.transformMatrix[2][2] };
-        //ImGui::DragFloat3("scale", scl, 0.1f, -FLT_MAX, +FLT_MAX);
-        //glm::mat4 scalemat = glm::scale(glm::vec3(scl[0], scl[1], scl[2]));
-
-        //// Calculate transformation.
-        //obj.transformMatrix = scalemat * rotmat * transmat;
-    //}         
+    }        
 
     ImGui::End(); 
     // End Debug Overlay.
@@ -1065,14 +1001,6 @@ void VulkanEngine::render_imgui()
     //
 
     ImGui::Render(); // Must either be at the very end of this function, or within the render loop (ideally at the beginning).
-}
-
-void VulkanEngine::update_objects(float dt)
-{
-    for (auto& obj : Fish::ResourceManager::Get().m_Scene.m_SceneObjects)
-    {
-        obj.update_model_matrix();
-    }
 }
 
 void VulkanEngine::run()
@@ -1130,9 +1058,6 @@ void VulkanEngine::run()
         }
 
         m_EngineTimer.tick();
-
-        // update.
-        update_objects(m_EngineTimer.delta_time());
 
         // imgui render.
         render_imgui();
