@@ -114,6 +114,10 @@ private:
 	// commands responsible for rendering imgui.
 	void render_imgui();
 
+	void imgui_debug_data();
+	void imgui_object_hierarchy();
+	void imgui_scene_data();
+
 	// return frame we are rendering to right now.
 	FrameData& get_current_frame();
 

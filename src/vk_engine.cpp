@@ -929,78 +929,109 @@ void VulkanEngine::render_imgui()
     //ImGui::ShowDemoWindow();
 
     // Begin Debug Overlay
-    ImGui::Begin("Debug Overlay", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Debug Overlay", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar);
+    imgui_debug_data();
+    ImGui::End(); // Debug Overlay
 
-    ImGui::Text("Debug data for Fish engine.");
+    // Begin Object Hierarchy
+    ImGui::Begin("Hierarchy", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
+    imgui_object_hierarchy();
+    ImGui::End(); // Object Hierarchy
 
-    ImGui::Text("time elapsed: %f", m_EngineTimer.engine_time());
-    ImGui::Text("delta time: %f", m_EngineTimer.delta_time());
-    ImGui::Text("camera pos: %f, %f, %f", m_Camera.m_Position.x, m_Camera.m_Position.y, m_Camera.m_Position.z);
-    ImGui::Text("camera pitch, yaw: %f, %f", m_Camera.m_Pitch, m_Camera.m_Yaw);
+    // Begin Scene Data
+    ImGui::Begin("Scene", (bool*)0, ImGuiWindowFlags_None);
+    imgui_scene_data();
+    ImGui::End(); // Scene Data
 
-    // Loop every scene object...
-    //std::vector<Fish::Resource::RenderObject>& objects = Fish::ResourceManager::Get().m_Scene.m_SceneObjects;
-
-    if (ImGui::TreeNode("Render objects:")) {
-
-        int i = 0;
-        for (auto& obj : Fish::ResourceManager::Get().m_Scene.m_SceneObjects)
-        {
-            std::string name = "Object #" + i;
-            if (ImGui::TreeNode(name.c_str())) 
-            {           
-                ImGui::NewLine();
-
-                // Local cache, with thanks to MellOH for the idea and functional implementation.
-                float position[4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
-                float rotation[4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
-                float scale[4]      = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-                // Read transform.
-                position[0] = obj.transform.position.x;
-                position[1] = obj.transform.position.y;
-                position[2] = obj.transform.position.z;
-                rotation[0] = obj.transform.eulerRotation.x;
-                rotation[1] = obj.transform.eulerRotation.y;
-                rotation[2] = obj.transform.eulerRotation.z;
-                scale[0] = obj.transform.scale.x;
-                scale[1] = obj.transform.scale.y;
-                scale[2] = obj.transform.scale.z;
-
-                // Modify transform.
-                ImGui::DragFloat3("position", position);
-                ImGui::DragFloat3("rotation", rotation);
-                ImGui::DragFloat3("scale", scale);
-
-                // Write transform.
-                obj.transform.position.x = position[0];
-                obj.transform.position.y = position[1];
-                obj.transform.position.z = position[2];
-                obj.transform.eulerRotation.x = rotation[0];
-                obj.transform.eulerRotation.y = rotation[1];
-                obj.transform.eulerRotation.z = rotation[2];
-                obj.transform.scale.x = scale[0];
-                obj.transform.scale.y = scale[1];
-                obj.transform.scale.z = scale[2];
-
-                obj.update_model_matrix();
-
-                ImGui::TreePop(); // Must be after every node.
-            }
-            i++;
-        }
-
-        ImGui::TreePop(); // Must be after every node.
-    }        
-
-    ImGui::End(); 
-    // End Debug Overlay.
 
     //
     //
     //
 
     ImGui::Render(); // Must either be at the very end of this function, or within the render loop (ideally at the beginning).
+}
+
+void VulkanEngine::imgui_debug_data()
+{
+
+    ImGui::Text("Debug data for Fish engine.");
+
+    ImGui::Text("Elapsed: %f", m_EngineTimer.engine_time());
+    ImGui::Text("Delta Time: %f", m_EngineTimer.delta_time());
+    ImGui::Text("Camera Position: %f, %f, %f", m_Camera.m_Position.x, m_Camera.m_Position.y, m_Camera.m_Position.z);
+    ImGui::Text("Camera Pitch/Yaw: %f/%f", m_Camera.m_Pitch, m_Camera.m_Yaw);
+}
+
+void VulkanEngine::imgui_object_hierarchy()
+{
+    int i = 0;
+    for (auto& obj : Fish::ResourceManager::Get().m_Scene.m_SceneObjects)
+    {
+        std::string name = "Object #" + std::to_string(i);
+        if (ImGui::TreeNode(name.c_str()))
+        {
+            ImGui::NewLine();
+
+            // Local cache, with thanks to MellOH for the idea and functional implementation.
+            float position[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+            float rotation[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+            float scale[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+            // Read transform.
+            position[0] = obj.transform.position.x;
+            position[1] = obj.transform.position.y;
+            position[2] = obj.transform.position.z;
+            rotation[0] = obj.transform.eulerRotation.x;
+            rotation[1] = obj.transform.eulerRotation.y;
+            rotation[2] = obj.transform.eulerRotation.z;
+            scale[0] = obj.transform.scale.x;
+            scale[1] = obj.transform.scale.y;
+            scale[2] = obj.transform.scale.z;
+
+            // Modify transform.
+            ImGui::DragFloat3("position", position);
+            ImGui::DragFloat3("rotation", rotation);
+            ImGui::DragFloat3("scale", scale);
+
+            // Write transform.
+            obj.transform.position.x = position[0];
+            obj.transform.position.y = position[1];
+            obj.transform.position.z = position[2];
+            obj.transform.eulerRotation.x = rotation[0];
+            obj.transform.eulerRotation.y = rotation[1];
+            obj.transform.eulerRotation.z = rotation[2];
+            obj.transform.scale.x = scale[0];
+            obj.transform.scale.y = scale[1];
+            obj.transform.scale.z = scale[2];
+
+            // Calculate new model matrix.
+            obj.update_model_matrix();
+
+            ImGui::TreePop(); // Must be after every node.
+        }
+        i++; // Iterate object index for the name.
+    }
+}
+
+void VulkanEngine::imgui_scene_data()
+{
+    // TODO: Implement the button functionality for the below buttons.
+
+    ImVec2 defaultButtonSize = ImVec2(100.0f, 25.0f);
+
+    if (ImGui::Button("New Scene", defaultButtonSize)) {
+        std::cout << "\n\nCreating new scene...\n\n";
+    }
+
+    if (ImGui::Button("Save Scene", defaultButtonSize)) {
+        std::cout << "\n\nSaving scene...\n\n";
+    }
+
+    if (ImGui::Button("Load Scene", defaultButtonSize)) {
+        std::cout << "\n\nLoading scene...\n\n";
+    }
+
+    ImGui::Text("Objects in scene: %i", Fish::ResourceManager::Get().m_Scene.m_SceneObjects.size()); // Must be integer to work.
 }
 
 void VulkanEngine::run()

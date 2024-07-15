@@ -60,12 +60,9 @@ Previously:
 
 	- [X] Attempted listing all scene objects and modifying them at runtime	(failed)		07/07
 
-Next time:
+	- [X] Objects listed in ImGui and modified at runtime									15/07
 
-	- [ ] List all scene objects within ImGui and be able to modify them at runtime
-	`-> Currently changes are not applied and model matrix is reversed to identity matrix at each
-	`-> loop of the program. Without this identity matrix, the rotation matrix messes up the model 
-	`-> matrix and things go weird. Objects are listed correctly though so don't change that.
+Next time:
 
 	- [ ] Implement the base entity component system code, slightly refactored from ACL
 	`-> See Trello for the reference implementation to use here, just make the implementation a little
