@@ -71,7 +71,6 @@ void Fish::ResourceManager::load_scene()
 {
     Fish::Resource::RenderObject obj = {};
 
-    // Load the little horsey.
     obj.pMesh = get_mesh_by_name("quad");
     obj.pMaterial = get_material_by_name("texturedmesh");
     obj.transformMatrix = glm::translate(glm::vec3{ 0,-10,0 });
@@ -90,8 +89,7 @@ void Fish::ResourceManager::load_scene()
     obj.pMesh = get_mesh_by_name("horse");
     obj.pMaterial = get_material_by_name("texturedmesh");
     obj.transformMatrix = glm::translate(glm::vec3{ 5,0,0 });
-    m_Scene.m_SceneObjects.push_back(obj); 
-    
+    m_Scene.m_SceneObjects.push_back(obj);     
 
     // Texture loading/sampling...
 

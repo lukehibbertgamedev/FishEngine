@@ -939,7 +939,7 @@ void VulkanEngine::render_imgui()
     ImGui::Text("camera pitch, yaw: %f, %f", m_Camera.m_Pitch, m_Camera.m_Yaw);
 
     // Loop every scene object...
-    std::vector<Fish::Resource::RenderObject>& objects = Fish::ResourceManager::Get().m_Scene.m_SceneObjects;
+    //std::vector<Fish::Resource::RenderObject>& objects = Fish::ResourceManager::Get().m_Scene.m_SceneObjects;
 
     if (ImGui::TreeNode("Render objects:")) {
 
@@ -952,12 +952,24 @@ void VulkanEngine::render_imgui()
                 ImGui::NewLine();
 
                 // Doing this doesn't allow changes to be applied but messes up if not here.
-                obj.transformMatrix = glm::mat4(1.0f); 
+                //obj.transformMatrix = glm::mat4(1.0f); 
+
+                float position[3] = { obj.transform.position.x, obj.transform.position.y, obj.transform.position.z };
+                ImGui::DragFloat3("position", position);
+                obj.transform.set(FISH_TRANSFORM_POSITION, glm::vec3(position[0], position[1], position[2]));
+
+                float rotation[3] = { obj.transform.eulerRotation.x, obj.transform.eulerRotation.y, obj.transform.eulerRotation.z };
+                ImGui::DragFloat3("rotation", rotation);
+                obj.transform.set(FISH_TRANSFORM_EULER, glm::vec3(rotation[0], rotation[1], rotation[2]));
+
+                float scale[3] = { obj.transform.scale.x, obj.transform.scale.y, obj.transform.scale.z };
+                ImGui::DragFloat3("scale", scale);
+                obj.transform.set(FISH_TRANSFORM_POSITION, glm::vec3(scale[0], scale[1], scale[2]));
 
                 // Next time:
-                // 1. Read render object transform position, rotation, scale.
-                // 2. Use ImGui to set those new values (to obj transform).
-                // 3. Add a function to render object which updates the model matrix (called each frame)
+                // [X] 1. Read render object transform position, rotation, scale.
+                // [X] 2. Use ImGui to set those new values (to obj transform).
+                // [ ] 3. Add a function to render object which updates the model matrix (called each frame)
                 
                 // e.g.
                 // float position[3] = { obj.transform.position.x, obj.transform.position.y, obj.transform.position.z };
@@ -967,31 +979,32 @@ void VulkanEngine::render_imgui()
                 // Then before the render loop within run, call an update function to update all model matrices.
                 // obj[i].update_model_matrix();
 
-                // Position
-                float position[3] = { obj.transformMatrix[3][0], obj.transformMatrix[3][1], obj.transformMatrix[3][2] };
-                ImGui::DragFloat3("Position", position);
-                //obj.transformMatrix[3][0] = position[0];
-                //obj.transformMatrix[3][1] = position[1];
-                //obj.transformMatrix[3][2] = position[2];
-                glm::mat4 t = glm::translate(glm::vec3(position[0], position[1], position[2]));
+                //// Position
+                //float position[3] = { obj.transformMatrix[3][0], obj.transformMatrix[3][1], obj.transformMatrix[3][2] };
+                //ImGui::DragFloat3("Position", position);
+                ////obj.transformMatrix[3][0] = position[0];
+                ////obj.transformMatrix[3][1] = position[1];
+                ////obj.transformMatrix[3][2] = position[2];
+                //glm::mat4 t = glm::translate(glm::vec3(position[0], position[1], position[2]));
 
-                // Rotation
-                float rotation[3] = { obj.transform.eulerRotation.x, obj.transform.eulerRotation.y, obj.transform.eulerRotation.z };
-                ImGui::DragFloat3("rotation", rotation);
-                glm::mat4 x = glm::rotate(glm::radians(rotation[0]), glm::vec3(1.0f, 0.0f, 0.0f));
-                glm::mat4 y = glm::rotate(glm::radians(rotation[1]), glm::vec3(0.0f, 1.0f, 0.0f));
-                glm::mat4 z = glm::rotate(glm::radians(rotation[2]), glm::vec3(0.0f, 0.0f, 1.0f));
+                //// Rotation
+                //float rotation[3] = { obj.transform.eulerRotation.x, obj.transform.eulerRotation.y, obj.transform.eulerRotation.z };
+                //ImGui::DragFloat3("rotation", rotation);
+                //glm::mat4 x = glm::rotate(glm::radians(rotation[0]), glm::vec3(1.0f, 0.0f, 0.0f));
+                //glm::mat4 y = glm::rotate(glm::radians(rotation[1]), glm::vec3(0.0f, 1.0f, 0.0f));
+                //glm::mat4 z = glm::rotate(glm::radians(rotation[2]), glm::vec3(0.0f, 0.0f, 1.0f));
+                //glm::mat4 r = z * y * x;
 
-                // Scale
-                float scale[3] = { obj.transformMatrix[0][0], obj.transformMatrix[1][1], obj.transformMatrix[2][2] };
-                ImGui::DragFloat3("scale", scale);
-                glm::mat4 s = glm::scale(glm::vec3(scale[0], scale[1], scale[2]));
-                //obj.transformMatrix[0][0] = scale[0];
-                //obj.transformMatrix[1][1] = scale[1];
-                //obj.transformMatrix[2][2] = scale[2];                
+                //// Scale
+                //float scale[3] = { obj.transformMatrix[0][0], obj.transformMatrix[1][1], obj.transformMatrix[2][2] };
+                //ImGui::DragFloat3("scale", scale);
+                //glm::mat4 s = glm::scale(glm::vec3(scale[0], scale[1], scale[2]));
+                ////obj.transformMatrix[0][0] = scale[0];
+                ////obj.transformMatrix[1][1] = scale[1];
+                ////obj.transformMatrix[2][2] = scale[2];                
 
-                glm::mat4 final = s * (z * y * x) * t;
-                obj.transformMatrix = final;
+                //glm::mat4 final = s * r * t;
+                //obj.transformMatrix = final;
 
                 ImGui::TreePop(); // Must be after every node.
             }
@@ -1018,7 +1031,7 @@ void VulkanEngine::render_imgui()
         ImGui::TreePop(); // Must be after every node.
     }
 
-    for (size_t i = 0; i < objects.size(); ++i) {
+    //for (size_t i = 0; i < objects.size(); ++i) {
         
         //ImGui::NewLine();
 
@@ -1042,7 +1055,7 @@ void VulkanEngine::render_imgui()
 
         //// Calculate transformation.
         //obj.transformMatrix = scalemat * rotmat * transmat;
-    }         
+    //}         
 
     ImGui::End(); 
     // End Debug Overlay.
@@ -1052,6 +1065,14 @@ void VulkanEngine::render_imgui()
     //
 
     ImGui::Render(); // Must either be at the very end of this function, or within the render loop (ideally at the beginning).
+}
+
+void VulkanEngine::update_objects(float dt)
+{
+    for (auto& obj : Fish::ResourceManager::Get().m_Scene.m_SceneObjects)
+    {
+        obj.update_model_matrix();
+    }
 }
 
 void VulkanEngine::run()
@@ -1109,6 +1130,9 @@ void VulkanEngine::run()
         }
 
         m_EngineTimer.tick();
+
+        // update.
+        update_objects(m_EngineTimer.delta_time());
 
         // imgui render.
         render_imgui();

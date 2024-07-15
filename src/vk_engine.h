@@ -114,6 +114,9 @@ private:
 	// commands responsible for rendering imgui.
 	void render_imgui();
 
+	// loop responsible for updating objects on a per frame basis
+	void update_objects(float dt);
+
 	// return frame we are rendering to right now.
 	FrameData& get_current_frame();
 
