@@ -2,7 +2,7 @@
 
 int main(int argc, char* argv[])
 {
-	VulkanEngine engine;
+	FishVulkanEngine engine;
 
 	engine.init();	
 	

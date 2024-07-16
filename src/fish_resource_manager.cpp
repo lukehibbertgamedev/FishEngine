@@ -51,18 +51,18 @@ void Fish::ResourceManager::load_all_textures()
     // Load texture.
     {
         Fish::Resource::Texture texture = {};
-        Fish::Loader::load_image_from_file(VulkanEngine::Get(), "../../assets/lost_empire-RGBA.png", texture.image);
+        Fish::Loader::load_image_from_file(FishVulkanEngine::Get(), "../../assets/lost_empire-RGBA.png", texture.image);
         VkImageViewCreateInfo imageInfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, texture.image.image, VK_IMAGE_ASPECT_COLOR_BIT);
-        vkCreateImageView(VulkanEngine::Get().GetDevice(), &imageInfo, nullptr, &texture.imageView);
+        vkCreateImageView(FishVulkanEngine::Get().GetDevice(), &imageInfo, nullptr, &texture.imageView);
         m_Textures["minecraft_texture"] = texture;
     }
 
     // Load next texture...
     {
         Fish::Resource::Texture texture = {};
-        Fish::Loader::load_image_from_file(VulkanEngine::Get(), "../../assets/MaterialBrown.png", texture.image);
+        Fish::Loader::load_image_from_file(FishVulkanEngine::Get(), "../../assets/MaterialBrown.png", texture.image);
         VkImageViewCreateInfo imageInfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, texture.image.image, VK_IMAGE_ASPECT_COLOR_BIT);
-        vkCreateImageView(VulkanEngine::Get().GetDevice(), &imageInfo, nullptr, &texture.imageView);
+        vkCreateImageView(FishVulkanEngine::Get().GetDevice(), &imageInfo, nullptr, &texture.imageView);
         m_Textures["horse_brown_texture"] = texture;
     }
 }
@@ -96,7 +96,7 @@ void Fish::ResourceManager::load_scene()
     //create a sampler for the texture
     VkSamplerCreateInfo samplerInfo = vkinit::sampler_create_info(VK_FILTER_NEAREST);
     VkSampler blockySampler = {};
-    vkCreateSampler(VulkanEngine::Get().GetDevice(), &samplerInfo, nullptr, &blockySampler);
+    vkCreateSampler(FishVulkanEngine::Get().GetDevice(), &samplerInfo, nullptr, &blockySampler);
 
     Fish::Resource::Material* texturedMat = get_material_by_name("texturedmesh");
 
@@ -105,10 +105,10 @@ void Fish::ResourceManager::load_scene()
     allocInfo.pNext = nullptr;
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorSetCount = 1;
-    allocInfo.descriptorPool = VulkanEngine::Get().GetDescriptorPool();
-    allocInfo.pSetLayouts = &VulkanEngine::Get().GetSingleTextureSetLayout();
+    allocInfo.descriptorPool = FishVulkanEngine::Get().GetDescriptorPool();
+    allocInfo.pSetLayouts = &FishVulkanEngine::Get().GetSingleTextureSetLayout();
 
-    vkAllocateDescriptorSets(VulkanEngine::Get().GetDevice(), &allocInfo, &texturedMat->textureSet);
+    vkAllocateDescriptorSets(FishVulkanEngine::Get().GetDevice(), &allocInfo, &texturedMat->textureSet);
 
     // Write to the descriptor set so that it points to our texture
     VkDescriptorImageInfo imageBufferInfo = {};
@@ -118,7 +118,7 @@ void Fish::ResourceManager::load_scene()
 
     VkWriteDescriptorSet textureImg = vkinit::write_descriptor_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, texturedMat->textureSet, &imageBufferInfo, 0);
 
-    vkUpdateDescriptorSets(VulkanEngine::Get().GetDevice(), 1, &textureImg, 0, nullptr);
+    vkUpdateDescriptorSets(FishVulkanEngine::Get().GetDevice(), 1, &textureImg, 0, nullptr);
 }
 
 Fish::Resource::Mesh Fish::ResourceManager::create_default_triangle()
@@ -319,17 +319,17 @@ void Fish::ResourceManager::upload_mesh(Fish::Resource::Mesh& mesh)
     AllocatedBuffer stagingBuffer;
 
     //allocate the buffer
-    VK_CHECK(vmaCreateBuffer(VulkanEngine::Get().GetAllocator(), &stagingBufferInfo, &vmaallocInfo, &stagingBuffer.buffer, &stagingBuffer.allocation, nullptr));
+    VK_CHECK(vmaCreateBuffer(FishVulkanEngine::Get().GetAllocator(), &stagingBufferInfo, &vmaallocInfo, &stagingBuffer.buffer, &stagingBuffer.allocation, nullptr));
 
     //
 
     //copy vertex data
     void* vertexData;
-    vmaMapMemory(VulkanEngine::Get().GetAllocator(), stagingBuffer.allocation, &vertexData);
+    vmaMapMemory(FishVulkanEngine::Get().GetAllocator(), stagingBuffer.allocation, &vertexData);
 
     memcpy(vertexData, mesh.vertices.data(), mesh.vertices.size() * sizeof(Fish::Resource::Vertex));
 
-    vmaUnmapMemory(VulkanEngine::Get().GetAllocator(), stagingBuffer.allocation);
+    vmaUnmapMemory(FishVulkanEngine::Get().GetAllocator(), stagingBuffer.allocation);
 
     //
 
@@ -346,11 +346,11 @@ void Fish::ResourceManager::upload_mesh(Fish::Resource::Mesh& mesh)
     vmaallocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
     //allocate the buffer
-    VK_CHECK(vmaCreateBuffer(VulkanEngine::Get().GetAllocator(), &vertexBufferInfo, &vmaallocInfo, &mesh.vertexBuffer.buffer, &mesh.vertexBuffer.allocation, nullptr));
+    VK_CHECK(vmaCreateBuffer(FishVulkanEngine::Get().GetAllocator(), &vertexBufferInfo, &vmaallocInfo, &mesh.vertexBuffer.buffer, &mesh.vertexBuffer.allocation, nullptr));
 
     //
 
-    VulkanEngine::Get().immediate_submit([=](VkCommandBuffer cmd) {
+    FishVulkanEngine::Get().immediate_submit([=](VkCommandBuffer cmd) {
         VkBufferCopy copy;
         copy.dstOffset = 0;
         copy.srcOffset = 0;
@@ -360,11 +360,11 @@ void Fish::ResourceManager::upload_mesh(Fish::Resource::Mesh& mesh)
 
     //copy index data
     void* indexData;
-    vmaMapMemory(VulkanEngine::Get().GetAllocator(), stagingBuffer.allocation, &indexData);
+    vmaMapMemory(FishVulkanEngine::Get().GetAllocator(), stagingBuffer.allocation, &indexData);
 
     memcpy(indexData, mesh.indices.data(), mesh.indices.size() * sizeof(uint32_t));
 
-    vmaUnmapMemory(VulkanEngine::Get().GetAllocator(), stagingBuffer.allocation);
+    vmaUnmapMemory(FishVulkanEngine::Get().GetAllocator(), stagingBuffer.allocation);
 
     //
 
@@ -381,11 +381,11 @@ void Fish::ResourceManager::upload_mesh(Fish::Resource::Mesh& mesh)
     vmaallocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
     //allocate the buffer
-    VK_CHECK(vmaCreateBuffer(VulkanEngine::Get().GetAllocator(), &indexBufferInfo, &vmaallocInfo, &mesh.indexBuffer.buffer, &mesh.indexBuffer.allocation, nullptr));
+    VK_CHECK(vmaCreateBuffer(FishVulkanEngine::Get().GetAllocator(), &indexBufferInfo, &vmaallocInfo, &mesh.indexBuffer.buffer, &mesh.indexBuffer.allocation, nullptr));
 
     //
 
-    VulkanEngine::Get().immediate_submit([=](VkCommandBuffer cmd) {
+    FishVulkanEngine::Get().immediate_submit([=](VkCommandBuffer cmd) {
         VkBufferCopy copy;
         copy.dstOffset = 0;
         copy.srcOffset = 0;
@@ -396,9 +396,9 @@ void Fish::ResourceManager::upload_mesh(Fish::Resource::Mesh& mesh)
     //
 
     //add the destruction of mesh buffer to the deletion queue
-    VulkanEngine::Get().GetDeletionQueue().push_function([=]() { vmaDestroyBuffer(VulkanEngine::Get().GetAllocator(), mesh.vertexBuffer.buffer, mesh.vertexBuffer.allocation); });
-    VulkanEngine::Get().GetDeletionQueue().push_function([=]() { vmaDestroyBuffer(VulkanEngine::Get().GetAllocator(), mesh.indexBuffer.buffer, mesh.indexBuffer.allocation); });
-    vmaDestroyBuffer(VulkanEngine::Get().GetAllocator(), stagingBuffer.buffer, stagingBuffer.allocation);
+    FishVulkanEngine::Get().GetDeletionQueue().push_function([=]() { vmaDestroyBuffer(FishVulkanEngine::Get().GetAllocator(), mesh.vertexBuffer.buffer, mesh.vertexBuffer.allocation); });
+    FishVulkanEngine::Get().GetDeletionQueue().push_function([=]() { vmaDestroyBuffer(FishVulkanEngine::Get().GetAllocator(), mesh.indexBuffer.buffer, mesh.indexBuffer.allocation); });
+    vmaDestroyBuffer(FishVulkanEngine::Get().GetAllocator(), stagingBuffer.buffer, stagingBuffer.allocation);
 }
 
 Fish::Resource::Material* Fish::ResourceManager::create_material(VkPipeline pipeline, VkPipelineLayout layout, const std::string& name)
@@ -426,7 +426,7 @@ Fish::Resource::Material* Fish::ResourceManager::get_material_by_name(const std:
 //    //create a sampler for the texture
 //    samplerInfo = vkinit::sampler_create_info(VK_FILTER_NEAREST);
 //
-//    vkCreateSampler(VulkanEngine::Get().GetDevice(), &samplerInfo, nullptr, &blockySampler);
+//    vkCreateSampler(FishVulkanEngine::Get().GetDevice(), &samplerInfo, nullptr, &blockySampler);
 //
 //    Fish::Resource::Material* texturedMat = get_material_by_name("texturedmesh");
 //
@@ -435,10 +435,10 @@ Fish::Resource::Material* Fish::ResourceManager::get_material_by_name(const std:
 //    allocInfo.pNext = nullptr;
 //    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 //    allocInfo.descriptorSetCount = 1;
-//    allocInfo.descriptorPool = VulkanEngine::Get().GetDescriptorPool();
-//    allocInfo.pSetLayouts = &VulkanEngine::Get().GetSingleTextureSetLayout();
+//    allocInfo.descriptorPool = FishVulkanEngine::Get().GetDescriptorPool();
+//    allocInfo.pSetLayouts = &FishVulkanEngine::Get().GetSingleTextureSetLayout();
 //
-//    vkAllocateDescriptorSets(VulkanEngine::Get().GetDevice(), &allocInfo, &texturedMat->textureSet);
+//    vkAllocateDescriptorSets(FishVulkanEngine::Get().GetDevice(), &allocInfo, &texturedMat->textureSet);
 //
 //    //write to the descriptor set so that it points to our texture
 //    VkDescriptorImageInfo imageBufferInfo = {};
@@ -448,5 +448,5 @@ Fish::Resource::Material* Fish::ResourceManager::get_material_by_name(const std:
 //
 //    texture1 = vkinit::write_descriptor_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, texturedMat->textureSet, &imageBufferInfo, 0);
 //
-//    vkUpdateDescriptorSets(VulkanEngine::Get().GetDevice(), 1, &texture1, 0, nullptr);
+//    vkUpdateDescriptorSets(FishVulkanEngine::Get().GetDevice(), 1, &texture1, 0, nullptr);
 //}

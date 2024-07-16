@@ -28,11 +28,11 @@
 // We set a *global* pointer for the vulkan engine singleton reference. 
 // We do that instead of a typical singleton because we want to control explicitly when is the class initalized and destroyed. 
 // The normal Cpp singleton pattern doesnt give us control over that.
-VulkanEngine* loadedEngine = nullptr;
+FishVulkanEngine* loadedEngine = nullptr;
 
-VulkanEngine& VulkanEngine::Get() { return *loadedEngine; }
+FishVulkanEngine& FishVulkanEngine::Get() { return *loadedEngine; }
 
-void VulkanEngine::init()
+void FishVulkanEngine::init()
 {
     // only one engine initialization is allowed with the application.
     assert(loadedEngine == nullptr);
@@ -80,7 +80,7 @@ void VulkanEngine::init()
     m_IsInitialized = true;
 }
 
-void VulkanEngine::init_vulkan()
+void FishVulkanEngine::init_vulkan()
 {
     // Abstract the creation of a vulkan context.
     vkb::InstanceBuilder builder;
@@ -162,7 +162,7 @@ void VulkanEngine::init_vulkan()
     std::cout << "The GPU has a minimum buffer alignment of " << m_GPUProperties.limits.minUniformBufferOffsetAlignment << std::endl;
 }
 
-void VulkanEngine::init_imgui()
+void FishVulkanEngine::init_imgui()
 {
     //1: create descriptor pool for IMGUI
     // the size of the pool is very oversize, but it's copied from imgui demo itself.
@@ -230,12 +230,12 @@ void VulkanEngine::init_imgui()
     });
 }
 
-void VulkanEngine::init_swapchain()
+void FishVulkanEngine::init_swapchain()
 {
     create_swapchain(m_WindowExtents.width, m_WindowExtents.height);
 }
 
-void VulkanEngine::init_commands()
+void FishVulkanEngine::init_commands()
 {
     //create a command pool for commands submitted to the graphics queue.
     //we also want the pool to allow for resetting of individual command buffers
@@ -267,7 +267,7 @@ void VulkanEngine::init_commands()
     VK_CHECK(vkAllocateCommandBuffers(m_Device, &cmdAllocInfo, &m_UploadContext.commandBuffer));
 }
 
-void VulkanEngine::init_main_renderpass()
+void FishVulkanEngine::init_main_renderpass()
 {
     // Colour attachment.
 
@@ -347,7 +347,7 @@ void VulkanEngine::init_main_renderpass()
     m_DeletionQueue.push_function([=]() { vkDestroyRenderPass(m_Device, m_MainRenderPass, nullptr); });
 }
 
-void VulkanEngine::init_framebuffers()
+void FishVulkanEngine::init_framebuffers()
 {
     //create the framebuffers for the swapchain images. This will connect the render-pass to the images for rendering
     VkFramebufferCreateInfo fb_info = {};
@@ -384,7 +384,7 @@ void VulkanEngine::init_framebuffers()
     }
 }
 
-void VulkanEngine::init_descriptors()
+void FishVulkanEngine::init_descriptors()
 {
     //create a descriptor pool that will hold 10 uniform buffers and 10 dynamic uniform buffers and 10 storage buffers and 10 combined image samplers.
     std::vector<VkDescriptorPoolSize> sizes =
@@ -533,7 +533,7 @@ void VulkanEngine::init_descriptors()
     });
 }
 
-void VulkanEngine::init_pipelines()
+void FishVulkanEngine::init_pipelines()
 {
     // TODO: Load shaders in one function, and shorten the function into a "check_load" type function.
 
@@ -647,7 +647,7 @@ void VulkanEngine::init_pipelines()
     });
 }
 
-void VulkanEngine::init_synchronisation_structures()
+void FishVulkanEngine::init_synchronisation_structures()
 {
     //create synchronization structures
 
@@ -686,7 +686,7 @@ void VulkanEngine::init_synchronisation_structures()
     }    
 }
 
-void VulkanEngine::create_swapchain(uint32_t width, uint32_t height)
+void FishVulkanEngine::create_swapchain(uint32_t width, uint32_t height)
 {
     vkb::SwapchainBuilder swapchainBuilder{ m_PhysicalDevice, m_Device, m_SurfaceKHR};
 
@@ -744,7 +744,7 @@ void VulkanEngine::create_swapchain(uint32_t width, uint32_t height)
     });
 }
 
-void VulkanEngine::destroy_swapchain()
+void FishVulkanEngine::destroy_swapchain()
 {
     vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
 
@@ -755,7 +755,7 @@ void VulkanEngine::destroy_swapchain()
     }
 }
 
-void VulkanEngine::cleanup()
+void FishVulkanEngine::cleanup()
 {
     // Delete in the opposite order to what they were created, to avoid dependency errors.
     
@@ -788,7 +788,7 @@ void VulkanEngine::cleanup()
     loadedEngine = nullptr;
 }
 
-void VulkanEngine::render()
+void FishVulkanEngine::render()
 {
     const unsigned int timeout = 1000000000;
 
@@ -912,7 +912,7 @@ void VulkanEngine::render()
     m_FrameNumber++;
 }
 
-void VulkanEngine::render_imgui()
+void FishVulkanEngine::render_imgui()
 {
     // Configuration.
     ImGuiIO io = ImGui::GetIO();
@@ -951,7 +951,7 @@ void VulkanEngine::render_imgui()
     ImGui::Render(); // Must either be at the very end of this function, or within the render loop (ideally at the beginning).
 }
 
-void VulkanEngine::imgui_debug_data()
+void FishVulkanEngine::imgui_debug_data()
 {
 
     ImGui::Text("Debug data for Fish engine.");
@@ -962,7 +962,7 @@ void VulkanEngine::imgui_debug_data()
     ImGui::Text("Camera Pitch/Yaw: %f/%f", m_Camera.m_Pitch, m_Camera.m_Yaw);
 }
 
-void VulkanEngine::imgui_object_hierarchy()
+void FishVulkanEngine::imgui_object_hierarchy()
 {
     int i = 0;
     for (auto& obj : Fish::ResourceManager::Get().m_Scene.m_SceneObjects)
@@ -1013,7 +1013,7 @@ void VulkanEngine::imgui_object_hierarchy()
     }
 }
 
-void VulkanEngine::imgui_scene_data()
+void FishVulkanEngine::imgui_scene_data()
 {
     // TODO: Implement the button functionality for the below buttons.
 
@@ -1034,7 +1034,7 @@ void VulkanEngine::imgui_scene_data()
     ImGui::Text("Objects in scene: %i", Fish::ResourceManager::Get().m_Scene.m_SceneObjects.size()); // Must be integer to work.
 }
 
-void VulkanEngine::run()
+void FishVulkanEngine::run()
 {
     SDL_Event e;
     bool bQuit = false;
@@ -1098,7 +1098,7 @@ void VulkanEngine::run()
     }
 }
 
-void VulkanEngine::render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObject* first, int count)
+void FishVulkanEngine::render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObject* first, int count)
 {
     //make a model view matrix for rendering the object
     //camera view
@@ -1198,12 +1198,12 @@ void VulkanEngine::render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObj
     }
 }
 
-FrameData& VulkanEngine::get_current_frame()
+FrameData& FishVulkanEngine::get_current_frame()
 {
     return m_Frames[m_FrameNumber % kFrameOverlap];
 }
 
-AllocatedBuffer VulkanEngine::create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage)
+AllocatedBuffer FishVulkanEngine::create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage)
 {
     //allocate vertex buffer
     VkBufferCreateInfo bufferInfo = {};
@@ -1223,7 +1223,7 @@ AllocatedBuffer VulkanEngine::create_buffer(size_t allocSize, VkBufferUsageFlags
     return newBuffer;
 }
 
-size_t VulkanEngine::pad_uniform_buffer_size(size_t originalSize)
+size_t FishVulkanEngine::pad_uniform_buffer_size(size_t originalSize)
 {
     // Calculate required alignment based on minimum device offset alignment
     size_t minUboAlignment = m_GPUProperties.limits.minUniformBufferOffsetAlignment;
@@ -1234,7 +1234,7 @@ size_t VulkanEngine::pad_uniform_buffer_size(size_t originalSize)
     return alignedSize;
 }
 
-void VulkanEngine::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function)
+void FishVulkanEngine::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function)
 {
     VkCommandBuffer cmd = m_UploadContext.commandBuffer;
 
@@ -1261,7 +1261,7 @@ void VulkanEngine::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& f
     vkResetCommandPool(m_Device, m_UploadContext.commandPool, 0);
 }
 
-bool VulkanEngine::load_shader_module(const char* filePath, VkShaderModule* outShaderModule)
+bool FishVulkanEngine::load_shader_module(const char* filePath, VkShaderModule* outShaderModule)
 {
     //open the file. With cursor at the end
     std::ifstream file(filePath, std::ios::ate | std::ios::binary);

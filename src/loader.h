@@ -8,7 +8,7 @@ namespace Fish {
 
 	namespace Loader {
 
-		bool load_image_from_file(VulkanEngine& engine, const char* file, AllocatedImage& outImage);
+		bool load_image_from_file(FishVulkanEngine& engine, const char* file, AllocatedImage& outImage);
 
 	}
 }

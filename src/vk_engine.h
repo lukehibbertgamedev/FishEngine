@@ -57,11 +57,11 @@ struct FrameData {
 	VkDescriptorSet objectDescriptor;									// Holds the matrices that we need.
 };
 
-class VulkanEngine {
+class FishVulkanEngine {
 public:
 
 	// Singleton instance.
-	static VulkanEngine& Get();
+	static FishVulkanEngine& Get();
 
 	//initializes everything in the engine
 	void init();	

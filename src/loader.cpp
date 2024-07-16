@@ -10,7 +10,7 @@ namespace Fish {
 
 	namespace Loader {
 
-		bool Fish::Loader::load_image_from_file(VulkanEngine& engine, const char* file, AllocatedImage& outImage)
+		bool Fish::Loader::load_image_from_file(FishVulkanEngine& engine, const char* file, AllocatedImage& outImage)
 		{
 			int texWidth, texHeight, texChannels;
 

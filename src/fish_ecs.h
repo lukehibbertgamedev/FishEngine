@@ -8,7 +8,9 @@
 #include <memory>
 #include <set>
 
+// Contains all relevant classes and functionality to implement the Entity Component System developed by Austin Morlan.
 // https://austinmorlan.com/posts/entity_component_system/#what-is-an-ecs
+// ACL/Tyro Engine utilised this for most of its implementation.
 
 namespace Fish {
 

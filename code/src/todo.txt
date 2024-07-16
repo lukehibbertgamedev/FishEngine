@@ -65,7 +65,7 @@ Previously:
 
 Next time:
 
-	- [ ] Create new folders in the project file explorer for different parts(i.e. Backend, Core, Ecs)
+	- [ ] Create new folders for different parts (i.e. Backend, Core, Ecs)
 
 	- [ ] Separate the ECS classes into their own respective files
 
