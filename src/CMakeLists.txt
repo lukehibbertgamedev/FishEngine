@@ -33,6 +33,7 @@ add_executable (engine
   fish_pipeline.h
   fish_ecs.h
   nlohmann_json.h
+  nlohmann_json_fwd.h
   tiny_obj_loader.h
 )
 
