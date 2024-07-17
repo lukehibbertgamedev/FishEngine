@@ -73,6 +73,9 @@ void FishVulkanEngine::init()
     // must be done after all vulkan initialisation.
     init_imgui();
 
+    // initialise entity component systems
+    init_ecs();
+
     Fish::Timer::EngineTimer _timer;
     m_EngineTimer = _timer;
 
@@ -1090,6 +1093,8 @@ void FishVulkanEngine::run()
 
         m_EngineTimer.tick();
 
+        update(m_EngineTimer.delta_time());
+
         // imgui render.
         render_imgui();
 
@@ -1198,6 +1203,32 @@ void FishVulkanEngine::render_objects(VkCommandBuffer cmd, Fish::Resource::Rende
     }
 }
 
+void FishVulkanEngine::init_ecs()
+{
+    // initalise the coordinator to connect all parts of the ecs
+    m_Ecs->Init();
+
+    // register the components that are going to be used by entities
+    m_Ecs->RegisterComponent<Fish::Component::Transform>();
+    m_Ecs->RegisterComponent<Fish::Component::RigidBody>();
+
+    m_PhysicsSystem = m_Ecs->RegisterSystem<Fish::ECS::System::Physics>();
+
+    // create and set the component signatures so the system knows what components to be updating
+    Fish::ECS::Signature signature;
+    //signature.reset();
+
+    // set up for the physics system
+    signature.set(m_Ecs->GetComponentType<Fish::Component::Transform>());
+    signature.set(m_Ecs->GetComponentType<Fish::Component::RigidBody>());
+    m_Ecs->SetSystemSignature<Fish::ECS::System::Physics>(signature);
+    m_PhysicsSystem->init(m_Ecs);
+
+    // set up for the ... 
+    //signature.reset();
+    // ...
+}
+
 FrameData& FishVulkanEngine::get_current_frame()
 {
     return m_Frames[m_FrameNumber % kFrameOverlap];
@@ -1302,4 +1333,9 @@ bool FishVulkanEngine::load_shader_module(const char* filePath, VkShaderModule* 
     }
     *outShaderModule = shaderModule;
     return true;
+}
+
+void FishVulkanEngine::update(float deltatime)
+{
+    m_PhysicsSystem->update(deltatime);
 }

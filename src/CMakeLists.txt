@@ -32,6 +32,8 @@ add_executable (engine
   fish_gpu_data.h
   fish_pipeline.h
   fish_ecs.h
+  fish_ecs_systems.h
+  fish_ecs_systems.cpp
   nlohmann_json.h
   nlohmann_json_fwd.h
   tiny_obj_loader.h

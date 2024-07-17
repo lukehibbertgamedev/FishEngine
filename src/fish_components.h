@@ -16,12 +16,12 @@ namespace Fish {
 		};
 
 		struct RigidBody {
-			glm::vec3 velocity;
-			glm::vec3 acceleration;
+			glm::vec3 velocity = glm::vec3(1.0f, 0.0f, 0.0f);
+			glm::vec3 acceleration = glm::vec3(0.0f, 0.0f, 0.0f);
 		};
 
 		struct Gravity {
-			glm::vec3 force;
+			glm::vec3 force = glm::vec3(0.0f, -9.81f, 0.0f);
 		};
 	}
 }

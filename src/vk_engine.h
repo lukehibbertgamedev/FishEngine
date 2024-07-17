@@ -9,6 +9,8 @@
 
 #include <fish_timer.h>
 #include <fish_resource_manager.h>
+#include <fish_ecs.h>
+#include <fish_ecs_systems.h>
 
 #include <unordered_map>
 #include <fish_camera.h>
@@ -105,15 +107,19 @@ private:
 	// loads a shader module from a spir-v file. false if error.
 	bool load_shader_module(const char* filePath, VkShaderModule* outShaderModule);
 
+	void update(float deltatime);
+
 	//draw loop responsible for synchronisation and the recording of command buffers.
 	void render();
 
 	//draw loop responsible for rendering scene objects.
 	void render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObject* first, int count);
 	
+	// set up all entity component systems
+	void init_ecs();
+
 	// commands responsible for rendering imgui.
 	void render_imgui();
-
 	void imgui_debug_data();
 	void imgui_object_hierarchy();
 	void imgui_scene_data();
@@ -186,4 +192,7 @@ private:
 	UploadContext m_UploadContext;										// ... 
 	DeletionQueue m_DeletionQueue;										// More efficient implementation of a deletion/cleanup system. Uses a FIFO order (good for small engines).
 	VkRenderPass m_MainRenderPass;										// All rendering happens here. Begin and End render pass are recorded into the command buffer for other rendering commands between.
+
+	std::shared_ptr<Fish::ECS::Coordinator> m_Ecs; // m_EntityComponentSystemCoordinator
+	std::shared_ptr<Fish::ECS::System::Physics> m_PhysicsSystem;
 };
