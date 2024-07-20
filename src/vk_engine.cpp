@@ -74,7 +74,7 @@ void FishVulkanEngine::init()
     init_imgui();
 
     // initialise entity component systems
-    init_ecs();
+    //init_ecs();
 
     Fish::Timer::EngineTimer _timer;
     m_EngineTimer = _timer;
@@ -90,12 +90,12 @@ void FishVulkanEngine::init_vulkan()
 
     //make the vulkan instance, with basic debug features
     vkb::Result<vkb::Instance> instance = 
-        builder.set_app_name("Example Vulkan Application")
+        builder.set_app_name("Untitled Fish Game")
         .set_engine_name("Fish")
         .request_validation_layers(kUseValidationLayers)
         .use_default_debug_messenger()
-        //.require_api_version(1, 3, 0)
-        .desire_api_version(VKB_VK_API_VERSION_1_3)
+        .require_api_version(1, 3, 0)
+        //.desire_api_version(VKB_VK_API_VERSION_1_3)
         .build();
 
     if (!instance) {
@@ -111,12 +111,12 @@ void FishVulkanEngine::init_vulkan()
     SDL_Vulkan_CreateSurface(m_pWindow, m_VkInstance, &m_SurfaceKHR);
 
     //vulkan 1.3 features
-    VkPhysicalDeviceVulkan13Features features{};
+    VkPhysicalDeviceVulkan13Features features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
     features.dynamicRendering = true;
     features.synchronization2 = true;
 
     //vulkan 1.2 features
-    VkPhysicalDeviceVulkan12Features features12{};
+    VkPhysicalDeviceVulkan12Features features12{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
     features12.bufferDeviceAddress = true;
     features12.descriptorIndexing = true;
 
@@ -124,14 +124,13 @@ void FishVulkanEngine::init_vulkan()
     //We want a gpu that can write to the SDL surface and supports vulkan 1.3 with the correct features
     vkb::PhysicalDeviceSelector selector{ vkb_instance };
     vkb::PhysicalDevice physicalDevice = selector
-        .set_minimum_version(1, 1)
+        .set_minimum_version(1, 3)
         //.set_desired_version(1, 3)
-        //.set_required_features_13(features)
-        //.set_required_features_12(features12)
+        .set_required_features_13(features)
+        .set_required_features_12(features12)
         .set_surface(m_SurfaceKHR)
         .select()
         .value();
-
 
     //create the final vulkan device
     vkb::DeviceBuilder deviceBuilder{ physicalDevice };
@@ -156,6 +155,7 @@ void FishVulkanEngine::init_vulkan()
     allocatorInfo.physicalDevice = m_PhysicalDevice;
     allocatorInfo.device = m_Device;
     allocatorInfo.instance = m_VkInstance;
+    allocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
     vmaCreateAllocator(&allocatorInfo, &m_Allocator);
 
     m_DeletionQueue.push_function([&]() { vmaDestroyAllocator(m_Allocator); });
@@ -654,16 +654,11 @@ void FishVulkanEngine::init_synchronisation_structures()
 {
     //create synchronization structures
 
-    VkFenceCreateInfo fenceCreateInfo = {};
-    fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fenceCreateInfo.pNext = nullptr;
-    fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; //we want to create the fence with the Create Signaled flag, so we can wait on it before using it on a GPU command (for the first frame)
+    //we want to create the fence with the Create Signaled flag, so we can wait on it before using it on a GPU command (for the first frame)
+    VkFenceCreateInfo fenceCreateInfo = vkinit::fence_create_info(VK_FENCE_CREATE_SIGNALED_BIT);
 
     //for the semaphores we don't need any flags
-    VkSemaphoreCreateInfo semaphoreCreateInfo = {};
-    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    semaphoreCreateInfo.pNext = nullptr;
-    semaphoreCreateInfo.flags = 0;
+    VkSemaphoreCreateInfo semaphoreCreateInfo = vkinit::semaphore_create_info();
 
     for (int i = 0; i < kFrameOverlap; ++i)
     {
@@ -712,6 +707,46 @@ void FishVulkanEngine::create_swapchain(uint32_t width, uint32_t height)
     m_SwapchainImages = vkbSwapchain.get_images().value();
     m_SwapchainImageViews = vkbSwapchain.get_image_views().value();
 
+    // draw image size will match the window
+        VkExtent3D drawImageExtent = {
+            m_WindowExtents.width,
+            m_WindowExtents.height,
+            1
+    };
+
+    //hardcoding the draw format to 32 bit float
+    m_DrawImage.imageFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+    m_DrawImage.imageExtent = drawImageExtent;
+
+    VkImageUsageFlags drawImageUsages{};
+    drawImageUsages |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    drawImageUsages |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    drawImageUsages |= VK_IMAGE_USAGE_STORAGE_BIT;
+    drawImageUsages |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    VkImageCreateInfo rimg_info = vkinit::image_create_info(m_DrawImage.imageFormat, drawImageUsages, drawImageExtent);
+    //for the draw image, we want to allocate it from gpu local memory
+    VmaAllocationCreateInfo rimg_allocinfo = {};
+    rimg_allocinfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    rimg_allocinfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+    //allocate and create the image
+    vmaCreateImage(m_Allocator, &rimg_info, &rimg_allocinfo, &m_DrawImage.image, &m_DrawImage.allocation, nullptr);
+
+    //build a image-view for the draw image to use for rendering
+    VkImageViewCreateInfo rview_info = vkinit::imageview_create_info(m_DrawImage.imageFormat, m_DrawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
+    VK_CHECK(vkCreateImageView(m_Device, &rview_info, nullptr, &m_DrawImage.imageView));
+
+    m_DeletionQueue.push_function([=]() {
+        vkDestroyImageView(m_Device, m_DrawImage.imageView, nullptr);
+        vmaDestroyImage(m_Allocator, m_DrawImage.image, m_DrawImage.allocation);
+    });
+
+    //
+    // 
+    // 
+    // 
+    // 
+    
     //depth image size will match the window
     VkExtent3D depthImageExtent = {
         m_WindowExtents.width,
@@ -793,6 +828,7 @@ void FishVulkanEngine::cleanup()
 
 void FishVulkanEngine::render()
 {
+    // 1 second
     const unsigned int timeout = 1000000000;
 
     // wait until the gpu has finished rendering the last frame. Timeout of 1 second
@@ -803,7 +839,6 @@ void FishVulkanEngine::render()
     uint32_t swapchainImageIndex;
     VK_CHECK(vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout, get_current_frame().m_PresentSemaphore, nullptr, &swapchainImageIndex));
 
-
     // now that we are sure that the commands finished executing, we can safely
     // reset the command buffer to begin recording again.
     VK_CHECK(vkResetCommandBuffer(get_current_frame().m_CommandBuffer, 0));
@@ -812,31 +847,57 @@ void FishVulkanEngine::render()
     VkCommandBuffer cmd = get_current_frame().m_CommandBuffer;
 
     //begin the command buffer recording. We will use this command buffer exactly once, so we want to let Vulkan know that
-    VkCommandBufferBeginInfo cmdBeginInfo = {};
-    cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    cmdBeginInfo.pNext = nullptr;
-
-    cmdBeginInfo.pInheritanceInfo = nullptr;
-    cmdBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
+    VkCommandBufferBeginInfo cmdBeginInfo = vkinit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
     VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
 
-    //make a clear-color from frame number. This will flash with a 120 frame period.
-    VkClearValue clearValue;
-    float framePeriod = 120.f;
-    float flash = std::abs(std::sin(m_FrameNumber / framePeriod));
-    clearValue.color = { { 0.0f, 0.0f, 0.9f, 1.0f } };
+    //make the swapchain image into writeable mode before rendering
+    vkutil::transition_image(cmd, m_SwapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
     // clear at a depth of 1
     VkClearValue depthClear;
     depthClear.depthStencil.depth = 1.0f;
+
+
+    //make the swapchain image into presentable mode
+    vkutil::transition_image(cmd, m_SwapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
+    //prepare the submission to the queue. 
+    //we want to wait on the _presentSemaphore, as that semaphore is signaled when the swapchain is ready
+    //we will signal the _renderSemaphore, to signal that rendering has finished
+    VkCommandBufferSubmitInfo cmdinfo = vkinit::command_buffer_submit_info(cmd);
+    VkSemaphoreSubmitInfo waitInfo = vkinit::semaphore_submit_info(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, get_current_frame().m_PresentSemaphore);
+    VkSemaphoreSubmitInfo signalInfo = vkinit::semaphore_submit_info(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, get_current_frame().m_RenderSemaphore);
+    VkSubmitInfo2 submit = vkinit::submit_info2(&cmdinfo, &signalInfo, &waitInfo);
+
+    //submit command buffer to the queue and execute it.
+    // _renderFence will now block until the graphic commands finish execution
+    VK_CHECK(vkQueueSubmit2(m_GraphicsQueue, 1, &submit, get_current_frame().m_RenderFence));
+
+    //prepare present
+    // this will put the image we just rendered to into the visible window.
+    // we want to wait on the _renderSemaphore for that, 
+    // as its necessary that drawing commands have finished before the image is displayed to the user
+    VkPresentInfoKHR presentInfo = {};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.pNext = nullptr;
+    presentInfo.pSwapchains = &m_Swapchain;
+    presentInfo.swapchainCount = 1;
+    presentInfo.pWaitSemaphores = &get_current_frame().m_RenderSemaphore;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pImageIndices = &swapchainImageIndex;
+
+    VK_CHECK(vkQueuePresentKHR(m_GraphicsQueue, &presentInfo));
+    //
+
+    //
+
+    //
 
     //start the main renderpass.
     //We will use the clear color from above, and the framebuffer of the index the swapchain gave us
     VkRenderPassBeginInfo rpInfo = {};
     rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     rpInfo.pNext = nullptr;
-
     rpInfo.renderPass = m_MainRenderPass;
     rpInfo.renderArea.offset.x = 0;
     rpInfo.renderArea.offset.y = 0;
@@ -870,46 +931,7 @@ void FishVulkanEngine::render()
     //finalize the command buffer (we can no longer add commands, but it can now be executed)
     VK_CHECK(vkEndCommandBuffer(cmd));
 
-    //prepare the submission to the queue.
-    //we want to wait on the _presentSemaphore, as that semaphore is signaled when the swapchain is ready
-    //we will signal the _renderSemaphore, to signal that rendering has finished
-    VkSubmitInfo submit = {};
-    submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit.pNext = nullptr;
-
-    VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-    submit.pWaitDstStageMask = &waitStage;
-
-    submit.waitSemaphoreCount = 1;
-    submit.pWaitSemaphores = &get_current_frame().m_PresentSemaphore;
-
-    submit.signalSemaphoreCount = 1;
-    submit.pSignalSemaphores = &get_current_frame().m_RenderSemaphore;
-
-    submit.commandBufferCount = 1;
-    submit.pCommandBuffers = &cmd;
-
-    //submit command buffer to the queue and execute it.
-    // _renderFence will now block until the graphic commands finish execution
-    VK_CHECK(vkQueueSubmit(m_GraphicsQueue, 1, &submit, get_current_frame().m_RenderFence));
-
-    // this will put the image we just rendered into the visible window.
-    // we want to wait on the _renderSemaphore for that,
-    // as it's necessary that drawing commands have finished before the image is displayed to the user
-    VkPresentInfoKHR presentInfo = {};
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.pNext = nullptr;
-
-    presentInfo.pSwapchains = &m_Swapchain;
-    presentInfo.swapchainCount = 1;
-
-    presentInfo.pWaitSemaphores = &get_current_frame().m_RenderSemaphore;
-    presentInfo.waitSemaphoreCount = 1;
-
-    presentInfo.pImageIndices = &swapchainImageIndex;
-
-    VK_CHECK(vkQueuePresentKHR(m_GraphicsQueue, &presentInfo));
+    
 
     //increase the number of frames drawn
     m_FrameNumber++;
@@ -1203,6 +1225,17 @@ void FishVulkanEngine::render_objects(VkCommandBuffer cmd, Fish::Resource::Rende
     }
 }
 
+void FishVulkanEngine::render_background(VkCommandBuffer cmd)
+{
+    //make a clear-color from frame number. 
+    VkClearColorValue clearValue; //float framePeriod = 120.f; float flash = std::abs(std::sin(m_FrameNumber / framePeriod));
+    clearValue = { { 0.0f, 0.0f, 0.9f, 1.0f } };
+    VkImageSubresourceRange clearRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
+
+    //clear image
+    vkCmdClearColorImage(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, &clearValue, 1, &clearRange);
+}
+
 void FishVulkanEngine::init_ecs()
 {
     // initalise the coordinator to connect all parts of the ecs
@@ -1337,5 +1370,5 @@ bool FishVulkanEngine::load_shader_module(const char* filePath, VkShaderModule* 
 
 void FishVulkanEngine::update(float deltatime)
 {
-    m_PhysicsSystem->update(deltatime);
+    //m_PhysicsSystem->update(deltatime);
 }

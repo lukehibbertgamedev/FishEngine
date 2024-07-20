@@ -87,18 +87,18 @@ VkSemaphoreSubmitInfo vkinit::semaphore_submit_info(VkPipelineStageFlags stageMa
     return submitInfo;
 }
 
-//VkSemaphoreSubmitInfo vkinit::semaphore_submit_info(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore)
-//{
-//	VkSemaphoreSubmitInfo submitInfo{};
-//	submitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-//	submitInfo.pNext = nullptr;
-//	submitInfo.semaphore = semaphore;
-//	submitInfo.stageMask = stageMask;
-//	submitInfo.deviceIndex = 0;
-//	submitInfo.value = 1;
-//
-//	return submitInfo;
-//}
+VkSemaphoreSubmitInfo vkinit::semaphore_submit_info(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore)
+{
+	VkSemaphoreSubmitInfo submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+	submitInfo.pNext = nullptr;
+	submitInfo.semaphore = semaphore;
+	submitInfo.stageMask = stageMask;
+	submitInfo.deviceIndex = 0;
+	submitInfo.value = 1;
+
+	return submitInfo;
+}
 
 VkCommandBufferSubmitInfo vkinit::command_buffer_submit_info(VkCommandBuffer cmd)
 {
@@ -111,42 +111,23 @@ VkCommandBufferSubmitInfo vkinit::command_buffer_submit_info(VkCommandBuffer cmd
 	return info;
 }
 
-VkSubmitInfo vkinit::submit_info(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signalSemaphoreInfo, VkSemaphoreSubmitInfo* waitSemaphoreInfo)
+VkSubmitInfo2 vkinit::submit_info2(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signalSemaphoreInfo, VkSemaphoreSubmitInfo* waitSemaphoreInfo)
 {
-    VkSubmitInfo info = {};
-    info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    VkSubmitInfo2 info = {};
+    info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
     info.pNext = nullptr;
 
-    info.waitSemaphoreCount = waitSemaphoreInfo == nullptr ? 0 : 1;
-    info.pWaitSemaphores = &waitSemaphoreInfo->semaphore;
+    info.waitSemaphoreInfoCount = waitSemaphoreInfo == nullptr ? 0 : 1;
+    info.pWaitSemaphoreInfos = waitSemaphoreInfo;
 
-    info.signalSemaphoreCount = signalSemaphoreInfo == nullptr ? 0 : 1;
-    info.pSignalSemaphores = &signalSemaphoreInfo->semaphore;
+    info.signalSemaphoreInfoCount = signalSemaphoreInfo == nullptr ? 0 : 1;
+    info.pSignalSemaphoreInfos = signalSemaphoreInfo;
 
-    info.commandBufferCount = 1;
-    info.pCommandBuffers = &cmd->commandBuffer;
+    info.commandBufferInfoCount = 1;
+    info.pCommandBufferInfos = cmd;
 
     return info;
 }
-
-//VkSubmitInfo2 vkinit::submit_info2(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signalSemaphoreInfo, VkSemaphoreSubmitInfo* waitSemaphoreInfo)
-//{
-//    VkSubmitInfo2 info = {};
-//    info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
-//    info.pNext = nullptr;
-//
-//    info.waitSemaphoreInfoCount = waitSemaphoreInfo == nullptr ? 0 : 1;
-//    info.pWaitSemaphoreInfos = waitSemaphoreInfo;
-//
-//    info.signalSemaphoreInfoCount = signalSemaphoreInfo == nullptr ? 0 : 1;
-//    info.pSignalSemaphoreInfos = signalSemaphoreInfo;
-//
-//    info.commandBufferInfoCount = 1;
-//    info.pCommandBufferInfos = cmd;
-//
-//    return info;
-//}
-//< init_submit
 
 VkPresentInfoKHR vkinit::present_info()
 {
@@ -317,18 +298,13 @@ VkImageCreateInfo vkinit::image_create_info(VkFormat format, VkImageUsageFlags u
     VkImageCreateInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     info.pNext = nullptr;
-
     info.imageType = VK_IMAGE_TYPE_2D;
-
     info.format = format;
     info.extent = extent;
-
     info.mipLevels = 1;
     info.arrayLayers = 1;
-
     //for MSAA. we will not be using it by default, so default it to 1 sample per pixel.
     info.samples = VK_SAMPLE_COUNT_1_BIT;
-
     //optimal tiling, which means the image is stored on the best gpu format
     info.tiling = VK_IMAGE_TILING_OPTIMAL;
     info.usage = usageFlags;
@@ -342,7 +318,6 @@ VkImageViewCreateInfo vkinit::imageview_create_info(VkFormat format, VkImage ima
     VkImageViewCreateInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     info.pNext = nullptr;
-
     info.viewType = VK_IMAGE_VIEW_TYPE_2D;
     info.image = image;
     info.format = format;

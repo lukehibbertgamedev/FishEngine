@@ -68,6 +68,8 @@ Previously:
 
 Next time:
 
+	- [ ] Come back to Improving the render loop chapter in the new API (the last bit of it) with changing create swapchain
+
 	- [!!!!] Refactor to use Vulkan API 1.3, stabilise the branch, merge to dev, create a scenes branch
 
 	- [ ] Pause work on the ECS until the 1.3 work has been completed, things will change a lot in this time

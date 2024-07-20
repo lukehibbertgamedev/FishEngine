@@ -57,6 +57,8 @@ struct FrameData {
 
 	AllocatedBuffer objectBuffer;										//
 	VkDescriptorSet objectDescriptor;									// Holds the matrices that we need.
+
+	DeletionQueue deletionQueue;										// Allows the deletion of objects within the next frame after use.
 };
 
 class FishVulkanEngine {
@@ -114,6 +116,9 @@ private:
 
 	//draw loop responsible for rendering scene objects.
 	void render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObject* first, int count);
+
+	//draw loop responsible for rendering the clear value.
+	void render_background(VkCommandBuffer cmd);
 	
 	// set up all entity component systems
 	void init_ecs();
@@ -172,6 +177,10 @@ private:
 	AllocatedImage m_DepthImage;										// Depth image handle to configure z-testing with a depth buffer.
 	VkImageView m_DepthImageView;										// Metadata for the depth image.
 	VkFormat m_DepthFormat;												// Cached format of the depth image for reuse.
+
+	// ...
+	AllocatedImage m_DrawImage;
+	VkExtent2D m_DrawExtent;
 
 	// Descriptor Set.
 	VkDescriptorSetLayout m_SingleTextureSetLayout;						// ...
