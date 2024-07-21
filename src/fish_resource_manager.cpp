@@ -350,7 +350,7 @@ void Fish::ResourceManager::upload_mesh(Fish::Resource::Mesh& mesh)
 
     //
 
-    FishVulkanEngine::Get().immediate_submit([=](VkCommandBuffer cmd) {
+    FishVulkanEngine::Get().immediate_submit11([=](VkCommandBuffer cmd) {
         VkBufferCopy copy;
         copy.dstOffset = 0;
         copy.srcOffset = 0;
@@ -385,7 +385,7 @@ void Fish::ResourceManager::upload_mesh(Fish::Resource::Mesh& mesh)
 
     //
 
-    FishVulkanEngine::Get().immediate_submit([=](VkCommandBuffer cmd) {
+    FishVulkanEngine::Get().immediate_submit11([=](VkCommandBuffer cmd) {
         VkBufferCopy copy;
         copy.dstOffset = 0;
         copy.srcOffset = 0;

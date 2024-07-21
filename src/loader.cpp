@@ -58,7 +58,7 @@ namespace Fish {
 			vmaCreateImage(engine.GetAllocator(), &dimg_info, &dimg_allocinfo, &newImage.image, &newImage.allocation, nullptr);
 
 			//layout transition so that the driver puts the texture into Linear layout
-			engine.immediate_submit([&](VkCommandBuffer cmd) {
+			engine.immediate_submit11([&](VkCommandBuffer cmd) {
 				VkImageSubresourceRange range;
 				range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 				range.baseMipLevel = 0;

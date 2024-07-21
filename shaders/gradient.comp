@@ -1,8 +1,8 @@
 #version 460
 
-layout (local_size_x = 16, local_size_y = 16) in;
+layout (local_size_x = 16, local_size_y = 16) in; // size of a workgroup for compute.
 
-layout(rgba16f,set = 0, binding = 0) uniform image2D image;
+layout(rgba16f,set = 0, binding = 0) uniform image2D image; // descriptor building for the pipeline.
 
 
 void main() 

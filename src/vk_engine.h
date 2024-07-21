@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <fish_camera.h>
 #include <fish_gpu_data.h>
+#include <vk_descriptors.h>
 
 // safely handle the cleanup of a growing amount of objects.
 struct DeletionQueue {
@@ -80,7 +81,8 @@ public:
 	AllocatedBuffer create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 
 	// ... 
-	void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function);
+	void immediate_submit11(std::function<void(VkCommandBuffer cmd)>&& function);
+	void immediate_submit13(std::function<void(VkCommandBuffer cmd)>&& function);
 
 	// returns by value
 	VmaAllocator GetAllocator() { return m_Allocator; }
@@ -95,16 +97,26 @@ private:
 
 	// bet you cant guess what these functions do...
 	void init_vulkan();
-	void init_imgui(); 
+
+	void init_imgui11(); // 1.1 Implementation
+	void init_imgui13();
+
 	void init_swapchain();
 	void init_commands();
 	void init_main_renderpass();
 	void init_framebuffers();
 	void init_synchronisation_structures(); // for fences and semaphores
-	void init_descriptors();
-	void init_pipelines();
+	
+	void init_descriptors11(); // 1.1 Implementation
+	void init_descriptors13();
+
+	void init_pipelines11(); // 1.1 Implementation
+	void init_pipelines13();
+	void init_background_pipelines();
+
 	void create_swapchain(uint32_t width, uint32_t height);
 	void destroy_swapchain();
+
 
 	// loads a shader module from a spir-v file. false if error.
 	bool load_shader_module(const char* filePath, VkShaderModule* outShaderModule);
@@ -118,7 +130,7 @@ private:
 	void render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObject* first, int count);
 
 	//draw loop responsible for rendering the clear value.
-	void render_background(VkCommandBuffer cmd);
+	void render_clear_colour_background(VkCommandBuffer cmd);
 	
 	// set up all entity component systems
 	void init_ecs();
@@ -187,6 +199,10 @@ private:
 	VkDescriptorSetLayout m_GlobalSetLayout;							// ...
 	VkDescriptorSetLayout m_ObjectSetLayout;							// ...
 	VkDescriptorPool m_DescriptorPool;									// ...
+
+	DescriptorAllocator m_GlobalDescriptorAllocator;
+	VkDescriptorSet m_DrawImageDescriptors;
+	VkDescriptorSetLayout m_DrawImageDescriptorLayout;
 	
 	// Scene Data.
 	Fish::GPU::SceneData m_SceneParameters;								// ...
@@ -204,4 +220,11 @@ private:
 
 	std::shared_ptr<Fish::ECS::Coordinator> m_Ecs; // m_EntityComponentSystemCoordinator
 	std::shared_ptr<Fish::ECS::System::Physics> m_PhysicsSystem;
+
+	VkPipeline m_GradientPipeline;
+	VkPipelineLayout m_GradientPipelineLayout;
+
+	VkFence m_ImmediateFence;
+	VkCommandBuffer m_ImmediateCommandBuffer;
+	VkCommandPool m_ImmediateCommandPool;
 };
