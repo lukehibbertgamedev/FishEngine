@@ -41,6 +41,21 @@ struct MeshPushConstants {
 	glm::mat4 matrix;
 };
 
+struct ComputePushConstants {
+	glm::vec4 data1;
+	glm::vec4 data2;
+	glm::vec4 data3;
+	glm::vec4 data4;
+};
+
+// Editable parameters.
+struct ComputeEffect {
+	const char* name;
+	VkPipeline pipeline;
+	VkPipelineLayout layout;
+	ComputePushConstants data;
+};
+
 struct UploadContext {
 	VkFence uploadFence;
 	VkCommandPool commandPool;
@@ -235,4 +250,9 @@ private:
 	VkFence m_ImmediateFence;
 	VkCommandBuffer m_ImmediateCommandBuffer;
 	VkCommandPool m_ImmediateCommandPool;
+
+	//
+
+	std::vector<ComputeEffect> backgroundEffects;
+	int currentBackgroundEffect{ 0 };
 };
