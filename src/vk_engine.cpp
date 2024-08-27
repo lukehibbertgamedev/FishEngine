@@ -750,31 +750,41 @@ void FishVulkanEngine::init_pipelines11()
 
 void FishVulkanEngine::init_pipelines13()
 {
+    // The only pipelines we currently use is for the background effects of our application.
     init_background_pipelines();
 }
 
 void FishVulkanEngine::init_background_pipelines()
 {
-    VkPipelineLayoutCreateInfo computeLayout{};
-    computeLayout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    computeLayout.pNext = nullptr;
-    computeLayout.pSetLayouts = &m_DrawImageDescriptorLayout;
-    computeLayout.setLayoutCount = 1;
+    // Create the main background effect pipeline layout.
 
     VkPushConstantRange pushConstant{};
     pushConstant.offset = 0;
     pushConstant.size = sizeof(ComputePushConstants);
     pushConstant.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
+    VkPipelineLayoutCreateInfo computeLayout{};
+    computeLayout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    computeLayout.pNext = nullptr;
+    computeLayout.pSetLayouts = &m_DrawImageDescriptorLayout;
+    computeLayout.setLayoutCount = 1;
     computeLayout.pPushConstantRanges = &pushConstant;
     computeLayout.pushConstantRangeCount = 1;
 
     VK_CHECK(vkCreatePipelineLayout(m_Device, &computeLayout, nullptr, &m_GradientPipelineLayout));
 
-    VkShaderModule computeDrawShader;
-    if (!vkutil::load_shader_module("../../shaders/gradient.comp.spv", m_Device, &computeDrawShader))
+    // Load any shader files we want to use.
+
+    VkShaderModule gradientColourShader;
+    if (!vkutil::load_shader_module("../../shaders/gradient_color.comp.spv", m_Device, &gradientColourShader))
     {
-        fmt::print("Error when building the compute shader \n");
+        fmt::print("Error when building the gradient colour shader \n");
+    }
+
+    VkShaderModule gradientShader;
+    if (!vkutil::load_shader_module("../../shaders/gradient.comp.spv", m_Device, &gradientShader))
+    {
+        fmt::print("Error when building the compute/gradient shader \n");
     }
     
     VkShaderModule skyShader;
@@ -787,7 +797,7 @@ void FishVulkanEngine::init_background_pipelines()
     stageinfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     stageinfo.pNext = nullptr;
     stageinfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-    stageinfo.module = computeDrawShader;
+    stageinfo.module = gradientShader;
     stageinfo.pName = "main";
 
     VkComputePipelineCreateInfo computePipelineCreateInfo{};
@@ -796,8 +806,8 @@ void FishVulkanEngine::init_background_pipelines()
     computePipelineCreateInfo.layout = m_GradientPipelineLayout;
     computePipelineCreateInfo.stage = stageinfo;
 
+    // Create an effect for our background, toggleable in ImGui.
     ComputeEffect gradient;
-    //gradient.pipeline = m_GradientPipeline;
     gradient.layout = m_GradientPipelineLayout;
     gradient.name = "gradient";
     gradient.data = {};
@@ -805,9 +815,11 @@ void FishVulkanEngine::init_background_pipelines()
     gradient.data.data2 = glm::vec4(0, 0, 1, 1);
     VK_CHECK(vkCreateComputePipelines(m_Device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &gradient.pipeline));
     
-    // Change shader module only to create sky shader.
+    // Change the shader module only to create sky shader.
+    // Not too sure why we do this.
     computePipelineCreateInfo.stage.module = skyShader;
 
+    // Create a secondary effect for our background, toggleable in ImGui.
     ComputeEffect sky;
     sky.layout = m_GradientPipelineLayout;
     sky.name = "sky";
@@ -815,17 +827,28 @@ void FishVulkanEngine::init_background_pipelines()
     sky.data.data1 = glm::vec4(0.1, 0.2, 0.4, 0.97);
     VK_CHECK(vkCreateComputePipelines(m_Device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &sky.pipeline));
 
-    //add the 2 background effects into the array
+    computePipelineCreateInfo.stage.module = gradientColourShader;
+
+    // Create another effect for our background, toggleable in ImGui.
+    ComputeEffect gradientColour;
+    gradientColour.layout = m_GradientPipelineLayout;
+    gradientColour.name = "gradientColour";
+    gradientColour.data = {};
+    gradientColour.data.data1 = glm::vec4(0.1, 0.2, 0.4, 0.97);
+    VK_CHECK(vkCreateComputePipelines(m_Device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &gradientColour.pipeline));
+
+    // Make sure we add our effects into the vector to be accessed by ImGui.
     backgroundEffects.push_back(gradient);
     backgroundEffects.push_back(sky);
+    backgroundEffects.push_back(gradientColour);
 
-    //
-
-    vkDestroyShaderModule(m_Device, computeDrawShader, nullptr);
+    // Ensure any allocated memory is deleted.
+    vkDestroyShaderModule(m_Device, gradientColourShader, nullptr);
+    vkDestroyShaderModule(m_Device, gradientShader, nullptr);
     vkDestroyShaderModule(m_Device, skyShader, nullptr);
-
     m_DeletionQueue.push_function([&]() {
         vkDestroyPipelineLayout(m_Device, m_GradientPipelineLayout, nullptr);
+        vkDestroyPipeline(m_Device, gradientColour.pipeline, nullptr);
         vkDestroyPipeline(m_Device, sky.pipeline, nullptr);
         vkDestroyPipeline(m_Device, gradient.pipeline, nullptr);
     });
@@ -1057,7 +1080,6 @@ void FishVulkanEngine::init_descriptors13()
     // a layout with only 1 single binding at binding number 0, of type 
     // VK_DESCRIPTOR_TYPE_STORAGE_IMAGE too (matching the pool).
 
-
     //create a descriptor pool that will hold 10 sets with 1 image each
     std::vector<DescriptorAllocator::PoolSizeRatio> sizes =
     {
@@ -1106,11 +1128,8 @@ void FishVulkanEngine::cleanup()
 
     if (m_IsInitialized) {
 
-
         //make sure the GPU has stopped doing its things
-        //--m_FrameNumber;
         vkWaitForFences(m_Device, 1, &get_current_frame().m_RenderFence, true, timeout);
-        //++m_FrameNumber;
 
         m_DeletionQueue.flush();
         
@@ -1131,6 +1150,7 @@ void FishVulkanEngine::cleanup()
     loadedEngine = nullptr;
 }
 
+// Deprecated and refactored.
 void FishVulkanEngine::render()
 {
     // 1 second
@@ -1162,7 +1182,7 @@ void FishVulkanEngine::render()
     // transition our main draw image into general layout so we can write into it
     // we will overwrite it all so we dont care about what was the older layout
     vkutil::transition_image(cmd, m_SwapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
-    render_clear_colour_background(cmd);
+    draw_background(cmd);
     //transition the draw image and the swapchain image into their correct transfer layouts
     vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
     vkutil::transition_image(cmd, m_SwapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -1476,7 +1496,7 @@ void FishVulkanEngine::draw()
     // we will overwrite it all so we dont care about what was the older layout
     vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
-    render_clear_colour_background(cmd);
+    draw_background(cmd);
 
     //transition the draw image and the swapchain image into their correct transfer layouts
     vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
@@ -1701,7 +1721,7 @@ void FishVulkanEngine::render_objects(VkCommandBuffer cmd, Fish::Resource::Rende
     }
 }
 
-void FishVulkanEngine::render_clear_colour_background(VkCommandBuffer cmd)
+void FishVulkanEngine::draw_background(VkCommandBuffer cmd)
 {
     // Get the currently selected effect set by the ImGui overlay.
     ComputeEffect& effect = backgroundEffects[currentBackgroundEffect];

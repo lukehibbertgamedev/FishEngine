@@ -95,18 +95,17 @@ public:
 	// abstracted buffer creation.
 	AllocatedBuffer create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 
-	// ... 
+	// 1.1 - Send commands to the GPU without synchronisation with the swapchain or rendering logic.
 	void immediate_submit11(std::function<void(VkCommandBuffer cmd)>&& function);
+	// 1.3 - Send commands to the GPU without synchronisation with the swapchain or rendering logic.
 	void immediate_submit13(std::function<void(VkCommandBuffer cmd)>&& function);
 
-	// returns by value
-	VmaAllocator GetAllocator() { return m_Allocator; }
+	VmaAllocator GetAllocator() { return m_Allocator; }											 // By value accessor.
 
-	// returns a reference
-	DeletionQueue& GetDeletionQueue() { return m_DeletionQueue; }
-	VkDevice& GetDevice() { return m_Device; } 
-	VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }
-	VkDescriptorSetLayout& GetSingleTextureSetLayout() { return m_SingleTextureSetLayout; }
+	DeletionQueue& GetDeletionQueue() { return m_DeletionQueue; }								 // By reference accessor.
+	VkDevice& GetDevice() { return m_Device; } 													 // By reference accessor.
+	VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }							 // By reference accessor.
+	VkDescriptorSetLayout& GetSingleTextureSetLayout() { return m_SingleTextureSetLayout; }		 // By reference accessor.
 
 private:
 
@@ -138,28 +137,33 @@ private:
 
 	void update(float deltatime);
 
-	//draw loop responsible for synchronisation and the recording of command buffers.
+	// 1.1 - Main draw loop for sycnhronisation and recording command buffers.
 	void render();
+	// 1.3 - Main draw loop for sycnhronisation and recording command buffers.
+	void draw();
 
-	//draw loop responsible for rendering scene objects.
+	// 1.1 - Draw loop responsible for rendering scene objects.
 	void render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObject* first, int count);
 
-	//draw loop responsible for rendering the clear value.
-	void render_clear_colour_background(VkCommandBuffer cmd);
+	// 1.3 Draw loop responsible for rendering the clear value.
+	void draw_background(VkCommandBuffer cmd);
 	
 	// set up all entity component systems
 	void init_ecs();
 
-	// commands responsible for rendering imgui.
+	// 1.1 - Commands responsible for rendering imgui.
 	void render_imgui();
+
+	// 1.3 - Set up ImGui backends and create draw data.
 	void prepare_imgui();
+	// 1.3 - Call ImGui functions to add to the draw data.
 	void create_imgui_draw_data();
+	// 1.3 - Submit the commands for rendering the ImGui draw data.
+	void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView);
+
 	void imgui_debug_data();
 	void imgui_object_hierarchy();
 	void imgui_scene_data();
-
-	void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView);
-	void draw();
 
 	// return frame we are rendering to right now.
 	FrameData& get_current_frame();
