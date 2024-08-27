@@ -137,6 +137,8 @@ private:
 
 	// commands responsible for rendering imgui.
 	void render_imgui();
+	void prepare_imgui();
+	void create_imgui_draw_data();
 	void imgui_debug_data();
 	void imgui_object_hierarchy();
 	void imgui_scene_data();
@@ -227,6 +229,9 @@ private:
 	VkPipeline m_GradientPipeline;
 	VkPipelineLayout m_GradientPipelineLayout;
 
+	// These are required for use of immediate GPU commands. An immediate_submit function will
+	// use a fence and a different command buffer from the one we use on draws to send commands to
+	// the GPU without synchronising with the swapchain or rendering logic.
 	VkFence m_ImmediateFence;
 	VkCommandBuffer m_ImmediateCommandBuffer;
 	VkCommandPool m_ImmediateCommandPool;

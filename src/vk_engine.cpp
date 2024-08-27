@@ -305,13 +305,14 @@ void FishVulkanEngine::init_imgui13()
     // set to false. If this function fails, ensure that this value is set to True.
     ImGui_ImplVulkan_Init(&init_info, nullptr); 
 
-    // As with the previous function call, this function asks for a VkCommandBuffer parameter that we do not have.
-    // However, command_buffer is only used within the Copy to Image section of the function body.
-    // We do have some command buffers at hand, our immediate command buffer, upload context command buffer, and current frame command buffer.
-    // I'm just assuming that the immediate command buffer is right mainly due to the fact that we created the immediate command buffer
-    // in the 1.3 tutorial and since this is initialisation we wouldn't care about the per-frame buffer.
-    VkCommandBuffer cmd = m_ImmediateCommandBuffer;
-    ImGui_ImplVulkan_CreateFontsTexture(cmd); 
+    // Immediately submit a GPU command which will upload our ImGui font textures.
+    // Calling this function outside of the immediate_submit13(...) function will cause ImGui
+    // to not actually render. I spent some time messing around with this before I realised it wasn't
+    // stated in the tutorial. 
+    VkCommandBuffer cmd = get_current_frame().m_CommandBuffer;
+    immediate_submit13([=](VkCommandBuffer cmd) {
+        ImGui_ImplVulkan_CreateFontsTexture(cmd);
+    });
 
     // Ensure to delete ImGui related memory.
     m_DeletionQueue.push_function([=]() {
@@ -1240,6 +1241,50 @@ void FishVulkanEngine::render_imgui()
     ImGui::Render(); // Must either be at the very end of this function, or within the render loop (ideally at the beginning).
 }
 
+void FishVulkanEngine::prepare_imgui()
+{
+    // Connect backend ImGui functionality specifically for Vulkan and SDL2 and create all 
+    // basic ImGui functionality so that the demo window or custom windows are able to be rendered and interacted with.
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplSDL2_NewFrame(m_pWindow);
+    ImGui::NewFrame();
+
+    // Create/Begin ImGui render data. We don't actually render anything here, we just create all the 
+    // necessary information so that within our regular render loop we can read from ImGui::GetDrawData() 
+    // to get all data that we have defined here.
+    create_imgui_draw_data();
+
+    // Prepare the data for rendering so you can call ImGui::GetDrawData()
+    ImGui::Render();
+}
+
+void FishVulkanEngine::create_imgui_draw_data()
+{
+    // Begin Debug Overlay
+    {
+        ImGui::Begin("Debug Overlay", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar);
+        imgui_debug_data();
+        ImGui::End(); 
+    }
+    // End Debug Overlay
+
+    // Begin Object Hierarchy
+    /*{
+        ImGui::Begin("Hierarchy", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
+        imgui_object_hierarchy();
+        ImGui::End(); 
+    }*/
+    // End Object Hierarchy
+
+    // Begin Scene Data
+    /*{
+        ImGui::Begin("Scene", (bool*)0, ImGuiWindowFlags_None);
+        imgui_scene_data();
+        ImGui::End();
+    }*/
+    // End Scene Data
+}
+
 void FishVulkanEngine::imgui_debug_data()
 {
 
@@ -1489,20 +1534,10 @@ void FishVulkanEngine::run()
 
         //update(m_EngineTimer.delta_time());
 
-        // imgui render.
-        //render_imgui();
-        //draw_imgui();
-        ImGui_ImplVulkan_NewFrame();
-        ImGui_ImplSDL2_NewFrame(m_pWindow);
-        ImGui::NewFrame();
-        ImGui::ShowDemoWindow();
-        ImGui::Begin("Debug Overlay", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar);
-        imgui_debug_data();
-        ImGui::End(); // Debug Overlay
-        ImGui::Render();
+        // Set all draw data for ImGui so that the render loop can submit this data.
+        prepare_imgui();        
 
         // Main draw loop.
-        //render();  
         draw();
     }
 }
