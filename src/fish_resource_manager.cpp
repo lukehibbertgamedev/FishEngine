@@ -42,7 +42,6 @@ void Fish::ResourceManager::load_all_meshes()
     mesh = create_default_cube();
     upload_mesh(mesh);
     m_Meshes["cube"] = mesh;
-
 }
 
 void Fish::ResourceManager::load_all_textures()
@@ -53,7 +52,7 @@ void Fish::ResourceManager::load_all_textures()
         Fish::Resource::Texture texture = {};
         Fish::Loader::load_image_from_file(FishVulkanEngine::Get(), "../../assets/lost_empire-RGBA.png", texture.image);
         VkImageViewCreateInfo imageInfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, texture.image.image, VK_IMAGE_ASPECT_COLOR_BIT);
-        vkCreateImageView(FishVulkanEngine::Get().GetDevice(), &imageInfo, nullptr, &texture.imageView);
+        VK_CHECK(vkCreateImageView(FishVulkanEngine::Get().GetDevice(), &imageInfo, nullptr, &texture.imageView));
         m_Textures["minecraft_texture"] = texture;
     }
 
@@ -62,7 +61,7 @@ void Fish::ResourceManager::load_all_textures()
         Fish::Resource::Texture texture = {};
         Fish::Loader::load_image_from_file(FishVulkanEngine::Get(), "../../assets/MaterialBrown.png", texture.image);
         VkImageViewCreateInfo imageInfo = vkinit::imageview_create_info(VK_FORMAT_R8G8B8A8_SRGB, texture.image.image, VK_IMAGE_ASPECT_COLOR_BIT);
-        vkCreateImageView(FishVulkanEngine::Get().GetDevice(), &imageInfo, nullptr, &texture.imageView);
+        VK_CHECK(vkCreateImageView(FishVulkanEngine::Get().GetDevice(), &imageInfo, nullptr, &texture.imageView));
         m_Textures["horse_brown_texture"] = texture;
     }
 }
@@ -94,9 +93,9 @@ void Fish::ResourceManager::load_scene()
     // Texture loading/sampling...
 
     //create a sampler for the texture
-    VkSamplerCreateInfo samplerInfo = vkinit::sampler_create_info(VK_FILTER_NEAREST);
     VkSampler blockySampler = {};
-    vkCreateSampler(FishVulkanEngine::Get().GetDevice(), &samplerInfo, nullptr, &blockySampler);
+    VkSamplerCreateInfo samplerInfo = vkinit::sampler_create_info(VK_FILTER_NEAREST);
+    VK_CHECK(vkCreateSampler(FishVulkanEngine::Get().GetDevice(), &samplerInfo, nullptr, &blockySampler));
 
     Fish::Resource::Material* texturedMat = get_material_by_name("texturedmesh");
 
@@ -108,7 +107,7 @@ void Fish::ResourceManager::load_scene()
     allocInfo.descriptorPool = FishVulkanEngine::Get().GetDescriptorPool();
     allocInfo.pSetLayouts = &FishVulkanEngine::Get().GetSingleTextureSetLayout();
 
-    vkAllocateDescriptorSets(FishVulkanEngine::Get().GetDevice(), &allocInfo, &texturedMat->textureSet);
+    VK_CHECK(vkAllocateDescriptorSets(FishVulkanEngine::Get().GetDevice(), &allocInfo, &texturedMat->textureSet)); // TexturedMat returns null
 
     // Write to the descriptor set so that it points to our texture
     VkDescriptorImageInfo imageBufferInfo = {};

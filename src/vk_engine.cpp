@@ -68,14 +68,15 @@ void FishVulkanEngine::init()
     //init_descriptors11(); // 1.1 Implementation
     init_descriptors13();
 
-    //init_pipelines11();
+    //init_pipelines11(); // 1.1 Implementation
     init_pipelines13();
 
     // load textures -> meshes -> scene
-    Fish::ResourceManager::Get().init();
+    //Fish::ResourceManager::Get().init();
 
-    // must be done after all vulkan initialisation.
-    init_imgui11();
+    // Required to be called after Vulkan initialisation.
+    //init_imgui11(); // 1.1 Implementation
+    init_imgui13();
 
     // initialise entity component systems
     //init_ecs();
@@ -239,9 +240,11 @@ void FishVulkanEngine::init_imgui11()
 
 void FishVulkanEngine::init_imgui13()
 {
-    // 1: create descriptor pool for IMGUI
-    //  the size of the pool is very oversize, but it's copied from imgui demo
-    //  itself.
+    // 1: Create the descriptor pool for ImGui.
+
+    // Adapted from the ImGui demos, create structures that ImGui wants.
+    // The descriptor pool is storing data for 1000 different types of descriptors, 
+    // clearly overkill but suitable for our needs.
     VkDescriptorPoolSize pool_sizes[] = { { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
         { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
         { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
@@ -264,15 +267,15 @@ void FishVulkanEngine::init_imgui13()
     VkDescriptorPool imguiPool;
     VK_CHECK(vkCreateDescriptorPool(m_Device, &pool_info, nullptr, &imguiPool));
 
-    // 2: initialize imgui library
+    // 2: Initialise the ImGui library.
 
-    // this initializes the core structures of imgui
+    // Create the core for ImGui to work from.
     ImGui::CreateContext();
 
-    // this initializes imgui for SDL
+    // Hook ImGui, SDL2, and Vulkan to work together.
     ImGui_ImplSDL2_InitForVulkan(m_pWindow);
 
-    // this initializes imgui for Vulkan
+    // Initialise ImGui with Vulkan specifically.
     ImGui_ImplVulkan_InitInfo init_info = {};
     init_info.Instance = m_VkInstance;
     init_info.PhysicalDevice = m_PhysicalDevice;
@@ -281,17 +284,36 @@ void FishVulkanEngine::init_imgui13()
     init_info.DescriptorPool = imguiPool;
     init_info.MinImageCount = 3;
     init_info.ImageCount = 3;
-    init_info.UseDynamicRendering = true;
-    //dynamic rendering parameters for imgui to use
-    init_info.UseDynamicRendering = true;
+    
+    // Need to explicitly enable VK_KHR_dynamic_rendering extension to use this, even for Vulkan 1.3.
+    // It is important to set UseDynamicRendering to true, and ColorAttachmentFormat to our swapchain format
+    // because we won't be using Vulkan render_passes but dynamic rendering instead. Unlike the compute shader,
+    // we are drawing ImGui directly into the swapchain.
+    init_info.UseDynamicRendering = true;                     
     init_info.ColorAttachmentFormat = m_SwapchainImageFormat;
-    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
-    ImGui_ImplVulkan_Init(&init_info); // requires a render pass
+    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;             
 
-    ImGui_ImplVulkan_CreateFontsTexture(); // requires a command buffer
+    // PipelineRenderingCreateInfo is not part of ImGui_ImplVulkan_InitInfo so this is currently not used.
+    VkPipelineRenderingCreateInfo pipelineRenderingCreateInfo = {};
+    pipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    pipelineRenderingCreateInfo.colorAttachmentCount = 1;
+    pipelineRenderingCreateInfo.pColorAttachmentFormats = &m_SwapchainImageFormat;
 
-    // add the destroy the imgui created structures
+    // This function asks for a VkRenderPass parameter that we do not have and will not use with the Vulkan 1.3 API.
+    // Within the body of this function, the only time that the render_pass is used is when init_info.UseDynamicRendering is
+    // set to false. If this function fails, ensure that this value is set to True.
+    ImGui_ImplVulkan_Init(&init_info, nullptr); 
+
+    // As with the previous function call, this function asks for a VkCommandBuffer parameter that we do not have.
+    // However, command_buffer is only used within the Copy to Image section of the function body.
+    // We do have some command buffers at hand, our immediate command buffer, upload context command buffer, and current frame command buffer.
+    // I'm just assuming that the immediate command buffer is right mainly due to the fact that we created the immediate command buffer
+    // in the 1.3 tutorial and since this is initialisation we wouldn't care about the per-frame buffer.
+    VkCommandBuffer cmd = m_ImmediateCommandBuffer;
+    ImGui_ImplVulkan_CreateFontsTexture(cmd); 
+
+    // Ensure to delete ImGui related memory.
     m_DeletionQueue.push_function([=]() {
         ImGui_ImplVulkan_Shutdown();
         vkDestroyDescriptorPool(m_Device, imguiPool, nullptr);
@@ -324,9 +346,9 @@ void FishVulkanEngine::init_commands()
     VK_CHECK(vkCreateCommandPool(m_Device, &commandPoolInfo, nullptr, &m_ImmediateCommandPool));
 
     // allocate the command buffer for immediate submits
-    VkCommandBufferAllocateInfo cmdAllocInfo = vkinit::command_buffer_allocate_info(m_ImmediateCommandPool, 1);
+    VkCommandBufferAllocateInfo immediateCmdAllocInfo = vkinit::command_buffer_allocate_info(m_ImmediateCommandPool, 1);
 
-    VK_CHECK(vkAllocateCommandBuffers(m_Device, &cmdAllocInfo, &m_ImmediateCommandBuffer));
+    VK_CHECK(vkAllocateCommandBuffers(m_Device, &immediateCmdAllocInfo, &m_ImmediateCommandBuffer));
 
     m_DeletionQueue.push_function([=]() { vkDestroyCommandPool(m_Device, m_ImmediateCommandPool, nullptr); });
     // < Immediate Commands
@@ -340,9 +362,9 @@ void FishVulkanEngine::init_commands()
     });
 
     //allocate the default command buffer that we will use for rendering
-    VkCommandBufferAllocateInfo cmdAllocInfo = vkinit::command_buffer_allocate_info(m_UploadContext.commandPool, 1);
+    VkCommandBufferAllocateInfo uploadCmdAllocInfo = vkinit::command_buffer_allocate_info(m_UploadContext.commandPool, 1);
 
-    VK_CHECK(vkAllocateCommandBuffers(m_Device, &cmdAllocInfo, &m_UploadContext.commandBuffer));
+    VK_CHECK(vkAllocateCommandBuffers(m_Device, &uploadCmdAllocInfo, &m_UploadContext.commandBuffer));
 }
 
 void FishVulkanEngine::init_main_renderpass()
@@ -916,6 +938,75 @@ void FishVulkanEngine::destroy_swapchain()
     }
 }
 
+// TODO: Comment and refactor.
+void FishVulkanEngine::rebuild_swapchain()
+{
+    vkQueueWaitIdle(m_GraphicsQueue);
+
+    vkb::SwapchainBuilder swapchainBuilder { m_PhysicalDevice, m_Device, m_SurfaceKHR };
+
+    SDL_GetWindowSizeInPixels(m_pWindow, (int*)&m_WindowExtents.width, (int*)&m_WindowExtents.height);
+
+    vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
+    vkDestroyImageView(m_Device, m_DrawImage.imageView, nullptr);
+    vmaDestroyImage(m_Allocator, m_DrawImage.image, m_DrawImage.allocation);
+
+    vkb::Swapchain vkbSwapchain = swapchainBuilder
+        .use_default_format_selection()
+        //use vsync present mode
+        .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
+        .set_desired_extent(m_WindowExtents.width, m_WindowExtents.height)
+        .add_image_usage_flags(VK_IMAGE_USAGE_TRANSFER_DST_BIT)
+        .build()
+        .value();
+
+    //store swapchain and its related images
+    m_Swapchain = vkbSwapchain.swapchain;
+    m_SwapchainImages = vkbSwapchain.get_images().value();
+    m_SwapchainImageViews = vkbSwapchain.get_image_views().value();
+    m_SwapchainImageFormat = vkbSwapchain.image_format;
+
+    //depth image size will match the window
+    VkExtent3D drawImageExtent = { m_WindowExtents.width, m_WindowExtents.height, 1 };
+
+    //hardcoding the depth format to 32 bit float
+    m_DrawImage.imageFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+
+    VkImageUsageFlags drawImageUsages{};
+    drawImageUsages |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    drawImageUsages |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    drawImageUsages |= VK_IMAGE_USAGE_STORAGE_BIT;
+
+    VkImageCreateInfo rimg_info = vkinit::image_create_info(m_DrawImage.imageFormat, drawImageUsages, drawImageExtent);
+
+    //for the draw image, we want to allocate it from gpu local memory
+    VmaAllocationCreateInfo rimg_allocinfo = {};
+    rimg_allocinfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    rimg_allocinfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+    //allocate and create the image
+    vmaCreateImage(m_Allocator, &rimg_info, &rimg_allocinfo, &m_DrawImage.image, &m_DrawImage.allocation, nullptr);
+
+    //build a image-view for the draw image to use for rendering
+    VkImageViewCreateInfo rview_info = vkinit::imageview_create_info(m_DrawImage.imageFormat, m_DrawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
+
+    VK_CHECK(vkCreateImageView(m_Device, &rview_info, nullptr, &m_DrawImage.imageView));
+
+    VkDescriptorImageInfo imgInfo{};
+    imgInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+    imgInfo.imageView = m_DrawImage.imageView;
+
+    VkWriteDescriptorSet cameraWrite = vkinit::write_descriptor_image(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, m_DrawImageDescriptors, &imgInfo, 0);
+
+    vkUpdateDescriptorSets(m_Device, 1, &cameraWrite, 0, nullptr);
+
+    //add to deletion queues
+    m_DeletionQueue.push_function([&]() {
+        vkDestroyImageView(m_Device, m_DrawImage.imageView, nullptr);
+        vmaDestroyImage(m_Allocator, m_DrawImage.image, m_DrawImage.allocation);
+    });
+}
+
 void FishVulkanEngine::init_descriptors13()
 {
     // initialize the descriptor allocator with 10 sets, and 
@@ -1040,8 +1131,8 @@ void FishVulkanEngine::render()
     //we want to wait on the _presentSemaphore, as that semaphore is signaled when the swapchain is ready
     //we will signal the _renderSemaphore, to signal that rendering has finished
     VkCommandBufferSubmitInfo cmdinfo = vkinit::command_buffer_submit_info(cmd);
-    VkSemaphoreSubmitInfo waitInfo = vkinit::semaphore_submit_info(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, get_current_frame().m_PresentSemaphore);
-    VkSemaphoreSubmitInfo signalInfo = vkinit::semaphore_submit_info(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, get_current_frame().m_RenderSemaphore);
+    VkSemaphoreSubmitInfo waitInfo = vkinit::semaphore_submit_info2(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, get_current_frame().m_PresentSemaphore);
+    VkSemaphoreSubmitInfo signalInfo = vkinit::semaphore_submit_info2(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, get_current_frame().m_RenderSemaphore);
     VkSubmitInfo2 submit = vkinit::submit_info2(&cmdinfo, &signalInfo, &waitInfo);
 
     //submit command buffer to the queue and execute it.
@@ -1232,6 +1323,114 @@ void FishVulkanEngine::imgui_scene_data()
     ImGui::Text("Objects in scene: %i", Fish::ResourceManager::Get().m_Scene.m_SceneObjects.size()); // Must be integer to work.
 }
 
+void FishVulkanEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView)
+{
+    VkRenderingAttachmentInfo colorAttachment = vkinit::attachment_info(targetImageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    VkRenderingInfo renderInfo = vkinit::rendering_info(m_SwapchainExtent, &colorAttachment, nullptr);
+
+    vkCmdBeginRendering(cmd, &renderInfo);
+
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
+
+    vkCmdEndRendering(cmd);
+}
+
+void FishVulkanEngine::draw()
+{
+    //wait until the gpu has finished rendering the last frame. Timeout of 1 second
+    VK_CHECK(vkWaitForFences(m_Device, 1, &get_current_frame().m_RenderFence, true, 1000000000));
+
+    get_current_frame().deletionQueue.flush();
+
+    //request image from the swapchain
+    uint32_t swapchainImageIndex;
+
+    VkResult e = vkAcquireNextImageKHR(m_Device, m_Swapchain, 1000000000, get_current_frame().m_PresentSemaphore, nullptr, &swapchainImageIndex);
+    if (e == VK_ERROR_OUT_OF_DATE_KHR) {
+        rebuild_swapchain();
+        return;
+    }
+
+    VK_CHECK(vkResetFences(m_Device, 1, &get_current_frame().m_RenderFence));
+
+    //now that we are sure that the commands finished executing, we can safely reset the command buffer to begin recording again.
+    VK_CHECK(vkResetCommandBuffer(get_current_frame().m_CommandBuffer, 0));
+
+    //naming it cmd for shorter writing
+    VkCommandBuffer cmd = get_current_frame().m_CommandBuffer;
+
+    //begin the command buffer recording. We will use this command buffer exactly once, so we want to let vulkan know that
+    VkCommandBufferBeginInfo cmdBeginInfo = vkinit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+    //> draw_first
+    m_DrawExtent.width = m_DrawImage.imageExtent.width;
+    m_DrawExtent.height = m_DrawImage.imageExtent.height;
+
+    VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
+
+    // transition our main draw image into general layout so we can write into it
+    // we will overwrite it all so we dont care about what was the older layout
+    vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+
+    render_clear_colour_background(cmd);
+
+    //transition the draw image and the swapchain image into their correct transfer layouts
+    vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    vkutil::transition_image(cmd, m_SwapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    //< draw_first
+    //> imgui_draw
+        // execute a copy from the draw image into the swapchain
+    vkutil::copy_image_to_image(cmd, m_DrawImage.image, m_SwapchainImages[swapchainImageIndex], m_DrawExtent, m_SwapchainExtent);
+
+    // set swapchain image layout to Attachment Optimal so we can draw it
+    vkutil::transition_image(cmd, m_SwapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    //draw imgui into the swapchain image
+    draw_imgui(cmd, m_SwapchainImageViews[swapchainImageIndex]);
+
+    // set swapchain image layout to Present so we can draw it
+    vkutil::transition_image(cmd, m_SwapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
+    //finalize the command buffer (we can no longer add commands, but it can now be executed)
+    VK_CHECK(vkEndCommandBuffer(cmd));
+    //< imgui_draw
+
+        //prepare the submission to the queue. 
+        //we want to wait on the _presentSemaphore, as that semaphore is signaled when the swapchain is ready
+        //we will signal the _renderSemaphore, to signal that rendering has finished
+
+    VkCommandBufferSubmitInfo cmdinfo = vkinit::command_buffer_submit_info(cmd);
+
+    VkSemaphoreSubmitInfo waitInfo = vkinit::semaphore_submit_info2(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, get_current_frame().m_PresentSemaphore);
+    VkSemaphoreSubmitInfo signalInfo = vkinit::semaphore_submit_info2(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, get_current_frame().m_RenderSemaphore);
+
+    VkSubmitInfo2 submit = vkinit::submit_info2(&cmdinfo, &signalInfo, &waitInfo);
+
+    //submit command buffer to the queue and execute it.
+    // _renderFence will now block until the graphic commands finish execution
+    VK_CHECK(vkQueueSubmit2(m_GraphicsQueue, 1, &submit, get_current_frame().m_RenderFence));
+
+    //prepare present
+    // this will put the image we just rendered to into the visible window.
+    // we want to wait on the _renderSemaphore for that, 
+    // as its necessary that drawing commands have finished before the image is displayed to the user
+    VkPresentInfoKHR presentInfo = vkinit::present_info();
+
+    presentInfo.pSwapchains = &m_Swapchain;
+    presentInfo.swapchainCount = 1;
+
+    presentInfo.pWaitSemaphores = &get_current_frame().m_RenderSemaphore;
+    presentInfo.waitSemaphoreCount = 1;
+
+    presentInfo.pImageIndices = &swapchainImageIndex;
+
+    VkResult presentResult = vkQueuePresentKHR(m_GraphicsQueue, &presentInfo);
+
+
+    //increase the number of frames drawn
+    m_FrameNumber++;
+}
+
 void FishVulkanEngine::run()
 {
     SDL_Event e;
@@ -1246,13 +1445,7 @@ void FishVulkanEngine::run()
         // This will ask SDL for all of the events that the OS has sent to the application
         // during the last frame. Here, we can check for things like keyboard events, mouse input, etc...
         while (SDL_PollEvent(&e) != 0) {
-
-            // Have the camera process the events.
-            m_Camera.processSDLEvent(e);
-
-            // Have ImGui process the events.
-            ImGui_ImplSDL2_ProcessEvent(&e);
-
+            
             // close the window when user alt-f4s or clicks the X button
             if (e.type == SDL_QUIT) {
                 bQuit = true;
@@ -1276,6 +1469,12 @@ void FishVulkanEngine::run()
                 }
             }
 
+            // Have the camera process the events.
+            m_Camera.processSDLEvent(e);
+
+            // Have ImGui process the events.
+            ImGui_ImplSDL2_ProcessEvent(&e);
+
         } // End event loop.
 
         // do not draw.
@@ -1288,13 +1487,23 @@ void FishVulkanEngine::run()
 
         m_EngineTimer.tick();
 
-        update(m_EngineTimer.delta_time());
+        //update(m_EngineTimer.delta_time());
 
         // imgui render.
-        render_imgui();
+        //render_imgui();
+        //draw_imgui();
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplSDL2_NewFrame(m_pWindow);
+        ImGui::NewFrame();
+        ImGui::ShowDemoWindow();
+        ImGui::Begin("Debug Overlay", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar);
+        imgui_debug_data();
+        ImGui::End(); // Debug Overlay
+        ImGui::Render();
 
         // Main draw loop.
-        render();   
+        //render();  
+        draw();
     }
 }
 

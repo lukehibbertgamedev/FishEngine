@@ -9,6 +9,9 @@ Future Todo:
 	- [ ] Create new folders for different parts (i.e. Backend, Core, Ecs) 
 
 Previously:
+
+	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+
 	- [X] Recreated a new project using Vulkan and SDL as opposed to Vulkan and GLFW.		05/06
 	- [X] Build the cmake files using cmake-gui.											05/06
 
@@ -57,6 +60,8 @@ Previously:
 	- [X] Modify horse at runtime (position, rotation, scale)								23/06
 	- [X] Quad primitive rendering															23/06
 
+	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+
 	- [X] Cube primitive rendering															01/07
 
 	- [X] Attempted listing all scene objects and modifying them at runtime	(failed)		07/07
@@ -64,15 +69,24 @@ Previously:
 	- [X] Objects listed in ImGui and modified at runtime									15/07
 	- [X] Implemented the codebase for use of the entity component system					15/07 *
 
-	- [X] Implemented the (broken)initialisation code for basic entity component systems	17/07
+	- [X] Implemented the (broken) initialisation code for basic entity component systems	17/07
 
 	- [X] Refactored to Chapter 2 of the new 1.3 API										20/07
 
 	- [X] Refactored half of Chapter 2 of the new 1.3 API									21/07
 
+	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+
+	- [X] Reviewed the code after a month long break.										27/08
+	
+	- [X] Refactored the rest of Chapter 2 of the new 1.3 API								27/08
+
 Next time:
 
-	- [ ] Continue from the middle of setting up ImGui in Chapter 2 
+	- [ ] We want to take a step back here, we don't entirely want to work on the scene and ECS if we
+	- [ ] don't have a stable framework to build upon. We need the Vulkan 1.3 features to really begin understanding
+	- [ ] our future changes. Our main priority right now is to complete the 1.3 refactor and only once that is stable, we can 
+	- [ ] merge our changes back into the development branch and branch off into a specified ecs branch to work on these changes.
 
 	- [ ] Come back to Improving the render loop chapter in the new API (the last bit of it) with changing create swapchain
 

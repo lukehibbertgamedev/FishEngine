@@ -116,7 +116,7 @@ private:
 
 	void create_swapchain(uint32_t width, uint32_t height);
 	void destroy_swapchain();
-
+	void rebuild_swapchain();
 
 	// loads a shader module from a spir-v file. false if error.
 	bool load_shader_module(const char* filePath, VkShaderModule* outShaderModule);
@@ -140,6 +140,9 @@ private:
 	void imgui_debug_data();
 	void imgui_object_hierarchy();
 	void imgui_scene_data();
+
+	void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView);
+	void draw();
 
 	// return frame we are rendering to right now.
 	FrameData& get_current_frame();

@@ -87,7 +87,7 @@ VkSemaphoreSubmitInfo vkinit::semaphore_submit_info(VkPipelineStageFlags stageMa
     return submitInfo;
 }
 
-VkSemaphoreSubmitInfo vkinit::semaphore_submit_info(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore)
+VkSemaphoreSubmitInfo vkinit::semaphore_submit_info2(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore)
 {
 	VkSemaphoreSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
