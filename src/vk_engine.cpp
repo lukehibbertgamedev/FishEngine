@@ -54,13 +54,14 @@ void FishVulkanEngine::init()
 
     init_vulkan();
         
-    init_swapchain();
+    //init_swapchain11(); // 1.1 Implementation
+    init_swapchain13();
 
     init_commands();
 
-    init_main_renderpass();
+    //init_main_renderpass(); // 1.1 Implementation
 
-    init_framebuffers();
+    //init_framebuffers(); // 1.1 Implementation
 
     init_synchronisation_structures();
 
@@ -71,13 +72,16 @@ void FishVulkanEngine::init()
     init_pipelines13();
 
     // load textures -> meshes -> scene
-    //Fish::ResourceManager::Get().init();
+    //Fish::ResourceManager::Get().init(); // 1.1 Implementation
 
     // Required to be called after Vulkan initialisation.
     //init_imgui11(); // 1.1 Implementation
     init_imgui13();
 
-    init_default_data();
+    //init_default_data();
+
+    // Load meshes.
+    testMeshes = loadGltfMeshes(loadedEngine, "..//..//assets//basicmesh.glb").value();
 
     // initialise entity component systems
     //init_ecs();
@@ -321,9 +325,70 @@ void FishVulkanEngine::init_imgui13()
     });
 }
 
-void FishVulkanEngine::init_swapchain()
+void FishVulkanEngine::init_swapchain11()
 {
     create_swapchain(m_WindowExtents.width, m_WindowExtents.height);
+}
+
+void FishVulkanEngine::init_swapchain13()
+{
+    create_swapchain(m_WindowExtents.width, m_WindowExtents.height);
+
+    //depth image size will match the window
+    VkExtent3D drawImageExtent = {
+        m_WindowExtents.width,
+        m_WindowExtents.height,
+        1
+    };
+
+    //hardcoding the depth format to 32 bit float
+    m_DrawImage.imageFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+    m_DrawImage.imageExtent = drawImageExtent;
+
+    VkImageUsageFlags drawImageUsages{};
+    drawImageUsages |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    drawImageUsages |= VK_IMAGE_USAGE_STORAGE_BIT;
+    drawImageUsages |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+    VkImageCreateInfo rimg_info = vkinit::image_create_info(m_DrawImage.imageFormat, drawImageUsages, drawImageExtent);
+
+    //for the draw image, we want to allocate it from gpu local memory
+    VmaAllocationCreateInfo rimg_allocinfo = {};
+    rimg_allocinfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    rimg_allocinfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+    //allocate and create the image
+    vmaCreateImage(m_Allocator, &rimg_info, &rimg_allocinfo, &m_DrawImage.image, &m_DrawImage.allocation, nullptr);
+
+    //build a image-view for the draw image to use for rendering
+    VkImageViewCreateInfo rview_info = vkinit::imageview_create_info(m_DrawImage.imageFormat, m_DrawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
+
+    VK_CHECK(vkCreateImageView(m_Device, &rview_info, nullptr, &m_DrawImage.imageView));
+
+    //> depthimg
+    m_DepthImage.imageFormat = VK_FORMAT_D32_SFLOAT;
+    m_DepthImage.imageExtent = drawImageExtent;
+    VkImageUsageFlags depthImageUsages{};
+    depthImageUsages |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+    VkImageCreateInfo dimg_info = vkinit::image_create_info(m_DepthImage.imageFormat, depthImageUsages, drawImageExtent);
+
+    //allocate and create the image
+    vmaCreateImage(m_Allocator, &dimg_info, &rimg_allocinfo, &m_DepthImage.image, &m_DepthImage.allocation, nullptr);
+
+    //build a image-view for the draw image to use for rendering
+    VkImageViewCreateInfo dview_info = vkinit::imageview_create_info(m_DepthImage.imageFormat, m_DepthImage.image, VK_IMAGE_ASPECT_DEPTH_BIT);
+
+    VK_CHECK(vkCreateImageView(m_Device, &dview_info, nullptr, &m_DepthImage.imageView));
+    //< depthimg
+        //add to deletion queues
+    m_DeletionQueue.push_function([=]() {
+        vkDestroyImageView(m_Device, m_DrawImage.imageView, nullptr);
+        vmaDestroyImage(m_Allocator, m_DrawImage.image, m_DrawImage.allocation);
+
+        vkDestroyImageView(m_Device, m_DepthImage.imageView, nullptr);
+        vmaDestroyImage(m_Allocator, m_DepthImage.image, m_DepthImage.allocation);
+    });
 }
 
 void FishVulkanEngine::init_commands()
@@ -754,7 +819,7 @@ void FishVulkanEngine::init_pipelines13()
     init_background_pipelines();
 
     // Graphics Pipelines.
-    init_triangle_pipeline();
+    //init_triangle_pipeline();
     init_mesh_pipeline();
 }
 
@@ -858,66 +923,66 @@ void FishVulkanEngine::init_background_pipelines()
     });
 }
 
-void FishVulkanEngine::init_triangle_pipeline()
-{
-    VkShaderModule triangleFragShader;
-    if (!vkutil::load_shader_module("../../shaders/colored_triangle.frag.spv", m_Device, &triangleFragShader)) {
-        fmt::print("Error when building the triangle fragment shader module");
-    }
-    else {
-        fmt::print("Triangle fragment shader succesfully loaded");
-    }
-
-    VkShaderModule triangleVertexShader;
-    if (!vkutil::load_shader_module("../../shaders/colored_triangle.vert.spv", m_Device, &triangleVertexShader)) {
-        fmt::print("Error when building the triangle vertex shader module");
-    }
-    else {
-        fmt::print("Triangle vertex shader succesfully loaded");
-    }
-
-    //build the pipeline layout that controls the inputs/outputs of the shader
-    //we are not using descriptor sets or other systems yet, so no need to use anything other than empty default
-    VkPipelineLayoutCreateInfo pipeline_layout_info = vkinit::pipeline_layout_create_info();
-    VK_CHECK(vkCreatePipelineLayout(m_Device, &pipeline_layout_info, nullptr, &_trianglePipelineLayout));
-
-    // Create the pipeline using our builder abstraction.
-
-    Fish::PipelineBuilder13 pipelineBuilder;
-
-    //use the triangle layout we created
-    pipelineBuilder._pipelineLayout = _trianglePipelineLayout;
-    //connecting the vertex and pixel shaders to the pipeline
-    pipelineBuilder.set_shaders(triangleVertexShader, triangleFragShader);
-    //it will draw triangles
-    pipelineBuilder.set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-    //filled triangles
-    pipelineBuilder.set_polygon_mode(VK_POLYGON_MODE_FILL);
-    //no backface culling
-    pipelineBuilder.set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
-    //no multisampling
-    pipelineBuilder.set_multisampling_none();
-    //no blending
-    pipelineBuilder.disable_blending();
-    //no depth testing
-    pipelineBuilder.disable_depthtest();
-
-    //connect the image format we will draw into, from draw image
-    pipelineBuilder.set_color_attachment_format(m_DrawImage.imageFormat);
-    pipelineBuilder.set_depth_format(VK_FORMAT_UNDEFINED);
-
-    //finally build the pipeline
-    _trianglePipeline = pipelineBuilder.build_pipeline(m_Device);
-
-    //clean structures
-    vkDestroyShaderModule(m_Device, triangleFragShader, nullptr);
-    vkDestroyShaderModule(m_Device, triangleVertexShader, nullptr);
-
-    m_DeletionQueue.push_function([&]() {
-        vkDestroyPipelineLayout(m_Device, _trianglePipelineLayout, nullptr);
-        vkDestroyPipeline(m_Device, _trianglePipeline, nullptr);
-    });
-}
+//void FishVulkanEngine::init_triangle_pipeline()
+//{
+//    VkShaderModule triangleFragShader;
+//    if (!vkutil::load_shader_module("../../shaders/colored_triangle.frag.spv", m_Device, &triangleFragShader)) {
+//        fmt::print("Error when building the triangle fragment shader module");
+//    }
+//    else {
+//        fmt::print("Triangle fragment shader succesfully loaded");
+//    }
+//
+//    VkShaderModule triangleVertexShader;
+//    if (!vkutil::load_shader_module("../../shaders/colored_triangle.vert.spv", m_Device, &triangleVertexShader)) {
+//        fmt::print("Error when building the triangle vertex shader module");
+//    }
+//    else {
+//        fmt::print("Triangle vertex shader succesfully loaded");
+//    }
+//
+//    //build the pipeline layout that controls the inputs/outputs of the shader
+//    //we are not using descriptor sets or other systems yet, so no need to use anything other than empty default
+//    VkPipelineLayoutCreateInfo pipeline_layout_info = vkinit::pipeline_layout_create_info();
+//    VK_CHECK(vkCreatePipelineLayout(m_Device, &pipeline_layout_info, nullptr, &_trianglePipelineLayout));
+//
+//    // Create the pipeline using our builder abstraction.
+//
+//    Fish::PipelineBuilder13 pipelineBuilder;
+//
+//    //use the triangle layout we created
+//    pipelineBuilder._pipelineLayout = _trianglePipelineLayout;
+//    //connecting the vertex and pixel shaders to the pipeline
+//    pipelineBuilder.set_shaders(triangleVertexShader, triangleFragShader);
+//    //it will draw triangles
+//    pipelineBuilder.set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+//    //filled triangles
+//    pipelineBuilder.set_polygon_mode(VK_POLYGON_MODE_FILL);
+//    //no backface culling
+//    pipelineBuilder.set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+//    //no multisampling
+//    pipelineBuilder.set_multisampling_none();
+//    //no blending
+//    pipelineBuilder.disable_blending();
+//    //no depth testing
+//    pipelineBuilder.disable_depthtest();
+//
+//    //connect the image format we will draw into, from draw image
+//    pipelineBuilder.set_color_attachment_format(m_DrawImage.imageFormat);
+//    pipelineBuilder.set_depth_format(m_DepthImage.imageFormat);
+//
+//    //finally build the pipeline
+//    _trianglePipeline = pipelineBuilder.build_pipeline(m_Device);
+//
+//    //clean structures
+//    vkDestroyShaderModule(m_Device, triangleFragShader, nullptr);
+//    vkDestroyShaderModule(m_Device, triangleVertexShader, nullptr);
+//
+//    m_DeletionQueue.push_function([&]() {
+//        vkDestroyPipelineLayout(m_Device, _trianglePipelineLayout, nullptr);
+//        vkDestroyPipeline(m_Device, _trianglePipeline, nullptr);
+//    });
+//}
 
 void FishVulkanEngine::init_mesh_pipeline()
 {
@@ -965,7 +1030,7 @@ void FishVulkanEngine::init_mesh_pipeline()
     //no blending
     pipelineBuilder.disable_blending();
 
-    pipelineBuilder.disable_depthtest();
+    pipelineBuilder.enable_depthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL);
 
     //connect the image format we will draw into, from draw image
     pipelineBuilder.set_color_attachment_format(m_DrawImage.imageFormat);
@@ -1046,79 +1111,79 @@ void FishVulkanEngine::create_swapchain(uint32_t width, uint32_t height)
     m_SwapchainImages = vkbSwapchain.get_images().value();
     m_SwapchainImageViews = vkbSwapchain.get_image_views().value();
 
-    // draw image size will match the window
-        VkExtent3D drawImageExtent = {
-            m_WindowExtents.width,
-            m_WindowExtents.height,
-            1
-    };
+    //// draw image size will match the window
+    //    VkExtent3D drawImageExtent = {
+    //        m_WindowExtents.width,
+    //        m_WindowExtents.height,
+    //        1
+    //};
 
-    //hardcoding the draw format to 32 bit float
-    m_DrawImage.imageFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
-    m_DrawImage.imageExtent = drawImageExtent;
+    ////hardcoding the draw format to 32 bit float
+    //m_DrawImage.imageFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+    //m_DrawImage.imageExtent = drawImageExtent;
 
-    VkImageUsageFlags drawImageUsages{};
-    drawImageUsages |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-    drawImageUsages |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-    drawImageUsages |= VK_IMAGE_USAGE_STORAGE_BIT;
-    drawImageUsages |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    VkImageCreateInfo rimg_info = vkinit::image_create_info(m_DrawImage.imageFormat, drawImageUsages, drawImageExtent);
-    //for the draw image, we want to allocate it from gpu local memory
-    VmaAllocationCreateInfo rimg_allocinfo = {};
-    rimg_allocinfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-    rimg_allocinfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    //VkImageUsageFlags drawImageUsages{};
+    //drawImageUsages |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    //drawImageUsages |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    //drawImageUsages |= VK_IMAGE_USAGE_STORAGE_BIT;
+    //drawImageUsages |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    //VkImageCreateInfo rimg_info = vkinit::image_create_info(m_DrawImage.imageFormat, drawImageUsages, drawImageExtent);
+    ////for the draw image, we want to allocate it from gpu local memory
+    //VmaAllocationCreateInfo rimg_allocinfo = {};
+    //rimg_allocinfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    //rimg_allocinfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-    //allocate and create the image
-    vmaCreateImage(m_Allocator, &rimg_info, &rimg_allocinfo, &m_DrawImage.image, &m_DrawImage.allocation, nullptr);
+    ////allocate and create the image
+    //vmaCreateImage(m_Allocator, &rimg_info, &rimg_allocinfo, &m_DrawImage.image, &m_DrawImage.allocation, nullptr);
 
-    //build a image-view for the draw image to use for rendering
-    VkImageViewCreateInfo rview_info = vkinit::imageview_create_info(m_DrawImage.imageFormat, m_DrawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
-    VK_CHECK(vkCreateImageView(m_Device, &rview_info, nullptr, &m_DrawImage.imageView));
+    ////build a image-view for the draw image to use for rendering
+    //VkImageViewCreateInfo rview_info = vkinit::imageview_create_info(m_DrawImage.imageFormat, m_DrawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
+    //VK_CHECK(vkCreateImageView(m_Device, &rview_info, nullptr, &m_DrawImage.imageView));
 
-    m_DeletionQueue.push_function([=]() {
-        vkDestroyImageView(m_Device, m_DrawImage.imageView, nullptr);
-        vmaDestroyImage(m_Allocator, m_DrawImage.image, m_DrawImage.allocation);
-    });
+    //m_DeletionQueue.push_function([=]() {
+    //    vkDestroyImageView(m_Device, m_DrawImage.imageView, nullptr);
+    //    vmaDestroyImage(m_Allocator, m_DrawImage.image, m_DrawImage.allocation);
+    //});
 
+    ////
+    //// 
+    //// 
+    //// 
+    //// 
     //
-    // 
-    // 
-    // 
-    // 
-    
-    //depth image size will match the window
-    VkExtent3D depthImageExtent = {
-        m_WindowExtents.width,
-        m_WindowExtents.height,
-        1
-    };
+    ////depth image size will match the window
+    //VkExtent3D depthImageExtent = {
+    //    m_WindowExtents.width,
+    //    m_WindowExtents.height,
+    //    1
+    //};
 
-    //hardcoding the depth format to 32 bit float
-    m_DepthFormat = VK_FORMAT_D32_SFLOAT;
+    ////hardcoding the depth format to 32 bit float
+    //m_DepthFormat = VK_FORMAT_D32_SFLOAT;
 
-    //the depth image will be an image with the format we selected and Depth Attachment usage flag
-    VkImageCreateInfo dimg_info = vkinit::image_create_info(m_DepthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, depthImageExtent); // this flag allows depth image to be used for z-testing.
+    ////the depth image will be an image with the format we selected and Depth Attachment usage flag
+    //VkImageCreateInfo dimg_info = vkinit::image_create_info(m_DepthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, depthImageExtent); // this flag allows depth image to be used for z-testing.
 
-    //for the depth image, we want to allocate it from GPU local memory
-    VmaAllocationCreateInfo dimg_allocinfo = {};
-    dimg_allocinfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-    dimg_allocinfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    ////for the depth image, we want to allocate it from GPU local memory
+    //VmaAllocationCreateInfo dimg_allocinfo = {};
+    //dimg_allocinfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    //dimg_allocinfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-    //allocate and create the image
-    vmaCreateImage(m_Allocator, &dimg_info, &dimg_allocinfo, &m_DepthImage.image, &m_DepthImage.allocation, nullptr);
+    ////allocate and create the image
+    //vmaCreateImage(m_Allocator, &dimg_info, &dimg_allocinfo, &m_DepthImage.image, &m_DepthImage.allocation, nullptr);
 
-    //build an image-view for the depth image to use for rendering
-    VkImageViewCreateInfo dview_info = vkinit::imageview_create_info(m_DepthFormat, m_DepthImage.image, VK_IMAGE_ASPECT_DEPTH_BIT);
+    ////build an image-view for the depth image to use for rendering
+    //VkImageViewCreateInfo dview_info = vkinit::imageview_create_info(m_DepthFormat, m_DepthImage.image, VK_IMAGE_ASPECT_DEPTH_BIT);
 
-    VK_CHECK(vkCreateImageView(m_Device, &dview_info, nullptr, &m_DepthImageView));
+    //VK_CHECK(vkCreateImageView(m_Device, &dview_info, nullptr, &m_DepthImageView));
 
-    m_DeletionQueue.push_function([=]() { 
-        destroy_swapchain();
+    //m_DeletionQueue.push_function([=]() { 
+    //    destroy_swapchain();
 
-        // depth
-        vkDestroyImageView(m_Device, m_DepthImageView, nullptr);
-        vmaDestroyImage(m_Allocator, m_DepthImage.image, m_DepthImage.allocation);
-    });
+    //    // depth
+    //    vkDestroyImageView(m_Device, m_DepthImageView, nullptr);
+    //    vmaDestroyImage(m_Allocator, m_DepthImage.image, m_DepthImage.allocation);
+    //});
 }
 
 void FishVulkanEngine::destroy_swapchain()
@@ -1260,6 +1325,11 @@ void FishVulkanEngine::cleanup()
 
         //make sure the GPU has stopped doing its things
         vkWaitForFences(m_Device, 1, &get_current_frame().m_RenderFence, true, timeout);
+
+        for (auto& mesh : testMeshes) {
+            destroy_buffer(mesh->meshBuffers.indexBuffer);
+            destroy_buffer(mesh->meshBuffers.vertexBuffer);
+        }
 
         m_DeletionQueue.flush();
         
@@ -1628,38 +1698,37 @@ GPUMeshBuffers FishVulkanEngine::uploadMesh(std::span<uint32_t> indices, std::sp
 
 void FishVulkanEngine::init_default_data()
 {
-    std::array<Vertex, 4> rect_vertices;
+    //std::array<Vertex, 4> rect_vertices;
 
-    rect_vertices[0].position = { 0.5,-0.5, 0 };
-    rect_vertices[1].position = { 0.5,0.5, 0 };
-    rect_vertices[2].position = { -0.5,-0.5, 0 };
-    rect_vertices[3].position = { -0.5,0.5, 0 };
+    //rect_vertices[0].position = { 0.5,-0.5, 0 };
+    //rect_vertices[1].position = { 0.5,0.5, 0 };
+    //rect_vertices[2].position = { -0.5,-0.5, 0 };
+    //rect_vertices[3].position = { -0.5,0.5, 0 };
 
-    rect_vertices[0].color = { 0,0, 0,1 };
-    rect_vertices[1].color = { 0.5,0.5,0.5 ,1 };
-    rect_vertices[2].color = { 1,0, 0,1 };
-    rect_vertices[3].color = { 0,1, 0,1 };
+    //rect_vertices[0].color = { 0,0, 0,1 };
+    //rect_vertices[1].color = { 0.5,0.5,0.5 ,1 };
+    //rect_vertices[2].color = { 1,0, 0,1 };
+    //rect_vertices[3].color = { 0,1, 0,1 };
 
-    std::array<uint32_t, 6> rect_indices;
+    //std::array<uint32_t, 6> rect_indices;
 
-    rect_indices[0] = 0;
-    rect_indices[1] = 1;
-    rect_indices[2] = 2;
+    //rect_indices[0] = 0;
+    //rect_indices[1] = 1;
+    //rect_indices[2] = 2;
 
-    rect_indices[3] = 2;
-    rect_indices[4] = 1;
-    rect_indices[5] = 3;
+    //rect_indices[3] = 2;
+    //rect_indices[4] = 1;
+    //rect_indices[5] = 3;
 
-    rectangle = uploadMesh(rect_indices, rect_vertices);
+    //rectangle = uploadMesh(rect_indices, rect_vertices);
 
-    //delete the rectangle data on engine shutdown
-    m_DeletionQueue.push_function([&]() {
-        destroy_buffer(rectangle.indexBuffer);
-        destroy_buffer(rectangle.vertexBuffer);
-    });
+    ////delete the rectangle data on engine shutdown
+    //m_DeletionQueue.push_function([&]() {
+    //    destroy_buffer(rectangle.indexBuffer);
+    //    destroy_buffer(rectangle.vertexBuffer);
+    //});
 
     // load test mesh
-    testMeshes = loadGltfMeshes(loadedEngine, "..//..//assets//basicmesh.glb").value();
 }
 
 void FishVulkanEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView)
@@ -1714,6 +1783,7 @@ void FishVulkanEngine::draw()
     draw_background(cmd);
 
     vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    vkutil::transition_image(cmd, m_DepthImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
     draw_geometry(cmd);
 
@@ -1945,11 +2015,17 @@ void FishVulkanEngine::draw_geometry(VkCommandBuffer cmd)
 {
     //begin a render pass  connected to our draw image
     VkRenderingAttachmentInfo colorAttachment = vkinit::attachment_info(m_DrawImage.imageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    VkRenderingAttachmentInfo depthAttachment = vkinit::depth_attachment_info(m_DepthImage.imageView, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
-    VkRenderingInfo renderInfo = vkinit::rendering_info(m_DrawExtent, &colorAttachment, nullptr);
+    VkRenderingInfo renderInfo = vkinit::rendering_info(m_DrawExtent, &colorAttachment, &depthAttachment);
     vkCmdBeginRendering(cmd, &renderInfo);
 
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _trianglePipeline);
+    //vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _trianglePipeline);    
+
+    //launch a draw command to draw 3 vertices
+    //vkCmdDraw(cmd, 3, 1, 0, 0); // cmd, vertex count, instance count, first vertex, first instance
+    
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _meshPipeline);
 
     //set dynamic viewport and scissor
     VkViewport viewport = {};
@@ -1970,20 +2046,16 @@ void FishVulkanEngine::draw_geometry(VkCommandBuffer cmd)
 
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-    //launch a draw command to draw 3 vertices
-    vkCmdDraw(cmd, 3, 1, 0, 0); // cmd, vertex count, instance count, first vertex, first instance
-
     // > draw rectangle.
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _meshPipeline);
 
     GPUDrawPushConstants push_constants;
     push_constants.worldMatrix = glm::mat4{ 1.f };
-    push_constants.vertexBuffer = rectangle.vertexBufferAddress;
+    //push_constants.vertexBuffer = rectangle.vertexBufferAddress;
 
-    vkCmdPushConstants(cmd, _meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
-    vkCmdBindIndexBuffer(cmd, rectangle.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+    //vkCmdPushConstants(cmd, _meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
+    //vkCmdBindIndexBuffer(cmd, rectangle.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
-    vkCmdDrawIndexed(cmd, 6, 1, 0, 0, 0); // cmd, index count, instance count, first index, vertex offset, first instance
+    //vkCmdDrawIndexed(cmd, 6, 1, 0, 0, 0); // cmd, index count, instance count, first index, vertex offset, first instance
     // < draw rectangle.
 
     // > matrix view.

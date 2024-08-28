@@ -121,7 +121,8 @@ private:
 	void init_imgui11(); // 1.1 Implementation
 	void init_imgui13();
 
-	void init_swapchain();
+	void init_swapchain11(); // 1.1 Implementation
+	void init_swapchain13();
 	void init_commands();
 	void init_main_renderpass();
 	void init_framebuffers();
@@ -133,7 +134,7 @@ private:
 	//void init_pipelines11(); // 1.1 Implementation
 	void init_pipelines13();
 	void init_background_pipelines();
-	void init_triangle_pipeline();
+	//void init_triangle_pipeline();
 	void init_mesh_pipeline();
 
 	void create_swapchain(uint32_t width, uint32_t height);
@@ -273,13 +274,13 @@ private:
 	std::vector<ComputeEffect> backgroundEffects;
 	int currentBackgroundEffect{ 0 };
 	
-	VkPipelineLayout _trianglePipelineLayout;
-	VkPipeline _trianglePipeline;
+	///VkPipelineLayout _trianglePipelineLayout;
+	//VkPipeline _trianglePipeline;
 
 	VkPipelineLayout _meshPipelineLayout;
 	VkPipeline _meshPipeline;
 
-	GPUMeshBuffers rectangle;
+	//GPUMeshBuffers rectangle;
 
 	std::vector<std::shared_ptr<MeshAsset>> testMeshes;
 };
