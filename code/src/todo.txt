@@ -81,6 +81,10 @@ Previously:
 	- [X] Refactored the rest of Chapter 2 of the new 1.3 API								27/08
 	- [X] Editable push constants/background effects via ImGui								27/08
 
+	- [X] Implemented graphics pipeline														28/08
+	- [X] Implemented mesh buffers to load triangle and rectangle							28/08
+	- [X] Load GLTF mesh from file															28/08
+
 Next time:
 
 	- [ ] Begin chapter 3

@@ -23,7 +23,6 @@
 #include <imgui_impl_vulkan.h>
 #include <imgui_impl_sdl2.h>
 
-#include <loader.h>
 #include <fish_pipeline.h>
 #include <vk_pipelines.h>
 
@@ -635,119 +634,119 @@ void FishVulkanEngine::init_descriptors11()
     });
 }
 
-void FishVulkanEngine::init_pipelines11()
-{
-    // TODO: Load shaders in one function, and shorten the function into a "check_load" type function.
-
-    VkShaderModule colorMeshShader;
-    if (!load_shader_module("../../shaders/default_lit.frag.spv", &colorMeshShader))
-    {
-        fmt::println("Error when building the defaultLitShader shader module");
-    }
-    else {
-        fmt::println("defaultLitShader shader successfully loaded");
-    }
-
-    VkShaderModule texturedMeshShader;
-    if (!load_shader_module("../../shaders/textured_lit.frag.spv", &texturedMeshShader))
-    {
-        fmt::println("Error when building the texturedLitShader shader module");
-    }
-    else {
-        fmt::println("texturedLitShader shader successfully loaded");
-    }
-
-    VkShaderModule meshVertShader;
-    if (!load_shader_module("../../shaders/triangleMesh.vert.spv", &meshVertShader))
-    {
-        fmt::println("Error when building the triangleMeshShader shader module");
-    }
-    else {
-        fmt::println("triangleMeshShader shader successfully loaded");
-    }
-      
-
-    //build the stage-create-info for both vertex and fragment stages. This lets the pipeline know the shader modules per stage
-    Fish::PipelineBuilder11 pipelineBuilder;   
-
-    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
-    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, colorMeshShader));
-    
-    VkPipelineLayoutCreateInfo mesh_pipeline_layout_info = vkinit::pipeline_layout_create_info();
-    VkPushConstantRange push_constant;
-    push_constant.offset = 0;
-    push_constant.size = sizeof(MeshPushConstants);
-    push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    mesh_pipeline_layout_info.pPushConstantRanges = &push_constant;
-    mesh_pipeline_layout_info.pushConstantRangeCount = 1; 
-    VkDescriptorSetLayout setLayouts[] = { m_GlobalSetLayout, m_ObjectSetLayout };
-    mesh_pipeline_layout_info.setLayoutCount = 2;
-    mesh_pipeline_layout_info.pSetLayouts = setLayouts;
-    
-    // Create the mesh pipeline layout.
-    VkPipelineLayout meshPipLayout;
-    VK_CHECK(vkCreatePipelineLayout(m_Device, &mesh_pipeline_layout_info, nullptr, &meshPipLayout));
-
-    // Change necessary values for creation of the texture pipeline layout.
-    VkPipelineLayoutCreateInfo textured_pipeline_layout_info = mesh_pipeline_layout_info;
-    VkDescriptorSetLayout texturedSetLayouts[] = { m_GlobalSetLayout, m_ObjectSetLayout, m_SingleTextureSetLayout };
-    textured_pipeline_layout_info.setLayoutCount = 3;
-    textured_pipeline_layout_info.pSetLayouts = texturedSetLayouts;
-    VkPipelineLayout texturedPipeLayout;
-    VK_CHECK(vkCreatePipelineLayout(m_Device, &textured_pipeline_layout_info, nullptr, &texturedPipeLayout));
-
-    pipelineBuilder.pipelineLayout = meshPipLayout;
-    pipelineBuilder.vertexInputState = vkinit::vertex_input_state_create_info(); // how to read vertices from vertex buffers
-    pipelineBuilder.inputAssembly = vkinit::input_assembly_create_info(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-    //build viewport and scissor from the swapchain extents
-    pipelineBuilder.viewport.x = 0.0f;
-    pipelineBuilder.viewport.y = 0.0f;
-    pipelineBuilder.viewport.width = (float)m_WindowExtents.width;
-    pipelineBuilder.viewport.height = (float)m_WindowExtents.height;
-    pipelineBuilder.viewport.minDepth = 0.0f;
-    pipelineBuilder.viewport.maxDepth = 1.0f;
-    pipelineBuilder.scissor.offset = { 0, 0 };
-    pipelineBuilder.scissor.extent = m_WindowExtents;
-    //configure the rasterizer to draw filled triangles
-    pipelineBuilder.rasterizer = vkinit::rasterization_state_create_info(VK_POLYGON_MODE_FILL);
-    //we dont use multisampling, so just run the default one
-    pipelineBuilder.multisampler = vkinit::multisampling_state_create_info();
-    //a single blend attachment with no blending and writing to RGBA
-    pipelineBuilder.colourBlendAttachment = vkinit::color_blend_attachment_state();
-    //default depthtesting
-    pipelineBuilder.depthStencil = vkinit::depth_stencil_create_info(true, true, VK_COMPARE_OP_LESS_OR_EQUAL);
-
-    //connect the pipeline builder vertex input info to the one we get from Vertex
-    Fish::Resource::VertexInputDescription vertexDescription = Fish::Resource::Vertex::get_vertex_description();
-    pipelineBuilder.vertexInputState.pVertexAttributeDescriptions = vertexDescription.attributes.data();
-    pipelineBuilder.vertexInputState.vertexAttributeDescriptionCount = vertexDescription.attributes.size();
-    pipelineBuilder.vertexInputState.pVertexBindingDescriptions = vertexDescription.bindings.data();
-    pipelineBuilder.vertexInputState.vertexBindingDescriptionCount = vertexDescription.bindings.size();
-
-    //build the mesh triangle pipeline
-    VkPipeline meshPipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
-    Fish::ResourceManager::Get().create_material(meshPipeline, meshPipLayout, "defaultmesh");
-
-    pipelineBuilder.shaderStages.clear();
-    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
-    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, texturedMeshShader));
-
-    pipelineBuilder.pipelineLayout = texturedPipeLayout;
-    VkPipeline texPipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
-    Fish::ResourceManager::Get().create_material(texPipeline, texturedPipeLayout, "texturedmesh");
-
-    vkDestroyShaderModule(m_Device, meshVertShader, nullptr);
-    vkDestroyShaderModule(m_Device, colorMeshShader, nullptr);
-    vkDestroyShaderModule(m_Device, texturedMeshShader, nullptr);
-
-    m_DeletionQueue.push_function([=]() {
-        vkDestroyPipeline(m_Device, meshPipeline, nullptr);
-        vkDestroyPipeline(m_Device, texPipeline, nullptr);
-
-        vkDestroyPipelineLayout(m_Device, meshPipLayout, nullptr);
-        vkDestroyPipelineLayout(m_Device, texturedPipeLayout, nullptr);
-    });
-}
+//void FishVulkanEngine::init_pipelines11()
+//{
+//    // TODO: Load shaders in one function, and shorten the function into a "check_load" type function.
+//
+//    VkShaderModule colorMeshShader;
+//    if (!load_shader_module("../../shaders/default_lit.frag.spv", &colorMeshShader))
+//    {
+//        fmt::println("Error when building the defaultLitShader shader module");
+//    }
+//    else {
+//        fmt::println("defaultLitShader shader successfully loaded");
+//    }
+//
+//    VkShaderModule texturedMeshShader;
+//    if (!load_shader_module("../../shaders/textured_lit.frag.spv", &texturedMeshShader))
+//    {
+//        fmt::println("Error when building the texturedLitShader shader module");
+//    }
+//    else {
+//        fmt::println("texturedLitShader shader successfully loaded");
+//    }
+//
+//    VkShaderModule meshVertShader;
+//    if (!load_shader_module("../../shaders/triangleMesh.vert.spv", &meshVertShader))
+//    {
+//        fmt::println("Error when building the triangleMeshShader shader module");
+//    }
+//    else {
+//        fmt::println("triangleMeshShader shader successfully loaded");
+//    }
+//      
+//
+//    //build the stage-create-info for both vertex and fragment stages. This lets the pipeline know the shader modules per stage
+//    Fish::PipelineBuilder11 pipelineBuilder;   
+//
+//    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
+//    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, colorMeshShader));
+//    
+//    VkPipelineLayoutCreateInfo mesh_pipeline_layout_info = vkinit::pipeline_layout_create_info();
+//    VkPushConstantRange push_constant;
+//    push_constant.offset = 0;
+//    push_constant.size = sizeof(MeshPushConstants);
+//    push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+//    mesh_pipeline_layout_info.pPushConstantRanges = &push_constant;
+//    mesh_pipeline_layout_info.pushConstantRangeCount = 1; 
+//    VkDescriptorSetLayout setLayouts[] = { m_GlobalSetLayout, m_ObjectSetLayout };
+//    mesh_pipeline_layout_info.setLayoutCount = 2;
+//    mesh_pipeline_layout_info.pSetLayouts = setLayouts;
+//    
+//    // Create the mesh pipeline layout.
+//    VkPipelineLayout meshPipLayout;
+//    VK_CHECK(vkCreatePipelineLayout(m_Device, &mesh_pipeline_layout_info, nullptr, &meshPipLayout));
+//
+//    // Change necessary values for creation of the texture pipeline layout.
+//    VkPipelineLayoutCreateInfo textured_pipeline_layout_info = mesh_pipeline_layout_info;
+//    VkDescriptorSetLayout texturedSetLayouts[] = { m_GlobalSetLayout, m_ObjectSetLayout, m_SingleTextureSetLayout };
+//    textured_pipeline_layout_info.setLayoutCount = 3;
+//    textured_pipeline_layout_info.pSetLayouts = texturedSetLayouts;
+//    VkPipelineLayout texturedPipeLayout;
+//    VK_CHECK(vkCreatePipelineLayout(m_Device, &textured_pipeline_layout_info, nullptr, &texturedPipeLayout));
+//
+//    pipelineBuilder.pipelineLayout = meshPipLayout;
+//    pipelineBuilder.vertexInputState = vkinit::vertex_input_state_create_info(); // how to read vertices from vertex buffers
+//    pipelineBuilder.inputAssembly = vkinit::input_assembly_create_info(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+//    //build viewport and scissor from the swapchain extents
+//    pipelineBuilder.viewport.x = 0.0f;
+//    pipelineBuilder.viewport.y = 0.0f;
+//    pipelineBuilder.viewport.width = (float)m_WindowExtents.width;
+//    pipelineBuilder.viewport.height = (float)m_WindowExtents.height;
+//    pipelineBuilder.viewport.minDepth = 0.0f;
+//    pipelineBuilder.viewport.maxDepth = 1.0f;
+//    pipelineBuilder.scissor.offset = { 0, 0 };
+//    pipelineBuilder.scissor.extent = m_WindowExtents;
+//    //configure the rasterizer to draw filled triangles
+//    pipelineBuilder.rasterizer = vkinit::rasterization_state_create_info(VK_POLYGON_MODE_FILL);
+//    //we dont use multisampling, so just run the default one
+//    pipelineBuilder.multisampler = vkinit::multisampling_state_create_info();
+//    //a single blend attachment with no blending and writing to RGBA
+//    pipelineBuilder.colourBlendAttachment = vkinit::color_blend_attachment_state();
+//    //default depthtesting
+//    pipelineBuilder.depthStencil = vkinit::depth_stencil_create_info(true, true, VK_COMPARE_OP_LESS_OR_EQUAL);
+//
+//    //connect the pipeline builder vertex input info to the one we get from Vertex
+//    Fish::Resource::VertexInputDescription vertexDescription = Fish::Resource::Vertex::get_vertex_description();
+//    pipelineBuilder.vertexInputState.pVertexAttributeDescriptions = vertexDescription.attributes.data();
+//    pipelineBuilder.vertexInputState.vertexAttributeDescriptionCount = vertexDescription.attributes.size();
+//    pipelineBuilder.vertexInputState.pVertexBindingDescriptions = vertexDescription.bindings.data();
+//    pipelineBuilder.vertexInputState.vertexBindingDescriptionCount = vertexDescription.bindings.size();
+//
+//    //build the mesh triangle pipeline
+//    VkPipeline meshPipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
+//    Fish::ResourceManager::Get().create_material(meshPipeline, meshPipLayout, "defaultmesh");
+//
+//    pipelineBuilder.shaderStages.clear();
+//    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
+//    pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, texturedMeshShader));
+//
+//    pipelineBuilder.pipelineLayout = texturedPipeLayout;
+//    VkPipeline texPipeline = pipelineBuilder.build_pipeline(m_Device, m_MainRenderPass);
+//    Fish::ResourceManager::Get().create_material(texPipeline, texturedPipeLayout, "texturedmesh");
+//
+//    vkDestroyShaderModule(m_Device, meshVertShader, nullptr);
+//    vkDestroyShaderModule(m_Device, colorMeshShader, nullptr);
+//    vkDestroyShaderModule(m_Device, texturedMeshShader, nullptr);
+//
+//    m_DeletionQueue.push_function([=]() {
+//        vkDestroyPipeline(m_Device, meshPipeline, nullptr);
+//        vkDestroyPipeline(m_Device, texPipeline, nullptr);
+//
+//        vkDestroyPipelineLayout(m_Device, meshPipLayout, nullptr);
+//        vkDestroyPipelineLayout(m_Device, texturedPipeLayout, nullptr);
+//    });
+//}
 
 void FishVulkanEngine::init_pipelines13()
 {
@@ -1393,44 +1392,44 @@ void FishVulkanEngine::render()
     m_FrameNumber++;
 }
 
-void FishVulkanEngine::render_imgui()
-{
-    // Configuration.
-    ImGuiIO io = ImGui::GetIO();
-
-    // Style.
-    ImGuiStyle* style = &ImGui::GetStyle();
-    style->FrameBorderSize = 1;
-
-    // New Frame.
-    ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplSDL2_NewFrame(m_pWindow);
-    ImGui::NewFrame();
-
-    //ImGui::ShowDemoWindow();
-
-    // Begin Debug Overlay
-    ImGui::Begin("Debug Overlay", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar);
-    imgui_debug_data();
-    ImGui::End(); // Debug Overlay
-
-    // Begin Object Hierarchy
-    ImGui::Begin("Hierarchy", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
-    imgui_object_hierarchy();
-    ImGui::End(); // Object Hierarchy
-
-    // Begin Scene Data
-    ImGui::Begin("Scene", (bool*)0, ImGuiWindowFlags_None);
-    imgui_scene_data();
-    ImGui::End(); // Scene Data
-
-
-    //
-    //
-    //
-
-    ImGui::Render(); // Must either be at the very end of this function, or within the render loop (ideally at the beginning).
-}
+//void FishVulkanEngine::render_imgui()
+//{
+//    // Configuration.
+//    ImGuiIO io = ImGui::GetIO();
+//
+//    // Style.
+//    ImGuiStyle* style = &ImGui::GetStyle();
+//    style->FrameBorderSize = 1;
+//
+//    // New Frame.
+//    ImGui_ImplVulkan_NewFrame();
+//    ImGui_ImplSDL2_NewFrame(m_pWindow);
+//    ImGui::NewFrame();
+//
+//    //ImGui::ShowDemoWindow();
+//
+//    // Begin Debug Overlay
+//    ImGui::Begin("Debug Overlay", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar);
+//    imgui_debug_data();
+//    ImGui::End(); // Debug Overlay
+//
+//    // Begin Object Hierarchy
+//    ImGui::Begin("Hierarchy", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
+//    imgui_object_hierarchy();
+//    ImGui::End(); // Object Hierarchy
+//
+//    // Begin Scene Data
+//    ImGui::Begin("Scene", (bool*)0, ImGuiWindowFlags_None);
+//    imgui_scene_data();
+//    ImGui::End(); // Scene Data
+//
+//
+//    //
+//    //
+//    //
+//
+//    ImGui::Render(); // Must either be at the very end of this function, or within the render loop (ideally at the beginning).
+//}
 
 void FishVulkanEngine::prepare_imgui()
 {
@@ -1506,77 +1505,77 @@ void FishVulkanEngine::imgui_debug_data()
     ImGui::Text("Camera Pitch/Yaw: %f/%f", m_Camera.m_Pitch, m_Camera.m_Yaw);
 }
 
-void FishVulkanEngine::imgui_object_hierarchy()
-{
-    int i = 0;
-    for (auto& obj : Fish::ResourceManager::Get().m_Scene.m_SceneObjects)
-    {
-        std::string name = "Object #" + std::to_string(i);
-        if (ImGui::TreeNode(name.c_str()))
-        {
-            ImGui::NewLine();
+//void FishVulkanEngine::imgui_object_hierarchy()
+//{
+//    int i = 0;
+//    for (auto& obj : Fish::ResourceManager::Get().m_Scene.m_SceneObjects)
+//    {
+//        std::string name = "Object #" + std::to_string(i);
+//        if (ImGui::TreeNode(name.c_str()))
+//        {
+//            ImGui::NewLine();
+//
+//            // Local cache, with thanks to MellOH for the idea and functional implementation.
+//            float position[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+//            float rotation[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+//            float scale[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+//
+//            // Read transform.
+//            position[0] = obj.transform.position.x;
+//            position[1] = obj.transform.position.y;
+//            position[2] = obj.transform.position.z;
+//            rotation[0] = obj.transform.eulerRotation.x;
+//            rotation[1] = obj.transform.eulerRotation.y;
+//            rotation[2] = obj.transform.eulerRotation.z;
+//            scale[0] = obj.transform.scale.x;
+//            scale[1] = obj.transform.scale.y;
+//            scale[2] = obj.transform.scale.z;
+//
+//            // Modify transform.
+//            ImGui::DragFloat3("position", position);
+//            ImGui::DragFloat3("rotation", rotation);
+//            ImGui::DragFloat3("scale", scale);
+//
+//            // Write transform.
+//            obj.transform.position.x = position[0];
+//            obj.transform.position.y = position[1];
+//            obj.transform.position.z = position[2];
+//            obj.transform.eulerRotation.x = rotation[0];
+//            obj.transform.eulerRotation.y = rotation[1];
+//            obj.transform.eulerRotation.z = rotation[2];
+//            obj.transform.scale.x = scale[0];
+//            obj.transform.scale.y = scale[1];
+//            obj.transform.scale.z = scale[2];
+//
+//            // Calculate new model matrix.
+//            obj.update_model_matrix();
+//
+//            ImGui::TreePop(); // Must be after every node.
+//        }
+//        i++; // Iterate object index for the name.
+//    }
+//}
 
-            // Local cache, with thanks to MellOH for the idea and functional implementation.
-            float position[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-            float rotation[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-            float scale[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-            // Read transform.
-            position[0] = obj.transform.position.x;
-            position[1] = obj.transform.position.y;
-            position[2] = obj.transform.position.z;
-            rotation[0] = obj.transform.eulerRotation.x;
-            rotation[1] = obj.transform.eulerRotation.y;
-            rotation[2] = obj.transform.eulerRotation.z;
-            scale[0] = obj.transform.scale.x;
-            scale[1] = obj.transform.scale.y;
-            scale[2] = obj.transform.scale.z;
-
-            // Modify transform.
-            ImGui::DragFloat3("position", position);
-            ImGui::DragFloat3("rotation", rotation);
-            ImGui::DragFloat3("scale", scale);
-
-            // Write transform.
-            obj.transform.position.x = position[0];
-            obj.transform.position.y = position[1];
-            obj.transform.position.z = position[2];
-            obj.transform.eulerRotation.x = rotation[0];
-            obj.transform.eulerRotation.y = rotation[1];
-            obj.transform.eulerRotation.z = rotation[2];
-            obj.transform.scale.x = scale[0];
-            obj.transform.scale.y = scale[1];
-            obj.transform.scale.z = scale[2];
-
-            // Calculate new model matrix.
-            obj.update_model_matrix();
-
-            ImGui::TreePop(); // Must be after every node.
-        }
-        i++; // Iterate object index for the name.
-    }
-}
-
-void FishVulkanEngine::imgui_scene_data()
-{
-    // TODO: Implement the button functionality for the below buttons.
-
-    ImVec2 defaultButtonSize = ImVec2(100.0f, 25.0f);
-
-    if (ImGui::Button("New Scene", defaultButtonSize)) {
-        std::cout << "\n\nCreating new scene...\n\n";
-    }
-
-    if (ImGui::Button("Save Scene", defaultButtonSize)) {
-        std::cout << "\n\nSaving scene...\n\n";
-    }
-
-    if (ImGui::Button("Load Scene", defaultButtonSize)) {
-        std::cout << "\n\nLoading scene...\n\n";
-    }
-
-    ImGui::Text("Objects in scene: %i", Fish::ResourceManager::Get().m_Scene.m_SceneObjects.size()); // Must be integer to work.
-}
+//void FishVulkanEngine::imgui_scene_data()
+//{
+//    // TODO: Implement the button functionality for the below buttons.
+//
+//    ImVec2 defaultButtonSize = ImVec2(100.0f, 25.0f);
+//
+//    if (ImGui::Button("New Scene", defaultButtonSize)) {
+//        std::cout << "\n\nCreating new scene...\n\n";
+//    }
+//
+//    if (ImGui::Button("Save Scene", defaultButtonSize)) {
+//        std::cout << "\n\nSaving scene...\n\n";
+//    }
+//
+//    if (ImGui::Button("Load Scene", defaultButtonSize)) {
+//        std::cout << "\n\nLoading scene...\n\n";
+//    }
+//
+//    ImGui::Text("Objects in scene: %i", Fish::ResourceManager::Get().m_Scene.m_SceneObjects.size()); // Must be integer to work.
+//}
 
 GPUMeshBuffers FishVulkanEngine::uploadMesh(std::span<uint32_t> indices, std::span<Vertex> vertices)
 {
@@ -1658,6 +1657,9 @@ void FishVulkanEngine::init_default_data()
         destroy_buffer(rectangle.indexBuffer);
         destroy_buffer(rectangle.vertexBuffer);
     });
+
+    // load test mesh
+    testMeshes = loadGltfMeshes(loadedEngine, "..//..//assets//basicmesh.glb").value();
 }
 
 void FishVulkanEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView)
@@ -1839,105 +1841,105 @@ void FishVulkanEngine::run()
     }
 }
 
-void FishVulkanEngine::render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObject* first, int count)
-{
-    //make a model view matrix for rendering the object
-    //camera view
-    m_Camera.update();
-
-    glm::mat4 view = glm::translate(glm::mat4(1.f), m_Camera.m_Position);
-    view = m_Camera.get_view_matrix();
-
-    //camera projection
-    glm::mat4 projection = glm::perspective(glm::radians(70.f), 1700.f / 900.f, 0.1f, 200.0f); // todo remove magic numbers
-    projection[1][1] *= -1;
-
-    //fill a GPU camera data struct
-    Fish::GPU::CameraData camData;
-    camData.projectionMatrix = projection;
-    camData.viewMatrix = view;
-    camData.viewProjectionMatrix = projection * view; // matrix multiplication is reversed.
-
-    //and copy it to the buffer
-    void* data;
-    vmaMapMemory(m_Allocator, get_current_frame().cameraBuffer.allocation, &data);
-    memcpy(data, &camData, sizeof(Fish::GPU::CameraData));
-    vmaUnmapMemory(m_Allocator, get_current_frame().cameraBuffer.allocation);
-
-    // write into the scene buffer
-    float framed = (m_FrameNumber / 120.0f);
-    m_SceneParameters.ambientColour = { sin(framed), 0, cos(framed), 1 };
-    char* sceneData;
-    vmaMapMemory(m_Allocator, m_SceneParametersBuffer.allocation, (void**)&sceneData);
-    int frameIndex = m_FrameNumber & kFrameOverlap;
-    sceneData += pad_uniform_buffer_size(sizeof(Fish::GPU::SceneData)) * frameIndex;
-    memcpy(sceneData, &m_SceneParameters, sizeof(Fish::GPU::SceneData));
-    vmaUnmapMemory(m_Allocator, m_SceneParametersBuffer.allocation);    
-
-    // write into the object buffer (shader storage buffer)
-    void* objectData;
-    vmaMapMemory(m_Allocator, get_current_frame().objectBuffer.allocation, &objectData);
-    Fish::GPU::ObjectData* objectSSBO = (Fish::GPU::ObjectData*)objectData;
-    for (int i = 0; i < count; i++)
-    {
-        Fish::Resource::RenderObject& object = first[i];
-        objectSSBO[i].modelMatrix = object.transformMatrix;
-    }
-    vmaUnmapMemory(m_Allocator, get_current_frame().objectBuffer.allocation);
-
-    Fish::Resource::Mesh* lastMesh = nullptr;
-    Fish::Resource::Material* lastMaterial = nullptr;
-    for (int i = 0; i < count; i++)
-    {
-        Fish::Resource::RenderObject& object = first[i];
-
-        //only bind the pipeline if it doesn't match with the already bound one
-        if (object.pMaterial != lastMaterial) {
-
-            vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.pMaterial->pipeline);
-            lastMaterial = object.pMaterial;
-
-            //offset for our scene buffer
-            uint32_t uniform_offset = pad_uniform_buffer_size(sizeof(Fish::GPU::SceneData)) * frameIndex;
-            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.pMaterial->pipelineLayout, 0, 1, &get_current_frame().globalDescriptor, 1, &uniform_offset);
-
-            //object data descriptor
-            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.pMaterial->pipelineLayout, 1, 1, &get_current_frame().objectDescriptor, 0, nullptr);
-
-            //texture descriptor
-            if (object.pMaterial->textureSet != VK_NULL_HANDLE) {
-                vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.pMaterial->pipelineLayout, 2, 1, &object.pMaterial->textureSet, 0, nullptr);
-            }
-
-        }
-
-        glm::mat4 model = object.transformMatrix;
-
-        //final render matrix, that we are calculating on the cpu
-        //glm::mat4 mesh_matrix = projection * view * model;
-
-        MeshPushConstants constants;
-        constants.matrix = object.transformMatrix;
-
-        //upload the mesh to the GPU via push constants
-        vkCmdPushConstants(cmd, object.pMaterial->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MeshPushConstants), &constants);
-
-        //bind the mesh buffers with offset 0
-        VkDeviceSize vertexOffset = 0, indexOffset = 0;
-
-        //only bind the mesh if it's a different one from last bind
-        if (object.pMesh != lastMesh) {
-            vkCmdBindVertexBuffers(cmd, 0, 1, &object.pMesh->vertexBuffer.buffer, &vertexOffset);
-            vkCmdBindIndexBuffer(cmd, object.pMesh->indexBuffer.buffer, indexOffset, VK_INDEX_TYPE_UINT32);
-            lastMesh = object.pMesh;
-        }
-
-        //we can now draw - this may or may not cause an error doing both of these here
-        //if you are stuck rendering and see this, try one or the other of the below lines instead of both.
-        vkCmdDraw(cmd, object.pMesh->vertices.size(), 1, 0, i);                         // Draw via vertices.
-        vkCmdDrawIndexed(cmd, object.pMesh->indices.size(), 1, 0, vertexOffset, i);     // Draw via indicies and a vertex offset.
-    }
-}
+//void FishVulkanEngine::render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObject* first, int count)
+//{
+//    //make a model view matrix for rendering the object
+//    //camera view
+//    m_Camera.update();
+//
+//    glm::mat4 view = glm::translate(glm::mat4(1.f), m_Camera.m_Position);
+//    view = m_Camera.get_view_matrix();
+//
+//    //camera projection
+//    glm::mat4 projection = glm::perspective(glm::radians(70.f), 1700.f / 900.f, 0.1f, 200.0f); // todo remove magic numbers
+//    projection[1][1] *= -1;
+//
+//    //fill a GPU camera data struct
+//    Fish::GPU::CameraData camData;
+//    camData.projectionMatrix = projection;
+//    camData.viewMatrix = view;
+//    camData.viewProjectionMatrix = projection * view; // matrix multiplication is reversed.
+//
+//    //and copy it to the buffer
+//    void* data;
+//    vmaMapMemory(m_Allocator, get_current_frame().cameraBuffer.allocation, &data);
+//    memcpy(data, &camData, sizeof(Fish::GPU::CameraData));
+//    vmaUnmapMemory(m_Allocator, get_current_frame().cameraBuffer.allocation);
+//
+//    // write into the scene buffer
+//    float framed = (m_FrameNumber / 120.0f);
+//    m_SceneParameters.ambientColour = { sin(framed), 0, cos(framed), 1 };
+//    char* sceneData;
+//    vmaMapMemory(m_Allocator, m_SceneParametersBuffer.allocation, (void**)&sceneData);
+//    int frameIndex = m_FrameNumber & kFrameOverlap;
+//    sceneData += pad_uniform_buffer_size(sizeof(Fish::GPU::SceneData)) * frameIndex;
+//    memcpy(sceneData, &m_SceneParameters, sizeof(Fish::GPU::SceneData));
+//    vmaUnmapMemory(m_Allocator, m_SceneParametersBuffer.allocation);    
+//
+//    // write into the object buffer (shader storage buffer)
+//    void* objectData;
+//    vmaMapMemory(m_Allocator, get_current_frame().objectBuffer.allocation, &objectData);
+//    Fish::GPU::ObjectData* objectSSBO = (Fish::GPU::ObjectData*)objectData;
+//    for (int i = 0; i < count; i++)
+//    {
+//        Fish::Resource::RenderObject& object = first[i];
+//        objectSSBO[i].modelMatrix = object.transformMatrix;
+//    }
+//    vmaUnmapMemory(m_Allocator, get_current_frame().objectBuffer.allocation);
+//
+//    Fish::Resource::Mesh* lastMesh = nullptr;
+//    Fish::Resource::Material* lastMaterial = nullptr;
+//    for (int i = 0; i < count; i++)
+//    {
+//        Fish::Resource::RenderObject& object = first[i];
+//
+//        //only bind the pipeline if it doesn't match with the already bound one
+//        if (object.pMaterial != lastMaterial) {
+//
+//            vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.pMaterial->pipeline);
+//            lastMaterial = object.pMaterial;
+//
+//            //offset for our scene buffer
+//            uint32_t uniform_offset = pad_uniform_buffer_size(sizeof(Fish::GPU::SceneData)) * frameIndex;
+//            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.pMaterial->pipelineLayout, 0, 1, &get_current_frame().globalDescriptor, 1, &uniform_offset);
+//
+//            //object data descriptor
+//            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.pMaterial->pipelineLayout, 1, 1, &get_current_frame().objectDescriptor, 0, nullptr);
+//
+//            //texture descriptor
+//            if (object.pMaterial->textureSet != VK_NULL_HANDLE) {
+//                vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.pMaterial->pipelineLayout, 2, 1, &object.pMaterial->textureSet, 0, nullptr);
+//            }
+//
+//        }
+//
+//        glm::mat4 model = object.transformMatrix;
+//
+//        //final render matrix, that we are calculating on the cpu
+//        //glm::mat4 mesh_matrix = projection * view * model;
+//
+//        MeshPushConstants constants;
+//        constants.matrix = object.transformMatrix;
+//
+//        //upload the mesh to the GPU via push constants
+//        vkCmdPushConstants(cmd, object.pMaterial->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MeshPushConstants), &constants);
+//
+//        //bind the mesh buffers with offset 0
+//        VkDeviceSize vertexOffset = 0, indexOffset = 0;
+//
+//        //only bind the mesh if it's a different one from last bind
+//        if (object.pMesh != lastMesh) {
+//            vkCmdBindVertexBuffers(cmd, 0, 1, &object.pMesh->vertexBuffer.buffer, &vertexOffset);
+//            vkCmdBindIndexBuffer(cmd, object.pMesh->indexBuffer.buffer, indexOffset, VK_INDEX_TYPE_UINT32);
+//            lastMesh = object.pMesh;
+//        }
+//
+//        //we can now draw - this may or may not cause an error doing both of these here
+//        //if you are stuck rendering and see this, try one or the other of the below lines instead of both.
+//        vkCmdDraw(cmd, object.pMesh->vertices.size(), 1, 0, i);                         // Draw via vertices.
+//        vkCmdDrawIndexed(cmd, object.pMesh->indices.size(), 1, 0, vertexOffset, i);     // Draw via indicies and a vertex offset.
+//    }
+//}
 
 void FishVulkanEngine::draw_geometry(VkCommandBuffer cmd)
 {
@@ -1971,6 +1973,7 @@ void FishVulkanEngine::draw_geometry(VkCommandBuffer cmd)
     //launch a draw command to draw 3 vertices
     vkCmdDraw(cmd, 3, 1, 0, 0); // cmd, vertex count, instance count, first vertex, first instance
 
+    // > draw rectangle.
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _meshPipeline);
 
     GPUDrawPushConstants push_constants;
@@ -1981,6 +1984,29 @@ void FishVulkanEngine::draw_geometry(VkCommandBuffer cmd)
     vkCmdBindIndexBuffer(cmd, rectangle.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
     vkCmdDrawIndexed(cmd, 6, 1, 0, 0, 0); // cmd, index count, instance count, first index, vertex offset, first instance
+    // < draw rectangle.
+
+    // > matrix view.
+    glm::mat4 view = glm::translate(glm::vec3{ 0,0,-5 });
+    // camera projection
+    glm::mat4 projection = glm::perspective(glm::radians(70.f), (float)m_DrawExtent.width / (float)m_DrawExtent.height, 10000.f, 0.1f);
+
+    // invert the Y direction on projection matrix so that we are more similar
+    // to opengl and gltf axis
+    projection[1][1] *= -1;
+
+    push_constants.worldMatrix = projection * view;
+    // < matrix view.
+
+    // > draw mesh.
+    push_constants.vertexBuffer = testMeshes[2]->meshBuffers.vertexBufferAddress;
+
+    vkCmdPushConstants(cmd, _meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
+    vkCmdBindIndexBuffer(cmd, testMeshes[2]->meshBuffers.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+
+    vkCmdDrawIndexed(cmd, testMeshes[2]->surfaces[0].count, 1, testMeshes[2]->surfaces[0].startIndex, 0, 0);
+    // < draw mesh.
+
 
     vkCmdEndRendering(cmd);
 }

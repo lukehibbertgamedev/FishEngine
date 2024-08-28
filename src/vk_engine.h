@@ -16,6 +16,7 @@
 #include <fish_camera.h>
 #include <fish_gpu_data.h>
 #include <vk_descriptors.h>
+#include <loader.h>
 
 // safely handle the cleanup of a growing amount of objects.
 struct DeletionQueue {
@@ -98,6 +99,7 @@ public:
 	AllocatedBuffer13 create_buffer13(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 	void destroy_buffer(const AllocatedBuffer13& buffer);
 
+	GPUMeshBuffers uploadMesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
 
 	// 1.1 - Send commands to the GPU without synchronisation with the swapchain or rendering logic.
 	void immediate_submit11(std::function<void(VkCommandBuffer cmd)>&& function);
@@ -128,7 +130,7 @@ private:
 	void init_descriptors11(); // 1.1 Implementation
 	void init_descriptors13();
 
-	void init_pipelines11(); // 1.1 Implementation
+	//void init_pipelines11(); // 1.1 Implementation
 	void init_pipelines13();
 	void init_background_pipelines();
 	void init_triangle_pipeline();
@@ -149,7 +151,8 @@ private:
 	void draw();
 
 	// 1.1 - Draw loop responsible for rendering scene objects.
-	void render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObject* first, int count);
+	//void render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObject* first, int count);
+	
 	// 1.3 - Draw loop responsible for rendering scene objects/geometry.
 	void draw_geometry(VkCommandBuffer cmd);
 
@@ -160,7 +163,7 @@ private:
 	void init_ecs();
 
 	// 1.1 - Commands responsible for rendering imgui.
-	void render_imgui();
+	//void render_imgui();
 
 	// 1.3 - Set up ImGui backends and create draw data.
 	void prepare_imgui();
@@ -170,10 +173,9 @@ private:
 	void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView);
 
 	void imgui_debug_data();
-	void imgui_object_hierarchy();
-	void imgui_scene_data();
+	//void imgui_object_hierarchy();
+	//void imgui_scene_data();
 
-	GPUMeshBuffers uploadMesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
 	void init_default_data();
 
 	// return frame we are rendering to right now.
@@ -278,4 +280,6 @@ private:
 	VkPipeline _meshPipeline;
 
 	GPUMeshBuffers rectangle;
+
+	std::vector<std::shared_ptr<MeshAsset>> testMeshes;
 };
