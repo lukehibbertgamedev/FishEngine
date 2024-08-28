@@ -78,6 +78,8 @@ void FishVulkanEngine::init()
     //init_imgui11(); // 1.1 Implementation
     init_imgui13();
 
+    init_default_data();
+
     // initialise entity component systems
     //init_ecs();
 
@@ -275,6 +277,12 @@ void FishVulkanEngine::init_imgui13()
     // Hook ImGui, SDL2, and Vulkan to work together.
     ImGui_ImplSDL2_InitForVulkan(m_pWindow);
 
+    // Important: PipelineRenderingCreateInfo is not part of ImGui_ImplVulkan_InitInfo so this is currently not used.
+    VkPipelineRenderingCreateInfo pipelineRenderingCreateInfo = {};
+    pipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    pipelineRenderingCreateInfo.colorAttachmentCount = 1;
+    pipelineRenderingCreateInfo.pColorAttachmentFormats = &m_SwapchainImageFormat;
+
     // Initialise ImGui with Vulkan specifically.
     ImGui_ImplVulkan_InitInfo init_info = {};
     init_info.Instance = m_VkInstance;
@@ -284,31 +292,24 @@ void FishVulkanEngine::init_imgui13()
     init_info.DescriptorPool = imguiPool;
     init_info.MinImageCount = 3;
     init_info.ImageCount = 3;
+    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;             
     
     // Need to explicitly enable VK_KHR_dynamic_rendering extension to use this, even for Vulkan 1.3.
     // It is important to set UseDynamicRendering to true, and ColorAttachmentFormat to our swapchain format
     // because we won't be using Vulkan render_passes but dynamic rendering instead. Unlike the compute shader,
-    // we are drawing ImGui directly into the swapchain.
+    // we are drawing ImGui directly into the swapchain. This is so we can make more changes during runtime.
     init_info.UseDynamicRendering = true;                     
-    init_info.ColorAttachmentFormat = m_SwapchainImageFormat;
+    init_info.ColorAttachmentFormat = m_SwapchainImageFormat;    
 
-    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;             
-
-    // PipelineRenderingCreateInfo is not part of ImGui_ImplVulkan_InitInfo so this is currently not used.
-    VkPipelineRenderingCreateInfo pipelineRenderingCreateInfo = {};
-    pipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
-    pipelineRenderingCreateInfo.colorAttachmentCount = 1;
-    pipelineRenderingCreateInfo.pColorAttachmentFormats = &m_SwapchainImageFormat;
-
-    // This function asks for a VkRenderPass parameter that we do not have and will not use with the Vulkan 1.3 API.
-    // Within the body of this function, the only time that the render_pass is used is when init_info.UseDynamicRendering is
-    // set to false. If this function fails, ensure that this value is set to True.
+    // Important: This function asks for a VkRenderPass parameter that we do not have and will not use with the Vulkan 1.3 API.
+    // Within the body of this function, the only time that the render_pass parameter is used is if init_info.UseDynamicRendering is
+    // set to false. If this function fails, first ensure that this value is set to True.
     ImGui_ImplVulkan_Init(&init_info, nullptr); 
 
     // Immediately submit a GPU command which will upload our ImGui font textures.
     // Calling this function outside of the immediate_submit13(...) function will cause ImGui
     // to not actually render. I spent some time messing around with this before I realised it wasn't
-    // stated in the tutorial. 
+    // stated in the tutorial to do this. 
     VkCommandBuffer cmd = get_current_frame().m_CommandBuffer;
     immediate_submit13([=](VkCommandBuffer cmd) {
         ImGui_ImplVulkan_CreateFontsTexture(cmd);
@@ -546,18 +547,18 @@ void FishVulkanEngine::init_descriptors11()
 
     // Scene param buffer.
     const size_t sceneParamBufferSize = kFrameOverlap * pad_uniform_buffer_size(sizeof(Fish::GPU::SceneData));
-    m_SceneParametersBuffer = create_buffer(sceneParamBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    m_SceneParametersBuffer = create_buffer11(sceneParamBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 
     //
 
     for (int i = 0; i < kFrameOverlap; ++i)
     {
         // Camera buffer.
-        m_Frames[i].cameraBuffer = create_buffer(sizeof(Fish::GPU::CameraData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+        m_Frames[i].cameraBuffer = create_buffer11(sizeof(Fish::GPU::CameraData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 
         // Object buffer.
         const int kMaxObjects = 10000;
-        m_Frames[i].objectBuffer = create_buffer(sizeof(Fish::GPU::ObjectData) * kMaxObjects, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+        m_Frames[i].objectBuffer = create_buffer11(sizeof(Fish::GPU::ObjectData) * kMaxObjects, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 
         // Global descriptor.
         VkDescriptorSetAllocateInfo allocInfo = {};
@@ -667,7 +668,7 @@ void FishVulkanEngine::init_pipelines11()
       
 
     //build the stage-create-info for both vertex and fragment stages. This lets the pipeline know the shader modules per stage
-    Fish::PipelineBuilder pipelineBuilder;   
+    Fish::PipelineBuilder11 pipelineBuilder;   
 
     pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
     pipelineBuilder.shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, colorMeshShader));
@@ -750,8 +751,12 @@ void FishVulkanEngine::init_pipelines11()
 
 void FishVulkanEngine::init_pipelines13()
 {
-    // The only pipelines we currently use is for the background effects of our application.
+    // Compute Pipelines.
     init_background_pipelines();
+
+    // Graphics Pipelines.
+    init_triangle_pipeline();
+    init_mesh_pipeline();
 }
 
 void FishVulkanEngine::init_background_pipelines()
@@ -851,6 +856,132 @@ void FishVulkanEngine::init_background_pipelines()
         vkDestroyPipeline(m_Device, gradientColour.pipeline, nullptr);
         vkDestroyPipeline(m_Device, sky.pipeline, nullptr);
         vkDestroyPipeline(m_Device, gradient.pipeline, nullptr);
+    });
+}
+
+void FishVulkanEngine::init_triangle_pipeline()
+{
+    VkShaderModule triangleFragShader;
+    if (!vkutil::load_shader_module("../../shaders/colored_triangle.frag.spv", m_Device, &triangleFragShader)) {
+        fmt::print("Error when building the triangle fragment shader module");
+    }
+    else {
+        fmt::print("Triangle fragment shader succesfully loaded");
+    }
+
+    VkShaderModule triangleVertexShader;
+    if (!vkutil::load_shader_module("../../shaders/colored_triangle.vert.spv", m_Device, &triangleVertexShader)) {
+        fmt::print("Error when building the triangle vertex shader module");
+    }
+    else {
+        fmt::print("Triangle vertex shader succesfully loaded");
+    }
+
+    //build the pipeline layout that controls the inputs/outputs of the shader
+    //we are not using descriptor sets or other systems yet, so no need to use anything other than empty default
+    VkPipelineLayoutCreateInfo pipeline_layout_info = vkinit::pipeline_layout_create_info();
+    VK_CHECK(vkCreatePipelineLayout(m_Device, &pipeline_layout_info, nullptr, &_trianglePipelineLayout));
+
+    // Create the pipeline using our builder abstraction.
+
+    Fish::PipelineBuilder13 pipelineBuilder;
+
+    //use the triangle layout we created
+    pipelineBuilder._pipelineLayout = _trianglePipelineLayout;
+    //connecting the vertex and pixel shaders to the pipeline
+    pipelineBuilder.set_shaders(triangleVertexShader, triangleFragShader);
+    //it will draw triangles
+    pipelineBuilder.set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    //filled triangles
+    pipelineBuilder.set_polygon_mode(VK_POLYGON_MODE_FILL);
+    //no backface culling
+    pipelineBuilder.set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+    //no multisampling
+    pipelineBuilder.set_multisampling_none();
+    //no blending
+    pipelineBuilder.disable_blending();
+    //no depth testing
+    pipelineBuilder.disable_depthtest();
+
+    //connect the image format we will draw into, from draw image
+    pipelineBuilder.set_color_attachment_format(m_DrawImage.imageFormat);
+    pipelineBuilder.set_depth_format(VK_FORMAT_UNDEFINED);
+
+    //finally build the pipeline
+    _trianglePipeline = pipelineBuilder.build_pipeline(m_Device);
+
+    //clean structures
+    vkDestroyShaderModule(m_Device, triangleFragShader, nullptr);
+    vkDestroyShaderModule(m_Device, triangleVertexShader, nullptr);
+
+    m_DeletionQueue.push_function([&]() {
+        vkDestroyPipelineLayout(m_Device, _trianglePipelineLayout, nullptr);
+        vkDestroyPipeline(m_Device, _trianglePipeline, nullptr);
+    });
+}
+
+void FishVulkanEngine::init_mesh_pipeline()
+{
+    VkShaderModule triangleFragShader;
+    if (!vkutil::load_shader_module("../../shaders/colored_triangle.frag.spv", m_Device, &triangleFragShader)) {
+        fmt::print("Error when building the triangle fragment shader module");
+    }
+    else {
+        fmt::print("Coloured triangle fragment shader succesfully loaded");
+    }
+
+    VkShaderModule triangleVertexShader;
+    if (!vkutil::load_shader_module("../../shaders/colored_triangle_mesh.vert.spv", m_Device, &triangleVertexShader)) {
+        fmt::print("Error when building the triangle vertex shader module");
+    }
+    else {
+        fmt::print("Coloured triangle mesh vertex shader succesfully loaded");
+    }
+
+    VkPushConstantRange bufferRange{};
+    bufferRange.offset = 0;
+    bufferRange.size = sizeof(GPUDrawPushConstants);
+    bufferRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+    VkPipelineLayoutCreateInfo pipeline_layout_info = vkinit::pipeline_layout_create_info();
+    pipeline_layout_info.pPushConstantRanges = &bufferRange;
+    pipeline_layout_info.pushConstantRangeCount = 1;
+
+    VK_CHECK(vkCreatePipelineLayout(m_Device, &pipeline_layout_info, nullptr, &_meshPipelineLayout));
+
+    Fish::PipelineBuilder13 pipelineBuilder;
+
+    //use the triangle layout we created
+    pipelineBuilder._pipelineLayout = _meshPipelineLayout;
+    //connecting the vertex and pixel shaders to the pipeline
+    pipelineBuilder.set_shaders(triangleVertexShader, triangleFragShader);
+    //it will draw triangles
+    pipelineBuilder.set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    //filled triangles
+    pipelineBuilder.set_polygon_mode(VK_POLYGON_MODE_FILL);
+    //no backface culling
+    pipelineBuilder.set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+    //no multisampling
+    pipelineBuilder.set_multisampling_none();
+    //no blending
+    pipelineBuilder.disable_blending();
+
+    pipelineBuilder.disable_depthtest();
+
+    //connect the image format we will draw into, from draw image
+    pipelineBuilder.set_color_attachment_format(m_DrawImage.imageFormat);
+    pipelineBuilder.set_depth_format(VK_FORMAT_UNDEFINED);
+
+    //finally build the pipeline
+    _meshPipeline = pipelineBuilder.build_pipeline(m_Device);
+
+    //clean structures
+    vkDestroyShaderModule(m_Device, triangleFragShader, nullptr);
+    vkDestroyShaderModule(m_Device, triangleVertexShader, nullptr);
+
+    m_DeletionQueue.push_function([&]() {
+        vkDestroyPipelineLayout(m_Device, _meshPipelineLayout, nullptr);
+        vkDestroyPipeline(m_Device, _meshPipeline, nullptr);
     });
 }
 
@@ -1447,6 +1578,88 @@ void FishVulkanEngine::imgui_scene_data()
     ImGui::Text("Objects in scene: %i", Fish::ResourceManager::Get().m_Scene.m_SceneObjects.size()); // Must be integer to work.
 }
 
+GPUMeshBuffers FishVulkanEngine::uploadMesh(std::span<uint32_t> indices, std::span<Vertex> vertices)
+{
+    const size_t vertexBufferSize = vertices.size() * sizeof(Vertex);
+    const size_t indexBufferSize = indices.size() * sizeof(uint32_t);
+
+    GPUMeshBuffers newSurface;
+
+    //create vertex buffer
+    newSurface.vertexBuffer = create_buffer13(vertexBufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+        VMA_MEMORY_USAGE_GPU_ONLY);
+
+    //find the adress of the vertex buffer
+    VkBufferDeviceAddressInfo deviceAdressInfo{ .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,.buffer = newSurface.vertexBuffer.buffer };
+    newSurface.vertexBufferAddress = vkGetBufferDeviceAddress(m_Device, &deviceAdressInfo);
+
+    //create index buffer
+    newSurface.indexBuffer = create_buffer13(indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        VMA_MEMORY_USAGE_GPU_ONLY);
+
+    AllocatedBuffer13 staging = create_buffer13(vertexBufferSize + indexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+
+    void* data = staging.allocation->GetMappedData();
+
+    // copy vertex buffer
+    memcpy(data, vertices.data(), vertexBufferSize);
+    // copy index buffer
+    memcpy((char*)data + vertexBufferSize, indices.data(), indexBufferSize);
+
+    immediate_submit13([&](VkCommandBuffer cmd) {
+        VkBufferCopy vertexCopy{ 0 };
+        vertexCopy.dstOffset = 0;
+        vertexCopy.srcOffset = 0;
+        vertexCopy.size = vertexBufferSize;
+
+        vkCmdCopyBuffer(cmd, staging.buffer, newSurface.vertexBuffer.buffer, 1, &vertexCopy);
+
+        VkBufferCopy indexCopy{ 0 };
+        indexCopy.dstOffset = 0;
+        indexCopy.srcOffset = vertexBufferSize;
+        indexCopy.size = indexBufferSize;
+
+        vkCmdCopyBuffer(cmd, staging.buffer, newSurface.indexBuffer.buffer, 1, &indexCopy);
+    });
+
+    destroy_buffer(staging);
+
+    return newSurface;
+}
+
+void FishVulkanEngine::init_default_data()
+{
+    std::array<Vertex, 4> rect_vertices;
+
+    rect_vertices[0].position = { 0.5,-0.5, 0 };
+    rect_vertices[1].position = { 0.5,0.5, 0 };
+    rect_vertices[2].position = { -0.5,-0.5, 0 };
+    rect_vertices[3].position = { -0.5,0.5, 0 };
+
+    rect_vertices[0].color = { 0,0, 0,1 };
+    rect_vertices[1].color = { 0.5,0.5,0.5 ,1 };
+    rect_vertices[2].color = { 1,0, 0,1 };
+    rect_vertices[3].color = { 0,1, 0,1 };
+
+    std::array<uint32_t, 6> rect_indices;
+
+    rect_indices[0] = 0;
+    rect_indices[1] = 1;
+    rect_indices[2] = 2;
+
+    rect_indices[3] = 2;
+    rect_indices[4] = 1;
+    rect_indices[5] = 3;
+
+    rectangle = uploadMesh(rect_indices, rect_vertices);
+
+    //delete the rectangle data on engine shutdown
+    m_DeletionQueue.push_function([&]() {
+        destroy_buffer(rectangle.indexBuffer);
+        destroy_buffer(rectangle.vertexBuffer);
+    });
+}
+
 void FishVulkanEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView)
 {
     VkRenderingAttachmentInfo colorAttachment = vkinit::attachment_info(targetImageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -1498,9 +1711,14 @@ void FishVulkanEngine::draw()
 
     draw_background(cmd);
 
-    //transition the draw image and the swapchain image into their correct transfer layouts
-    vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    draw_geometry(cmd);
+
+    //transtion the draw image and the swapchain image into their correct transfer layouts
+    vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
     vkutil::transition_image(cmd, m_SwapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
     //< draw_first
     //> imgui_draw
         // execute a copy from the draw image into the swapchain
@@ -1721,6 +1939,52 @@ void FishVulkanEngine::render_objects(VkCommandBuffer cmd, Fish::Resource::Rende
     }
 }
 
+void FishVulkanEngine::draw_geometry(VkCommandBuffer cmd)
+{
+    //begin a render pass  connected to our draw image
+    VkRenderingAttachmentInfo colorAttachment = vkinit::attachment_info(m_DrawImage.imageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    VkRenderingInfo renderInfo = vkinit::rendering_info(m_DrawExtent, &colorAttachment, nullptr);
+    vkCmdBeginRendering(cmd, &renderInfo);
+
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _trianglePipeline);
+
+    //set dynamic viewport and scissor
+    VkViewport viewport = {};
+    viewport.x = 0;
+    viewport.y = 0;
+    viewport.width = m_DrawExtent.width;
+    viewport.height = m_DrawExtent.height;
+    viewport.minDepth = 0.f;
+    viewport.maxDepth = 1.f;
+
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+    VkRect2D scissor = {};
+    scissor.offset.x = 0;
+    scissor.offset.y = 0;
+    scissor.extent.width = m_DrawExtent.width;
+    scissor.extent.height = m_DrawExtent.height;
+
+    vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+    //launch a draw command to draw 3 vertices
+    vkCmdDraw(cmd, 3, 1, 0, 0); // cmd, vertex count, instance count, first vertex, first instance
+
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _meshPipeline);
+
+    GPUDrawPushConstants push_constants;
+    push_constants.worldMatrix = glm::mat4{ 1.f };
+    push_constants.vertexBuffer = rectangle.vertexBufferAddress;
+
+    vkCmdPushConstants(cmd, _meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
+    vkCmdBindIndexBuffer(cmd, rectangle.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+
+    vkCmdDrawIndexed(cmd, 6, 1, 0, 0, 0); // cmd, index count, instance count, first index, vertex offset, first instance
+
+    vkCmdEndRendering(cmd);
+}
+
 void FishVulkanEngine::draw_background(VkCommandBuffer cmd)
 {
     // Get the currently selected effect set by the ImGui overlay.
@@ -1770,7 +2034,7 @@ FrameData& FishVulkanEngine::get_current_frame()
     return m_Frames[m_FrameNumber % kFrameOverlap];
 }
 
-AllocatedBuffer FishVulkanEngine::create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage)
+AllocatedBuffer11 FishVulkanEngine::create_buffer11(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage)
 {
     //allocate vertex buffer
     VkBufferCreateInfo bufferInfo = {};
@@ -1782,12 +2046,37 @@ AllocatedBuffer FishVulkanEngine::create_buffer(size_t allocSize, VkBufferUsageF
     VmaAllocationCreateInfo vmaallocInfo = {};
     vmaallocInfo.usage = memoryUsage;
 
-    AllocatedBuffer newBuffer;
+    AllocatedBuffer11 newBuffer;
 
     //allocate the buffer
     VK_CHECK(vmaCreateBuffer(m_Allocator, &bufferInfo, &vmaallocInfo, &newBuffer.buffer, &newBuffer.allocation, nullptr));
 
     return newBuffer;
+}
+
+AllocatedBuffer13 FishVulkanEngine::create_buffer13(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage)
+{
+    // allocate buffer
+    VkBufferCreateInfo bufferInfo = { .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+    bufferInfo.pNext = nullptr;
+    bufferInfo.size = allocSize;
+
+    bufferInfo.usage = usage;
+
+    VmaAllocationCreateInfo vmaallocInfo = {};
+    vmaallocInfo.usage = memoryUsage;
+    vmaallocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+    AllocatedBuffer13 newBuffer;
+
+    // allocate the buffer
+    VK_CHECK(vmaCreateBuffer(m_Allocator, &bufferInfo, &vmaallocInfo, &newBuffer.buffer, &newBuffer.allocation, &newBuffer.info));
+
+    return newBuffer;
+}
+
+void FishVulkanEngine::destroy_buffer(const AllocatedBuffer13& buffer)
+{
+    vmaDestroyBuffer(m_Allocator, buffer.buffer, buffer.allocation);
 }
 
 size_t FishVulkanEngine::pad_uniform_buffer_size(size_t originalSize)

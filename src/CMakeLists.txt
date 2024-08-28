@@ -31,6 +31,7 @@ add_executable (engine
   fish_scene.cpp  
   fish_gpu_data.h
   fish_pipeline.h
+  fish_pipeline.cpp
   fish_ecs.h
   fish_ecs_systems.h
   fish_ecs_systems.cpp

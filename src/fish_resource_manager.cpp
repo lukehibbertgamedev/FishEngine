@@ -25,22 +25,22 @@ void Fish::ResourceManager::load_all_meshes()
 
     mesh = {};
     mesh.load_from_obj("../../assets/Horse.obj");
-    upload_mesh(mesh);
+    upload_mesh11(mesh);
     m_Meshes["horse"] = mesh;
 
     mesh = {};
     mesh = create_default_triangle();
-    upload_mesh(mesh);
+    upload_mesh11(mesh);
     m_Meshes["triangle"] = mesh;
 
     mesh = {};
     mesh = create_default_quad();
-    upload_mesh(mesh);
+    upload_mesh11(mesh);
     m_Meshes["quad"] = mesh;
 
     mesh = {};
     mesh = create_default_cube();
-    upload_mesh(mesh);
+    upload_mesh11(mesh);
     m_Meshes["cube"] = mesh;
 }
 
@@ -299,7 +299,7 @@ Fish::Resource::Mesh* Fish::ResourceManager::get_mesh_by_name(const std::string&
     }
 }
 
-void Fish::ResourceManager::upload_mesh(Fish::Resource::Mesh& mesh)
+void Fish::ResourceManager::upload_mesh11(Fish::Resource::Mesh& mesh)
 {
     const size_t bufferSize = mesh.vertices.size() * sizeof(Fish::Resource::Vertex);
 
@@ -315,7 +315,7 @@ void Fish::ResourceManager::upload_mesh(Fish::Resource::Mesh& mesh)
     VmaAllocationCreateInfo vmaallocInfo = {};
     vmaallocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
 
-    AllocatedBuffer stagingBuffer;
+    AllocatedBuffer11 stagingBuffer;
 
     //allocate the buffer
     VK_CHECK(vmaCreateBuffer(FishVulkanEngine::Get().GetAllocator(), &stagingBufferInfo, &vmaallocInfo, &stagingBuffer.buffer, &stagingBuffer.allocation, nullptr));
@@ -399,6 +399,55 @@ void Fish::ResourceManager::upload_mesh(Fish::Resource::Mesh& mesh)
     FishVulkanEngine::Get().GetDeletionQueue().push_function([=]() { vmaDestroyBuffer(FishVulkanEngine::Get().GetAllocator(), mesh.indexBuffer.buffer, mesh.indexBuffer.allocation); });
     vmaDestroyBuffer(FishVulkanEngine::Get().GetAllocator(), stagingBuffer.buffer, stagingBuffer.allocation);
 }
+
+//GPUMeshBuffers Fish::ResourceManager::upload_mesh13(std::span<uint32_t> indices, std::span<Vertex> vertices)
+//{
+//    const size_t vertexBufferSize = vertices.size() * sizeof(Vertex);
+//    const size_t indexBufferSize = indices.size() * sizeof(uint32_t);
+//
+//    GPUMeshBuffers newSurface;
+//
+//    //create vertex buffer
+//    newSurface.vertexBuffer = FishVulkanEngine::Get().create_buffer13(vertexBufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+//        VMA_MEMORY_USAGE_GPU_ONLY);
+//
+//    //find the adress of the vertex buffer
+//    VkBufferDeviceAddressInfo deviceAdressInfo{ .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,.buffer = newSurface.vertexBuffer.buffer };
+//    newSurface.vertexBufferAddress = vkGetBufferDeviceAddress(FishVulkanEngine::Get().GetDevice(), &deviceAdressInfo);
+//
+//    //create index buffer
+//    newSurface.indexBuffer = FishVulkanEngine::Get().create_buffer13(indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+//        VMA_MEMORY_USAGE_GPU_ONLY);
+//
+//    AllocatedBuffer13 staging = FishVulkanEngine::Get().create_buffer13(vertexBufferSize + indexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+//
+//    void* data = staging.allocation->GetMappedData();
+//
+//    // copy vertex buffer
+//    memcpy(data, vertices.data(), vertexBufferSize);
+//    // copy index buffer
+//    memcpy((char*)data + vertexBufferSize, indices.data(), indexBufferSize);
+//
+//    FishVulkanEngine::Get().immediate_submit13([&](VkCommandBuffer cmd) {
+//        VkBufferCopy vertexCopy{ 0 };
+//        vertexCopy.dstOffset = 0;
+//        vertexCopy.srcOffset = 0;
+//        vertexCopy.size = vertexBufferSize;
+//
+//        vkCmdCopyBuffer(cmd, staging.buffer, newSurface.vertexBuffer.buffer, 1, &vertexCopy);
+//
+//        VkBufferCopy indexCopy{ 0 };
+//        indexCopy.dstOffset = 0;
+//        indexCopy.srcOffset = vertexBufferSize;
+//        indexCopy.size = indexBufferSize;
+//
+//        vkCmdCopyBuffer(cmd, staging.buffer, newSurface.indexBuffer.buffer, 1, &indexCopy);
+//    });
+//
+//    FishVulkanEngine::Get().destroy_buffer(staging);
+//
+//    return newSurface;
+//}
 
 Fish::Resource::Material* Fish::ResourceManager::create_material(VkPipeline pipeline, VkPipelineLayout layout, const std::string& name)
 {

@@ -29,7 +29,7 @@ namespace Fish {
 			VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
 
 			//allocate temporary buffer for holding texture data to upload
-			AllocatedBuffer stagingBuffer = engine.create_buffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+			AllocatedBuffer11 stagingBuffer = engine.create_buffer11(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
 
 			//copy data to buffer
 			void* data;

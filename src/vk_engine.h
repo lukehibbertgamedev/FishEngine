@@ -68,10 +68,10 @@ struct FrameData {
 	VkFence m_RenderFence;												// Used for GPU -> CPU communication.
 	VkSemaphore m_PresentSemaphore, m_RenderSemaphore;					// Used for GPU -> GPU synchronisation.
 
-	AllocatedBuffer cameraBuffer;										// Buffer holding a single GPUCameraData to use during rendering.
+	AllocatedBuffer11 cameraBuffer;										// Buffer holding a single GPUCameraData to use during rendering.
 	VkDescriptorSet globalDescriptor;									// Holds the matrices that we need.
 
-	AllocatedBuffer objectBuffer;										//
+	AllocatedBuffer11 objectBuffer;										//
 	VkDescriptorSet objectDescriptor;									// Holds the matrices that we need.
 
 	DeletionQueue deletionQueue;										// Allows the deletion of objects within the next frame after use.
@@ -92,8 +92,12 @@ public:
 	//run main loop
 	void run();
 
-	// abstracted buffer creation.
-	AllocatedBuffer create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+	// 1.1 - abstracted buffer creation.
+	AllocatedBuffer11 create_buffer11(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+	// 1.3 - abstracted buffer creation.
+	AllocatedBuffer13 create_buffer13(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+	void destroy_buffer(const AllocatedBuffer13& buffer);
+
 
 	// 1.1 - Send commands to the GPU without synchronisation with the swapchain or rendering logic.
 	void immediate_submit11(std::function<void(VkCommandBuffer cmd)>&& function);
@@ -127,6 +131,8 @@ private:
 	void init_pipelines11(); // 1.1 Implementation
 	void init_pipelines13();
 	void init_background_pipelines();
+	void init_triangle_pipeline();
+	void init_mesh_pipeline();
 
 	void create_swapchain(uint32_t width, uint32_t height);
 	void destroy_swapchain();
@@ -144,6 +150,8 @@ private:
 
 	// 1.1 - Draw loop responsible for rendering scene objects.
 	void render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObject* first, int count);
+	// 1.3 - Draw loop responsible for rendering scene objects/geometry.
+	void draw_geometry(VkCommandBuffer cmd);
 
 	// 1.3 Draw loop responsible for rendering the clear value.
 	void draw_background(VkCommandBuffer cmd);
@@ -164,6 +172,9 @@ private:
 	void imgui_debug_data();
 	void imgui_object_hierarchy();
 	void imgui_scene_data();
+
+	GPUMeshBuffers uploadMesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
+	void init_default_data();
 
 	// return frame we are rendering to right now.
 	FrameData& get_current_frame();
@@ -230,7 +241,7 @@ private:
 	
 	// Scene Data.
 	Fish::GPU::SceneData m_SceneParameters;								// ...
-	AllocatedBuffer m_SceneParametersBuffer;							// ...
+	AllocatedBuffer11 m_SceneParametersBuffer;							// ...
 	Fish::Camera m_Camera;												// A handle to our camera so we can move around our scene (expanded to current camera in future).
 
 	// ImGui.
@@ -259,4 +270,12 @@ private:
 
 	std::vector<ComputeEffect> backgroundEffects;
 	int currentBackgroundEffect{ 0 };
+	
+	VkPipelineLayout _trianglePipelineLayout;
+	VkPipeline _trianglePipeline;
+
+	VkPipelineLayout _meshPipelineLayout;
+	VkPipeline _meshPipeline;
+
+	GPUMeshBuffers rectangle;
 };

@@ -27,10 +27,10 @@ namespace Fish {
 
 		struct Mesh {
 			std::vector<Vertex> vertices;
-			AllocatedBuffer vertexBuffer;
+			AllocatedBuffer11 vertexBuffer;
 
 			std::vector<uint32_t> indices;
-			AllocatedBuffer indexBuffer;
+			AllocatedBuffer11 indexBuffer;
 
 			bool load_from_obj(const char* filename);
 		};

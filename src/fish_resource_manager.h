@@ -36,6 +36,11 @@ namespace Fish {
 
 		//void sample_texture(const std::string& name, VkSamplerCreateInfo samplerInfo, VkSampler blockySampler, VkDescriptorSetAllocateInfo allocInfo, VkWriteDescriptorSet texture1);
 
+		// 1.3 - Create structure for push constants required to draw a mesh.
+		// Span is basically a pointer and a size pair.
+		// See (https://vkguide.dev/docs/new_chapter_3/mesh_buffers/) for more.
+		//GPUMeshBuffers upload_mesh13(std::span<uint32_t> indices, std::span<Vertex> vertices);
+
 		// singleton implementation.
 		static ResourceManager& Get() { static ResourceManager instance; return instance; }
 		ResourceManager(ResourceManager const&) = delete;
@@ -43,7 +48,7 @@ namespace Fish {
 	private: 
 		ResourceManager() {} // private constructor for singleton implementation
 
-		void upload_mesh(Fish::Resource::Mesh& mesh);
+		void upload_mesh11(Fish::Resource::Mesh& mesh);
 
 
 		std::unordered_map<std::string, Fish::Resource::Mesh> m_Meshes;

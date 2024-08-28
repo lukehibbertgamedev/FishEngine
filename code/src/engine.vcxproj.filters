@@ -46,6 +46,9 @@
     <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_pipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_ecs_systems.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

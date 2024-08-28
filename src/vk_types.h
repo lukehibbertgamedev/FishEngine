@@ -35,9 +35,40 @@ struct AllocatedImage {
     VkFormat imageFormat;
 };
 
-struct AllocatedBuffer {
+struct AllocatedBuffer11 {
     VkBuffer buffer;
     VmaAllocation allocation;
+};
+
+struct AllocatedBuffer13 {
+    VkBuffer buffer;
+    VmaAllocation allocation;
+    VmaAllocationInfo info;
+};
+
+// The reason that the UV parameters are interleaved (weirdly positioned) is because of alignment limitations
+// on GPUs, it likes to be within blocks of 16 and v3 + float basically = v4 which is beautiful alignment.
+struct Vertex {
+
+    glm::vec3 position;
+    float uv_x;
+    glm::vec3 normal;
+    float uv_y;
+    glm::vec4 color;
+};
+
+// holds the resources needed for a mesh
+struct GPUMeshBuffers {
+
+    AllocatedBuffer13 indexBuffer;
+    AllocatedBuffer13 vertexBuffer;
+    VkDeviceAddress vertexBufferAddress;
+};
+
+// push constants for our mesh object draws
+struct GPUDrawPushConstants {
+    glm::mat4 worldMatrix;
+    VkDeviceAddress vertexBuffer;
 };
 
 #define VK_CHECK(x)                                                     \
