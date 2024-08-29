@@ -18,30 +18,27 @@
 #include <vk_descriptors.h>
 #include <loader.h>
 
-// safely handle the cleanup of a growing amount of objects.
+// Safely handle the cleanup of a growing amount of objects.
 struct DeletionQueue {
-
 	std::deque<std::function<void()>> toDelete;
 
-	void push_function(std::function<void()>&& function) {
-		toDelete.push_back(function);
-	}
+	void push_function(std::function<void()>&& function) { toDelete.push_back(function); }
 
 	void flush() {
 		// reverse iterate the deletion queue to execute all the functions
 		for (auto it = toDelete.rbegin(); it != toDelete.rend(); it++) {
 			(*it)(); //call functors
 		}
-
 		toDelete.clear();
 	}
 };
 
-struct MeshPushConstants {
+struct MeshPushConstants11 {
 	glm::vec4 data;
 	glm::mat4 matrix;
 };
 
+// Test push constants for use in the compute pipeline.
 struct ComputePushConstants {
 	glm::vec4 data1;
 	glm::vec4 data2;
@@ -49,7 +46,7 @@ struct ComputePushConstants {
 	glm::vec4 data4;
 };
 
-// Editable parameters.
+// Editable parameters to change the shader effects at runtime.
 struct ComputeEffect {
 	const char* name;
 	VkPipeline pipeline;
@@ -69,10 +66,10 @@ struct FrameData {
 	VkFence m_RenderFence;												// Used for GPU -> CPU communication.
 	VkSemaphore m_PresentSemaphore, m_RenderSemaphore;					// Used for GPU -> GPU synchronisation.
 
-	AllocatedBuffer11 cameraBuffer;										// Buffer holding a single GPUCameraData to use during rendering.
+	//AllocatedBuffer11 cameraBuffer;										// Buffer holding a single GPUCameraData to use during rendering.
 	VkDescriptorSet globalDescriptor;									// Holds the matrices that we need.
 
-	AllocatedBuffer11 objectBuffer;										//
+	//AllocatedBuffer11 objectBuffer;										//
 	VkDescriptorSet objectDescriptor;									// Holds the matrices that we need.
 
 	DeletionQueue deletionQueue;										// Allows the deletion of objects within the next frame after use.
@@ -81,33 +78,31 @@ struct FrameData {
 class FishVulkanEngine {
 public:
 
-	// Singleton instance.
+	// Singleton instance accessor.
 	static FishVulkanEngine& Get();
-
-	//initializes everything in the engine
-	void init();	
-
-	//shuts down the engine
+	// Initialises the entire engine. 
+	void init();
+	// Delets any engine related allocated memory and safely shuts down the application.
 	void cleanup();	
-
-	//run main loop
+	// Main update loop.
 	void run();
 
-	// 1.1 - abstracted buffer creation.
-	AllocatedBuffer11 create_buffer11(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
-	// 1.3 - abstracted buffer creation.
-	AllocatedBuffer13 create_buffer13(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
-	void destroy_buffer(const AllocatedBuffer13& buffer);
-
-	GPUMeshBuffers uploadMesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
-
+	// Useful functions that need to be public:
+	
 	// 1.1 - Send commands to the GPU without synchronisation with the swapchain or rendering logic.
 	void immediate_submit11(std::function<void(VkCommandBuffer cmd)>&& function);
 	// 1.3 - Send commands to the GPU without synchronisation with the swapchain or rendering logic.
 	void immediate_submit13(std::function<void(VkCommandBuffer cmd)>&& function);
 
-	VmaAllocator GetAllocator() { return m_Allocator; }											 // By value accessor.
+	// 1.3 - Abstracted buffer creation.
+	AllocatedBuffer13 create_buffer13(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+	void destroy_buffer(const AllocatedBuffer13& buffer);
+	
+	// 1.3 - Create a structure for drawing a mesh and send that data to the GPU (performs an immediate_submit).
+	GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
 
+	// Accessors:
+	VmaAllocator GetAllocator() { return m_Allocator; }											 // By value accessor.
 	DeletionQueue& GetDeletionQueue() { return m_DeletionQueue; }								 // By reference accessor.
 	VkDevice& GetDevice() { return m_Device; } 													 // By reference accessor.
 	VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }							 // By reference accessor.
@@ -115,75 +110,61 @@ public:
 
 private:
 
-	// bet you cant guess what these functions do...
-	void init_vulkan();
-
-	void init_imgui11(); // 1.1 Implementation
-	void init_imgui13();
-
-	void init_swapchain11(); // 1.1 Implementation
-	void init_swapchain13();
-	void init_commands();
-	void init_main_renderpass();
-	void init_framebuffers();
-	void init_synchronisation_structures(); // for fences and semaphores
-	
-	void init_descriptors11(); // 1.1 Implementation
-	void init_descriptors13();
-
-	//void init_pipelines11(); // 1.1 Implementation
-	void init_pipelines13();
+	// Initialise the Vulkan instance.
+	void initialise_vulkan();
+	// 1.3 - Create the entire swapchain.
+	void initialise_swapchain();
+	// Initialise command buffers and command pools.
+	void initialise_commands();
+	// Initialise fences and semaphores used in GPU and CPU synchronisation.
+	void initialise_synchronisation_structures();	
+	// ...
+	void initialise_descriptors();
+	// 1.3 - Initialise all pipelines.
+	void initialise_pipelines();
+	// Initialise the pipeline specifically for the background effects/clear colour.
 	void init_background_pipelines();
-	//void init_triangle_pipeline();
+	// Initialise the pipeline specifically for meshes/geometry.
 	void init_mesh_pipeline();
+	// 1.3 - Hook Vulkan, SDL2, and ImGui together with ImGui initialisation.
+	void initialise_imgui();
+	
+	// Unused for now: Initialise all entities, components, and systems for the Entity Component System.
+	//void initialise_entity_component_system();	
 
-	void create_swapchain(uint32_t width, uint32_t height);
-	void destroy_swapchain();
-	void rebuild_swapchain();
+	// Unused for now: Step system calculations forward. Updates systems such as collision and physics.
+	//void update(float deltatime);
 
-	// loads a shader module from a spir-v file. false if error.
-	bool load_shader_module(const char* filePath, VkShaderModule* outShaderModule);
-
-	void update(float deltatime);
-
-	// 1.1 - Main draw loop for sycnhronisation and recording command buffers.
-	void render();
 	// 1.3 - Main draw loop for sycnhronisation and recording command buffers.
 	void draw();
-
-	// 1.1 - Draw loop responsible for rendering scene objects.
-	//void render_objects(VkCommandBuffer cmd, Fish::Resource::RenderObject* first, int count);
-	
+	// 1.3 Draw loop responsible for rendering the clear value or background effect.
+	void draw_background(VkCommandBuffer cmd);
 	// 1.3 - Draw loop responsible for rendering scene objects/geometry.
 	void draw_geometry(VkCommandBuffer cmd);
-
-	// 1.3 Draw loop responsible for rendering the clear value.
-	void draw_background(VkCommandBuffer cmd);
-	
-	// set up all entity component systems
-	void init_ecs();
-
-	// 1.1 - Commands responsible for rendering imgui.
-	//void render_imgui();
-
+	// 1.3 - Submit the commands for rendering the ImGui draw data.
+	void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView);
+		
 	// 1.3 - Set up ImGui backends and create draw data.
 	void prepare_imgui();
 	// 1.3 - Call ImGui functions to add to the draw data.
 	void create_imgui_draw_data();
-	// 1.3 - Submit the commands for rendering the ImGui draw data.
-	void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView);
-
+	// ImGui debug data overlay displaying generic debug information.
 	void imgui_debug_data();
-	//void imgui_object_hierarchy();
-	//void imgui_scene_data();
 
-	void init_default_data();
+	// Use the swapchain builder to build a basic swapchain.
+	void create_swapchain(uint32_t width, uint32_t height);
+	// Clean swapchain and swapchain image resourecs.
+	void destroy_swapchain();
+	// Destroy the previous swapchain and rebuild a new one.
+	void rebuild_swapchain();
 
-	// return frame we are rendering to right now.
+	// Create a shader module loaded from a spri-v (.spv) file. Returns false if error occurred. 
+	bool load_shader_module(const char* filePath, VkShaderModule* outShaderModule);
+
+	// Return frame data for the frame we are rendering to right now.
 	FrameData& get_current_frame();
 
-	// pad the size of something to the alignment boundary
-	// with thanks to https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer
+	// Pad a uniform buffer size based on the minimum device offset alignment. See more (https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer).
 	size_t pad_uniform_buffer_size(size_t originalSize);
 
 	// ------------------------------------------------------------------------------------------------------------------------------------------------------------ // 
@@ -221,7 +202,7 @@ private:
 	// Graphics.
 	VkQueue m_GraphicsQueue;											// An execution port for the GPU to stream graphics commands.
 	uint32_t m_GraphicsQueueFamily;										// Defines the type of queue and the type of commands the queue supports.
-	VkPhysicalDeviceProperties m_GPUProperties;							// ...
+	VkPhysicalDeviceProperties m_GPUProperties;							// Physical device/GPU settings.
 
 	// Depth.
 	AllocatedImage m_DepthImage;										// Depth image handle to configure z-testing with a depth buffer.
@@ -244,7 +225,7 @@ private:
 	
 	// Scene Data.
 	Fish::GPU::SceneData m_SceneParameters;								// ...
-	AllocatedBuffer11 m_SceneParametersBuffer;							// ...
+	//AllocatedBuffer11 m_SceneParametersBuffer;							// ...
 	Fish::Camera m_Camera;												// A handle to our camera so we can move around our scene (expanded to current camera in future).
 
 	// ImGui.

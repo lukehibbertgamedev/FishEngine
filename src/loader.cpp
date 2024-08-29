@@ -239,7 +239,7 @@ std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadGltfMeshes(FishVulkan
 				vtx.color = glm::vec4(vtx.normal, 1.f);
 			}
 		}
-		newmesh.meshBuffers = engine->uploadMesh(indices, vertices);
+		newmesh.meshBuffers = engine->upload_mesh(indices, vertices);
 		//newmesh.meshBuffers = FishVulkanEngine::Get().uploadMesh(indices, vertices);
 
 		meshes.emplace_back(std::make_shared<MeshAsset>(std::move(newmesh)));

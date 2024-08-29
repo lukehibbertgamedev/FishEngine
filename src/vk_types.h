@@ -35,11 +35,6 @@ struct AllocatedImage {
     VkFormat imageFormat;
 };
 
-struct AllocatedBuffer11 {
-    VkBuffer buffer;
-    VmaAllocation allocation;
-};
-
 struct AllocatedBuffer13 {
     VkBuffer buffer;
     VmaAllocation allocation;
@@ -57,7 +52,7 @@ struct Vertex {
     glm::vec4 color;
 };
 
-// holds the resources needed for a mesh
+// Holds the resources needed for a mesh
 struct GPUMeshBuffers {
 
     AllocatedBuffer13 indexBuffer;
@@ -65,12 +60,14 @@ struct GPUMeshBuffers {
     VkDeviceAddress vertexBufferAddress;
 };
 
-// push constants for our mesh object draws
+// Push constants for our mesh object draw calls
 struct GPUDrawPushConstants {
     glm::mat4 worldMatrix;
     VkDeviceAddress vertexBuffer;
 };
 
+// Macro to ensure no errors occur. Used in functions that return a VkResult.
+// This will also fail on the actual line of error making it easier to debug.
 #define VK_CHECK(x)                                                     \
     do {                                                                \
         VkResult err = x;                                               \
