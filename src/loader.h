@@ -8,10 +8,15 @@
 //forward declaration
 class FishVulkanEngine;
 
+struct GLTFMaterial {
+    MaterialInstance data;
+};
+
 // Contains sub-meshes of the main mesh.
 struct GeoSurface {
     uint32_t startIndex;
     uint32_t count;
+    std::shared_ptr<GLTFMaterial> material;
 };
 
 // Entire mesh asset containing a name and the mesh buffers with an array of 

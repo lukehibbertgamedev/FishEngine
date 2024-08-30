@@ -55,7 +55,6 @@ void FishVulkanEngine::init()
 
     initialise_default_data();
     // Load meshes.
-    testMeshes = loadGltfMeshes(loadedEngine, "..//..//assets//basicmesh.glb").value();
 
     // initialise entity component systems
     //init_ecs();
@@ -333,7 +332,23 @@ void FishVulkanEngine::initialise_default_data()
     materialResources.dataBuffer = materialConstants.buffer;
     materialResources.dataBufferOffset = 0;
 
-    defaultData = metalRoughMaterial.write_material(m_Device, MaterialPass::MainColor, materialResources, m_GlobalDescriptorAllocator);
+    defaultData = metalRoughMaterial.write_material(m_Device, MaterialPass::MainColor, materialResources, m_GlobalDescriptorAllocatorGrowable);
+
+    testMeshes = loadGltfMeshes(loadedEngine, "..//..//assets//basicmesh.glb").value();
+
+    for (auto& m : testMeshes) {
+        std::shared_ptr<MeshNode> newNode = std::make_shared<MeshNode>();
+        newNode->mesh = m;
+
+        newNode->localTransform = glm::mat4{ 1.f };
+        newNode->worldTransform = glm::mat4{ 1.f };
+
+        for (auto& s : newNode->mesh->surfaces) {
+            s.material = std::make_shared<GLTFMaterial>(defaultData);
+        }
+
+        loadedNodes[m->name] = std::move(newNode);
+    }
 }
 
 void FishVulkanEngine::initialise_swapchain()
@@ -853,12 +868,12 @@ void FishVulkanEngine::initialise_descriptors()
     // VK_DESCRIPTOR_TYPE_STORAGE_IMAGE too (matching the pool).
 
     //create a descriptor pool that will hold 10 sets with 1 image each
-    std::vector<DescriptorAllocator::PoolSizeRatio> sizes =
+    std::vector<DescriptorAllocatorGrowable::PoolSizeRatio> sizes =
     {
         { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1 }
     };
 
-    m_GlobalDescriptorAllocator.init_pool(m_Device, 10, sizes);
+    m_GlobalDescriptorAllocatorGrowable.init(m_Device, 10, sizes);
 
     //make the descriptor set layout for our compute draw
     {
@@ -880,7 +895,7 @@ void FishVulkanEngine::initialise_descriptors()
     }
 
     //allocate a descriptor set for our draw image
-    m_DrawImageDescriptors = m_GlobalDescriptorAllocator.allocate(m_Device, m_DrawImageDescriptorLayout);
+    m_DrawImageDescriptors = m_GlobalDescriptorAllocatorGrowable.allocate(m_Device, m_DrawImageDescriptorLayout);
 
     DescriptorWriter writer;
     writer.write_image(0, m_DrawImage.imageView, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
@@ -888,7 +903,7 @@ void FishVulkanEngine::initialise_descriptors()
 
     //make sure both the descriptor allocator and the new layout get cleaned up properly
     m_DeletionQueue.push_function([&]() {
-        m_GlobalDescriptorAllocator.destroy_pool(m_Device);
+        m_GlobalDescriptorAllocatorGrowable.destroy_pools(m_Device);
         vkDestroyDescriptorSetLayout(m_Device, m_DrawImageDescriptorLayout, nullptr);
     });
 
@@ -1145,6 +1160,9 @@ void FishVulkanEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageVi
 
 void FishVulkanEngine::draw()
 {
+    // This function gets called at the very start of the draw() function, before waiting on the frame fences.
+    update_scene();
+
     // Wait for the render fence to enter a signalled state meaning the GPU has finished 
     // rendering the previous frame and the GPU is now synchronised with the CPU.
     const unsigned int timeout = 1000000000;
@@ -1390,35 +1408,21 @@ void FishVulkanEngine::draw_geometry(VkCommandBuffer cmd)
 
     //
 
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _meshPipeline);
+    for (const RenderObject13& draw : mainDrawContext.OpaqueSurfaces) {
 
-    //bind a texture
-    VkDescriptorSet imageSet = get_current_frame()._frameDescriptors.allocate(m_Device, _singleImageDescriptorLayout);
-    {
-        DescriptorWriter writer;
-        writer.write_image(0, _errorCheckerboardImage.imageView, _defaultSamplerNearest, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->pipeline);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->layout, 0, 1, &globalDescriptor, 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->layout, 1, 1, &draw.material->materialSet, 0, nullptr);
 
-        writer.update_set(m_Device, imageSet);
+        vkCmdBindIndexBuffer(cmd, draw.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+        GPUDrawPushConstants pushConstants;
+        pushConstants.vertexBuffer = draw.vertexBufferAddress;
+        pushConstants.worldMatrix = draw.transform;
+        vkCmdPushConstants(cmd, draw.material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
+
+        vkCmdDrawIndexed(cmd, draw.indexCount, 1, draw.firstIndex, 0, 0);
     }
-
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _meshPipelineLayout, 0, 1, &imageSet, 0, nullptr);
-
-    glm::mat4 view = glm::translate(glm::vec3{ 0,0,-5 });
-    // camera projection
-    glm::mat4 projection = glm::perspective(glm::radians(70.f), (float)m_DrawExtent.width / (float)m_DrawExtent.height, 10000.f, 0.1f);
-
-    // invert the Y direction on projection matrix so that we are more similar
-    // to opengl and gltf axis
-    projection[1][1] *= -1;
-
-    GPUDrawPushConstants push_constants;
-    push_constants.worldMatrix = projection * view;
-    push_constants.vertexBuffer = testMeshes[2]->meshBuffers.vertexBufferAddress;
-
-    vkCmdPushConstants(cmd, _meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
-    vkCmdBindIndexBuffer(cmd, testMeshes[2]->meshBuffers.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-
-    vkCmdDrawIndexed(cmd, testMeshes[2]->surfaces[0].count, 1, testMeshes[2]->surfaces[0].startIndex, 0, 0);
 
     //
     vkCmdEndRendering(cmd);
@@ -1584,6 +1588,32 @@ size_t FishVulkanEngine::pad_uniform_buffer_size(size_t originalSize)
         alignedSize = (alignedSize + minUboAlignment - 1) & ~(minUboAlignment - 1);
     }
     return alignedSize;
+}
+
+void FishVulkanEngine::update_scene()
+{
+    mainDrawContext.OpaqueSurfaces.clear();
+
+    for (auto& m : loadedNodes) {
+        m.second->Draw(glm::mat4{ 1.f }, mainDrawContext);
+    }
+
+    for (int x = -3; x < 3; x++) {
+
+        glm::mat4 scale = glm::scale(glm::vec3{ 0.2 });
+        glm::mat4 translation = glm::translate(glm::vec3{ x, 1, 0 });
+
+        loadedNodes["Cube"]->Draw(translation * scale, mainDrawContext);
+    }
+
+    sceneData.view = glm::translate(glm::vec3{ 0,0,-5 });
+    // camera projection
+    sceneData.proj = glm::perspective(glm::radians(70.f), (float)m_WindowExtents.width / (float)m_WindowExtents.height, 10000.f, 0.1f);
+
+    // invert the Y direction on projection matrix so that we are more similar
+    // to opengl and gltf axis
+    sceneData.proj[1][1] *= -1;
+    sceneData.viewproj = sceneData.proj * sceneData.view;
 }
 
 void FishVulkanEngine::immediate_submit11(std::function<void(VkCommandBuffer cmd)>&& function)
@@ -1783,4 +1813,25 @@ MaterialInstance GLTFMetallic_Roughness::write_material(VkDevice device, Materia
     writer.update_set(device, matData.materialSet);
 
     return matData;
+}
+
+void MeshNode::Draw(const glm::mat4& topMatrix, DrawContext& ctx)
+{
+    glm::mat4 nodeMatrix = topMatrix * worldTransform;
+
+    for (auto& s : mesh->surfaces) {
+        RenderObject13 def;
+        def.indexCount = s.count;
+        def.firstIndex = s.startIndex;
+        def.indexBuffer = mesh->meshBuffers.indexBuffer.buffer;
+        def.material = &s.material->data;
+
+        def.transform = nodeMatrix;
+        def.vertexBufferAddress = mesh->meshBuffers.vertexBufferAddress;
+
+        ctx.OpaqueSurfaces.push_back(def);
+    }
+
+    // recurse down
+    Node::Draw(topMatrix, ctx);
 }

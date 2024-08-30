@@ -18,6 +18,8 @@
 #include <vk_descriptors.h>
 #include <loader.h>
 
+class FishVulkanEngine;
+
 // Safely handle the cleanup of a growing amount of objects.
 struct DeletionQueue {
 	std::deque<std::function<void()>> toDelete;
@@ -33,9 +35,34 @@ struct DeletionQueue {
 	}
 };
 
-struct MeshPushConstants11 {
-	glm::vec4 data;
-	glm::mat4 matrix;
+struct GLTFMetallic_Roughness {
+	MaterialPipeline opaquePipeline;
+	MaterialPipeline transparentPipeline;
+
+	VkDescriptorSetLayout materialLayout;
+
+	struct MaterialConstants {
+		glm::vec4 colorFactors;
+		glm::vec4 metal_rough_factors;
+		//padding, we need it anyway for uniform buffers
+		glm::vec4 extra[14];
+	};
+
+	struct MaterialResources {
+		AllocatedImage colorImage;
+		VkSampler colorSampler;
+		AllocatedImage metalRoughImage;
+		VkSampler metalRoughSampler;
+		VkBuffer dataBuffer;
+		uint32_t dataBufferOffset;
+	};
+
+	DescriptorWriter writer;
+
+	void build_pipelines(FishVulkanEngine* engine);
+	void clear_resources(VkDevice device);
+
+	MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, DescriptorAllocatorGrowable& descriptorAllocator);
 };
 
 struct RenderObject13 {
@@ -47,6 +74,22 @@ struct RenderObject13 {
 
 	glm::mat4 transform;
 	VkDeviceAddress vertexBufferAddress;
+};
+
+struct DrawContext {
+	std::vector<RenderObject13> OpaqueSurfaces;
+};
+
+struct MeshNode : public Node {
+
+	std::shared_ptr<MeshAsset> mesh;
+
+	virtual void Draw(const glm::mat4& topMatrix, DrawContext& ctx) override;
+};
+
+struct MeshPushConstants11 {
+	glm::vec4 data;
+	glm::mat4 matrix;
 };
 
 struct GPUSceneData {
@@ -259,6 +302,7 @@ private:
 	VkDescriptorSetLayout m_ObjectSetLayout;							// ...
 	VkDescriptorPool m_DescriptorPool;									// ...
 	DescriptorAllocator m_GlobalDescriptorAllocator;					// ...
+	DescriptorAllocatorGrowable m_GlobalDescriptorAllocatorGrowable;					// ...
 	VkDescriptorSet m_DrawImageDescriptors;								// ...
 	VkDescriptorSetLayout m_DrawImageDescriptorLayout;					// ...
 	VkDescriptorPool m_ImGuiDescriptorPool;								// ... Descriptor pool info but one specific for ImGui.
@@ -317,34 +361,9 @@ private:
 
 	MaterialInstance defaultData;
 	GLTFMetallic_Roughness metalRoughMaterial;
-};
 
-struct GLTFMetallic_Roughness {
-	MaterialPipeline opaquePipeline;
-	MaterialPipeline transparentPipeline;
+	DrawContext mainDrawContext;
+	std::unordered_map<std::string, std::shared_ptr<Node>> loadedNodes;
 
-	VkDescriptorSetLayout materialLayout;
-
-	struct MaterialConstants {
-		glm::vec4 colorFactors;
-		glm::vec4 metal_rough_factors;
-		//padding, we need it anyway for uniform buffers
-		glm::vec4 extra[14];
-	};
-
-	struct MaterialResources {
-		AllocatedImage colorImage;
-		VkSampler colorSampler;
-		AllocatedImage metalRoughImage;
-		VkSampler metalRoughSampler;
-		VkBuffer dataBuffer;
-		uint32_t dataBufferOffset;
-	};
-
-	DescriptorWriter writer;
-
-	void build_pipelines(FishVulkanEngine* engine);
-	void clear_resources(VkDevice device);
-
-	MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, DescriptorAllocatorGrowable& descriptorAllocator);
+	void update_scene();
 };

@@ -92,11 +92,14 @@ Previously:
 	- [X] Completed textures in Chapter 4													30/08
 	- [X] Completed engine architecture in Chapter 4										30/08
 	- [X] Completed setting up materials in Chapter 4										30/08
+	- [X] Completed meshes and camera in Chapter 4 (the final part of Chapter 4)			30/08
 
 
 Next time:
 
 	- [!!!!] Refactor to use Vulkan API 1.3, stabilise the branch, merge to dev, create a scenes branch
+
+	- [ ] Begin chapter 5
 
 	- [ ] Remove most (if not all) validation errors/warnings in the console.
 
