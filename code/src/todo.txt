@@ -88,6 +88,8 @@ Previously:
 
 	- [X] Completed blending in Chapter 3													30/08
 	- [X] Completed window resizing in Chapter 3											30/08
+	- [X] Completed descriptor abstractions in Chapter 4									30/08
+	- [X] Completed textures in Chapter 4													30/08
 
 
 Next time:

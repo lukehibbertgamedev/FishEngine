@@ -38,6 +38,15 @@ struct MeshPushConstants11 {
 	glm::mat4 matrix;
 };
 
+struct GPUSceneData {
+	glm::mat4 view;
+	glm::mat4 proj;
+	glm::mat4 viewproj;
+	glm::vec4 ambientColor;
+	glm::vec4 sunlightDirection; // w for sun power
+	glm::vec4 sunlightColor;
+};
+
 // Test push constants for use in the compute pipeline.
 struct ComputePushConstants {
 	glm::vec4 data1;
@@ -67,12 +76,14 @@ struct FrameData {
 	VkSemaphore m_PresentSemaphore, m_RenderSemaphore;					// Used for GPU -> GPU synchronisation.
 
 	//AllocatedBuffer11 cameraBuffer;									// Buffer holding a single GPUCameraData to use during rendering.
-	VkDescriptorSet globalDescriptor;									// Holds the matrices that we need.
+	//VkDescriptorSet globalDescriptor;									// Holds the matrices that we need.
 
 	//AllocatedBuffer11 objectBuffer;									//
-	VkDescriptorSet objectDescriptor;									// Holds the matrices that we need.
+	//VkDescriptorSet objectDescriptor;									// Holds the matrices that we need.
 
 	DeletionQueue deletionQueue;										// Allows the deletion of objects within the next frame after use.
+
+	DescriptorAllocatorGrowable _frameDescriptors;						// Used to create global scene data descriptor every frame (holds stuff like camera matrices).
 };
 
 class FishVulkanEngine {
@@ -97,6 +108,11 @@ public:
 	// 1.3 - Abstracted buffer creation.
 	AllocatedBuffer13 create_buffer13(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 	void destroy_buffer(const AllocatedBuffer13& buffer);
+
+	// 1.3 - Abstracted image creation.
+	AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
+	AllocatedImage create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
+	void destroy_image(const AllocatedImage& img);
 	
 	// 1.3 - Create a structure for drawing a mesh and send that data to the GPU (performs an immediate_submit).
 	GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
@@ -128,6 +144,9 @@ private:
 	void init_mesh_pipeline();
 	// 1.3 - Hook Vulkan, SDL2, and ImGui together with ImGui initialisation.
 	void initialise_imgui();
+	//
+	void initialise_default_data();
+
 	
 	// Unused for now: Initialise all entities, components, and systems for the Entity Component System.
 	//void initialise_entity_component_system();	
@@ -261,6 +280,22 @@ private:
 
 	VkPipelineLayout _meshPipelineLayout;								// Pipeline layout configured to render meshes.
 	VkPipeline _meshPipeline;											// Pipeline structure configured to render meshes.
+	VkPipelineLayout _trianglePipelineLayout;
+	VkPipeline _trianglePipeline;
 
+	GPUMeshBuffers rectangle;
 	std::vector<std::shared_ptr<MeshAsset>> testMeshes;					// Container of all loaded meshes to be rendered.
+
+	GPUSceneData sceneData;
+
+	VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
+	VkDescriptorSetLayout _singleImageDescriptorLayout;
+
+	AllocatedImage _whiteImage;
+	AllocatedImage _blackImage;
+	AllocatedImage _greyImage;
+	AllocatedImage _errorCheckerboardImage;
+
+	VkSampler _defaultSamplerLinear;
+	VkSampler _defaultSamplerNearest;
 };
