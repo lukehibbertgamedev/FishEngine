@@ -66,10 +66,10 @@ struct FrameData {
 	VkFence m_RenderFence;												// Used for GPU -> CPU communication.
 	VkSemaphore m_PresentSemaphore, m_RenderSemaphore;					// Used for GPU -> GPU synchronisation.
 
-	//AllocatedBuffer11 cameraBuffer;										// Buffer holding a single GPUCameraData to use during rendering.
+	//AllocatedBuffer11 cameraBuffer;									// Buffer holding a single GPUCameraData to use during rendering.
 	VkDescriptorSet globalDescriptor;									// Holds the matrices that we need.
 
-	//AllocatedBuffer11 objectBuffer;										//
+	//AllocatedBuffer11 objectBuffer;									//
 	VkDescriptorSet objectDescriptor;									// Holds the matrices that we need.
 
 	DeletionQueue deletionQueue;										// Allows the deletion of objects within the next frame after use.
@@ -157,6 +157,9 @@ private:
 	void destroy_swapchain();
 	// Destroy the previous swapchain and rebuild a new one.
 	void rebuild_swapchain();
+	// Create a new swapchain with new size.
+	// Note that the swapchain will freeze the image and not draw whilst resizing.
+	void resize_swapchain();
 
 	// Create a shader module loaded from a spri-v (.spv) file. Returns false if error occurred. 
 	bool load_shader_module(const char* filePath, VkShaderModule* outShaderModule);
@@ -195,6 +198,7 @@ private:
 	std::vector<VkImage> m_SwapchainImages;								// A vector of images that the swapchain will swap between (i.e. double/triple buffering).
 	std::vector<VkImageView> m_SwapchainImageViews;						// Metadata for the respective swapchain image.
 	VkExtent2D m_SwapchainExtent;										// The size of the swapchain image.
+	bool swapchain_resize_requested;									// A flag to determine if the window has been resized and we need to alter the swapchain dimensions.
 
 	// Allocation.
 	VmaAllocator m_Allocator;											// All buffers and images must be created on top of memory allocation. VMA abstracts this for us.
@@ -209,39 +213,39 @@ private:
 	VkImageView m_DepthImageView;										// Metadata for the depth image.
 	VkFormat m_DepthFormat;												// Cached format of the depth image for reuse.
 
-	// ...
-	AllocatedImage m_DrawImage;
-	VkExtent2D m_DrawExtent;
+	// Image (not handled by VkBootstrap to improve explicity)
+	AllocatedImage m_DrawImage;											// Image data.
+	VkExtent2D m_DrawExtent;											// Image render size.
+	float renderScale = 1.0f;											// A scale factor used for dynamic resolution.
 
 	// Descriptor Set.
 	VkDescriptorSetLayout m_SingleTextureSetLayout;						// ...
 	VkDescriptorSetLayout m_GlobalSetLayout;							// ...
 	VkDescriptorSetLayout m_ObjectSetLayout;							// ...
 	VkDescriptorPool m_DescriptorPool;									// ...
-
-	DescriptorAllocator m_GlobalDescriptorAllocator;
-	VkDescriptorSet m_DrawImageDescriptors;
-	VkDescriptorSetLayout m_DrawImageDescriptorLayout;
+	DescriptorAllocator m_GlobalDescriptorAllocator;					// ...
+	VkDescriptorSet m_DrawImageDescriptors;								// ...
+	VkDescriptorSetLayout m_DrawImageDescriptorLayout;					// ...
+	VkDescriptorPool m_ImGuiDescriptorPool;								// ... Descriptor pool info but one specific for ImGui.
 	
 	// Scene Data.
 	Fish::GPU::SceneData m_SceneParameters;								// ...
-	//AllocatedBuffer11 m_SceneParametersBuffer;							// ...
-	Fish::Camera m_Camera;												// A handle to our camera so we can move around our scene (expanded to current camera in future).
-
-	// ImGui.
-	VkDescriptorPool m_ImGuiDescriptorPool;								// ... Descriptor pool info but one specific for ImGui.
+	//AllocatedBuffer11 m_SceneParametersBuffer;						// ...
+	Fish::Camera m_Camera;												// A handle to our camera so we can move around our scene (expanded to current/main camera in future).
 
 	// Misc...
 	Fish::Timer::EngineTimer m_EngineTimer;								// A handle to our timer class so that we can calculate certain frame metrics.
 	UploadContext m_UploadContext;										// ... 
 	DeletionQueue m_DeletionQueue;										// More efficient implementation of a deletion/cleanup system. Uses a FIFO order (good for small engines).
-	VkRenderPass m_MainRenderPass;										// All rendering happens here. Begin and End render pass are recorded into the command buffer for other rendering commands between.
+	VkPipeline m_GradientPipeline;										// ...
+	VkPipelineLayout m_GradientPipelineLayout;							// ...
+
+	// 1.1 Implementation.
+	//VkRenderPass m_MainRenderPass;										// All rendering happens here. Begin and End render pass are recorded into the command buffer for other rendering commands between.
 
 	std::shared_ptr<Fish::ECS::Coordinator> m_Ecs; // m_EntityComponentSystemCoordinator
 	std::shared_ptr<Fish::ECS::System::Physics> m_PhysicsSystem;
 
-	VkPipeline m_GradientPipeline;
-	VkPipelineLayout m_GradientPipelineLayout;
 
 	// These are required for use of immediate GPU commands. An immediate_submit function will
 	// use a fence and a different command buffer from the one we use on draws to send commands to
@@ -252,16 +256,11 @@ private:
 
 	//
 
-	std::vector<ComputeEffect> backgroundEffects;
-	int currentBackgroundEffect{ 0 };
-	
-	///VkPipelineLayout _trianglePipelineLayout;
-	//VkPipeline _trianglePipeline;
+	std::vector<ComputeEffect> backgroundEffects;						// Container of shader effects for our background to be rendered.
+	int currentBackgroundEffect{ 0 };									// Currently selected background effect.
 
-	VkPipelineLayout _meshPipelineLayout;
-	VkPipeline _meshPipeline;
+	VkPipelineLayout _meshPipelineLayout;								// Pipeline layout configured to render meshes.
+	VkPipeline _meshPipeline;											// Pipeline structure configured to render meshes.
 
-	//GPUMeshBuffers rectangle;
-
-	std::vector<std::shared_ptr<MeshAsset>> testMeshes;
+	std::vector<std::shared_ptr<MeshAsset>> testMeshes;					// Container of all loaded meshes to be rendered.
 };

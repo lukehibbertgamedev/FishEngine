@@ -41,50 +41,23 @@ void FishVulkanEngine::init()
 
     // We initialize SDL and create a window with it.
     SDL_Init(SDL_INIT_VIDEO);
+    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
 
-    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN);
-
-    m_pWindow = SDL_CreateWindow(
-        "Fish Engine",
-        SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED,
-        m_WindowExtents.width,
-        m_WindowExtents.height,
-        window_flags);
+    m_pWindow = SDL_CreateWindow("Fish Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, m_WindowExtents.width, m_WindowExtents.height, window_flags);
 
     initialise_vulkan();
-        
-    //init_swapchain11(); // 1.1 Implementation
     initialise_swapchain();
-
     initialise_commands();
-
-    //init_main_renderpass(); // 1.1 Implementation
-
-    //init_framebuffers(); // 1.1 Implementation
-
     initialise_synchronisation_structures();
-
-    //init_descriptors11(); // 1.1 Implementation
     initialise_descriptors();
-
-    //init_pipelines11(); // 1.1 Implementation
     initialise_pipelines();
-
-    // load textures -> meshes -> scene
-    //Fish::ResourceManager::Get().init(); // 1.1 Implementation
-
-    // Required to be called after Vulkan initialisation.
-    //init_imgui11(); // 1.1 Implementation
-    initialise_imgui();
-
-    //init_default_data();
-
-    // Load meshes.
-    testMeshes = loadGltfMeshes(loadedEngine, "..//..//assets//basicmesh.glb").value();
+    initialise_imgui(); // Required to be called after Vulkan initialisation.
 
     // initialise entity component systems
     //init_ecs();
+    
+    // Load meshes.
+    testMeshes = loadGltfMeshes(loadedEngine, "..//..//assets//basicmesh.glb").value();
 
     Fish::Timer::EngineTimer _timer;
     m_EngineTimer = _timer;
@@ -575,7 +548,9 @@ void FishVulkanEngine::init_mesh_pipeline()
     //no multisampling
     pipelineBuilder.set_multisampling_none();
     //no blending
-    pipelineBuilder.disable_blending();
+    //pipelineBuilder.disable_blending();
+    //additive blending
+    pipelineBuilder.enable_blending_additive();
 
     pipelineBuilder.enable_depthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL);
 
@@ -738,6 +713,27 @@ void FishVulkanEngine::rebuild_swapchain()
     });
 }
 
+void FishVulkanEngine::resize_swapchain()
+{
+    // Wait for all GPU commands to finish.
+    vkDeviceWaitIdle(m_Device);
+
+    // Make sure to destroy the swapchain before creating a new one.
+    destroy_swapchain();
+
+    // Get the new window dimensions after resize.
+    int w, h;
+    SDL_GetWindowSize(m_pWindow, &w, &h);
+    m_WindowExtents.width = w;
+    m_WindowExtents.height = h;
+
+    // Create a new swapchain with those window dimensions.
+    create_swapchain(m_WindowExtents.width, m_WindowExtents.height);
+
+    // Now that the new swapchain has been created, we no longer need this flag set.
+    swapchain_resize_requested = false;
+}
+
 void FishVulkanEngine::initialise_descriptors()
 {
     // initialize the descriptor allocator with 10 sets, and 
@@ -867,6 +863,15 @@ void FishVulkanEngine::create_imgui_draw_data()
         ImGui::End();
     }
     // End Background Effects
+
+    // Begin render scale slider
+    {
+        if (ImGui::Begin("Zoom")) {
+            ImGui::SliderFloat("Zoom factor", &renderScale, 0.3f, 1.f);
+        }
+        ImGui::End();
+    }
+    // End render scale slider
 }
 
 void FishVulkanEngine::imgui_debug_data()
@@ -1028,13 +1033,13 @@ void FishVulkanEngine::draw()
 
     // If the swapchain image that we received is out of date, it will need to be reconstructed.
     if (e == VK_ERROR_OUT_OF_DATE_KHR) {
-        rebuild_swapchain();
+        swapchain_resize_requested = true;
         return;
     }
 
-    // ...
-    m_DrawExtent.width = m_DrawImage.imageExtent.width;
-    m_DrawExtent.height = m_DrawImage.imageExtent.height;
+    // Calculate the draw extents for our swapchain image using our render scale factor used for dynamic resolution.
+    m_DrawExtent.width = std::min(m_SwapchainExtent.width, m_DrawImage.imageExtent.width) * renderScale;
+    m_DrawExtent.height = std::min(m_SwapchainExtent.height, m_DrawImage.imageExtent.height) * renderScale;;
 
     // Set the state of the render fence to be unsignaled, we already waited for the fence synchronisation so now
     // we want to make sure it's ready to be used again this frame. You can't use the same fence on multiple
@@ -1121,6 +1126,11 @@ void FishVulkanEngine::draw()
     // the previous swapchain image will be swapped with this frame's swapchain image.
     VkResult presentResult = vkQueuePresentKHR(m_GraphicsQueue, &presentInfo);
 
+    // If the present command saw that our swapchain needs to be resized, set the flag so this can be done.
+    if (presentResult == VK_ERROR_OUT_OF_DATE_KHR) {
+        swapchain_resize_requested = true;
+    }
+
     // This frame is now completed, so we can increment total frames passed.
     m_FrameNumber++;
 }
@@ -1177,6 +1187,11 @@ void FishVulkanEngine::run()
             // throttle the speed to avoid the endless spinning
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue;
+        }
+
+        // if window has been resized in any way, the swapchain needs to be resized to render images to our new window.
+        if (swapchain_resize_requested) {
+            resize_swapchain();
         }
 
         m_EngineTimer.tick();

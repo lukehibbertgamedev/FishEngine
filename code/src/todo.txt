@@ -7,6 +7,7 @@ Future Todo:
 	- [ ] Define an error code and proper logging for Fish (i.e. FISH_ERROR, FISH_WARN, FISH_FATAL, FISH_LOG) potentially coloured in the console
 	- [ ] Begin implementing the 1.3 API as our currently implementation uses outdated code
 	- [ ] Create new folders for different parts (i.e. Backend, Core, Ecs) 
+	- [ ] When creating our draw image, set its initial dimensions to be the monitor resolution instead of window extents.
 
 Previously:
 
@@ -84,6 +85,10 @@ Previously:
 	- [X] Implemented graphics pipeline														28/08
 	- [X] Implemented mesh buffers to load triangle and rectangle							28/08
 	- [X] Load GLTF mesh from file															28/08
+
+	- [X] Completed blending in Chapter 3													30/08
+	- [X] Completed window resizing in Chapter 3											30/08
+
 
 Next time:
 
