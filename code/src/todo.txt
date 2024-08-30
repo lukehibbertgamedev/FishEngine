@@ -90,24 +90,17 @@ Previously:
 	- [X] Completed window resizing in Chapter 3											30/08
 	- [X] Completed descriptor abstractions in Chapter 4									30/08
 	- [X] Completed textures in Chapter 4													30/08
+	- [X] Completed engine architecture in Chapter 4										30/08
+	- [X] Completed setting up materials in Chapter 4										30/08
 
 
 Next time:
 
-	- [ ] Begin chapter 3
-
-	- [ ] We want to take a step back here, we don't entirely want to work on the scene and ECS if we
-	- [ ] don't have a stable framework to build upon. We need the Vulkan 1.3 features to really begin understanding
-	- [ ] our future changes. Our main priority right now is to complete the 1.3 refactor and only once that is stable, we can 
-	- [ ] merge our changes back into the development branch and branch off into a specified ecs branch to work on these changes.
-
-	- [ ] Come back to Improving the render loop chapter in the new API (the last bit of it) with changing create swapchain
-
 	- [!!!!] Refactor to use Vulkan API 1.3, stabilise the branch, merge to dev, create a scenes branch
 
-	- [ ] Pause work on the ECS until the 1.3 work has been completed, things will change a lot in this time
+	- [ ] Remove most (if not all) validation errors/warnings in the console.
 
-	- [ ] Refactor all code to match the 1.3 support for Vulkan
+	- [ ] Implement a simple logger to update throughout important steps in the engine.
 
 	- [ ] Begin refactoring current code to reflect the ECS demo (have current scene objects fall to gravity)
 

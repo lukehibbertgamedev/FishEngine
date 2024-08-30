@@ -38,6 +38,17 @@ struct MeshPushConstants11 {
 	glm::mat4 matrix;
 };
 
+struct RenderObject13 {
+	uint32_t indexCount;
+	uint32_t firstIndex;
+	VkBuffer indexBuffer;
+
+	MaterialInstance* material;
+
+	glm::mat4 transform;
+	VkDeviceAddress vertexBufferAddress;
+};
+
 struct GPUSceneData {
 	glm::mat4 view;
 	glm::mat4 proj;
@@ -118,11 +129,16 @@ public:
 	GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
 
 	// Accessors:
-	VmaAllocator GetAllocator() { return m_Allocator; }											 // By value accessor.
-	DeletionQueue& GetDeletionQueue() { return m_DeletionQueue; }								 // By reference accessor.
-	VkDevice& GetDevice() { return m_Device; } 													 // By reference accessor.
-	VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }							 // By reference accessor.
-	VkDescriptorSetLayout& GetSingleTextureSetLayout() { return m_SingleTextureSetLayout; }		 // By reference accessor.
+	VmaAllocator GetAllocator() { return m_Allocator; }	 // By value accessor.
+
+	DeletionQueue& GetDeletionQueue() { return m_DeletionQueue; } // By reference accessor.
+	VkDevice& GetDevice() { return m_Device; } // By reference accessor.
+	VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; } // By reference accessor.
+	VkDescriptorSetLayout& GetSingleTextureSetLayout() { return m_SingleTextureSetLayout; } // By reference accessor.
+	VkDescriptorSetLayout& GetGPUSceneDataDescriptorLayout() { return _gpuSceneDataDescriptorLayout; } // By reference accessor.
+	AllocatedImage& GetDrawImage() { return m_DrawImage; } // By reference accessor.
+	AllocatedImage& GetDepthImage() { return m_DepthImage; } // By reference accessor.
+
 
 private:
 
@@ -297,5 +313,38 @@ private:
 	AllocatedImage _errorCheckerboardImage;
 
 	VkSampler _defaultSamplerLinear;
-	VkSampler _defaultSamplerNearest;
+	VkSampler _defaultSamplerNearest;	
+
+	MaterialInstance defaultData;
+	GLTFMetallic_Roughness metalRoughMaterial;
+};
+
+struct GLTFMetallic_Roughness {
+	MaterialPipeline opaquePipeline;
+	MaterialPipeline transparentPipeline;
+
+	VkDescriptorSetLayout materialLayout;
+
+	struct MaterialConstants {
+		glm::vec4 colorFactors;
+		glm::vec4 metal_rough_factors;
+		//padding, we need it anyway for uniform buffers
+		glm::vec4 extra[14];
+	};
+
+	struct MaterialResources {
+		AllocatedImage colorImage;
+		VkSampler colorSampler;
+		AllocatedImage metalRoughImage;
+		VkSampler metalRoughSampler;
+		VkBuffer dataBuffer;
+		uint32_t dataBufferOffset;
+	};
+
+	DescriptorWriter writer;
+
+	void build_pipelines(FishVulkanEngine* engine);
+	void clear_resources(VkDevice device);
+
+	MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, DescriptorAllocatorGrowable& descriptorAllocator);
 };

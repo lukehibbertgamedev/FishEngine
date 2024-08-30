@@ -66,6 +66,22 @@ struct GPUDrawPushConstants {
     VkDeviceAddress vertexBuffer;
 };
 
+enum class MaterialPass :uint8_t {
+    MainColor,
+    Transparent,
+    Other
+};
+struct MaterialPipeline {
+    VkPipeline pipeline;
+    VkPipelineLayout layout;
+};
+
+struct MaterialInstance {
+    MaterialPipeline* pipeline;
+    VkDescriptorSet materialSet;
+    MaterialPass passType;
+};
+
 // Macro to ensure no errors occur. Used in functions that return a VkResult.
 // This will also fail on the actual line of error making it easier to debug.
 #define VK_CHECK(x)                                                     \

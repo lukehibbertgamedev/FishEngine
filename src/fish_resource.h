@@ -47,7 +47,7 @@ namespace Fish {
 			VkPipelineLayout pipelineLayout;
 		};
 
-		struct RenderObject {
+		struct RenderObject11 {
 			Fish::Component::Transform transform = {};
 			Mesh* pMesh = nullptr;
 			Material* pMaterial = nullptr;
