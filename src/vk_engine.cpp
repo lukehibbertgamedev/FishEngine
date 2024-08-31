@@ -54,6 +54,8 @@ void FishVulkanEngine::init()
     initialise_imgui(); // Required to be called after Vulkan initialisation.
 
     initialise_default_data();
+    initialise_camera();
+
     // Load meshes.
 
     // initialise entity component systems
@@ -349,6 +351,16 @@ void FishVulkanEngine::initialise_default_data()
 
         loadedNodes[m->name] = std::move(newNode);
     }
+}
+
+void FishVulkanEngine::initialise_camera()
+{
+    // Zero-out/Initialise the camera's default data.
+
+    m_Camera.m_Velocity = glm::vec3(0.f);
+    m_Camera.m_Position = glm::vec3(0, 0, 5);
+    m_Camera.m_Pitch = 0;
+    m_Camera.m_Yaw = 0;
 }
 
 void FishVulkanEngine::initialise_swapchain()
@@ -1592,6 +1604,18 @@ size_t FishVulkanEngine::pad_uniform_buffer_size(size_t originalSize)
 
 void FishVulkanEngine::update_scene()
 {
+    m_Camera.update();
+
+    glm::mat4 view = m_Camera.get_view_matrix();
+    glm::mat4 projection = glm::perspective(glm::radians(70.f), (float)m_WindowExtents.width / (float)m_WindowExtents.height, 10000.f, 0.1f);
+
+    // invert the Y direction on projection matrix so that we are more similar
+    // to opengl and gltf axis
+    projection[1][1] *= -1;
+    sceneData.view = view;
+    sceneData.proj = projection;
+    sceneData.viewproj = projection * view;
+
     mainDrawContext.OpaqueSurfaces.clear();
 
     for (auto& m : loadedNodes) {
@@ -1605,15 +1629,6 @@ void FishVulkanEngine::update_scene()
 
         loadedNodes["Cube"]->Draw(translation * scale, mainDrawContext);
     }
-
-    sceneData.view = glm::translate(glm::vec3{ 0,0,-5 });
-    // camera projection
-    sceneData.proj = glm::perspective(glm::radians(70.f), (float)m_WindowExtents.width / (float)m_WindowExtents.height, 10000.f, 0.1f);
-
-    // invert the Y direction on projection matrix so that we are more similar
-    // to opengl and gltf axis
-    sceneData.proj[1][1] *= -1;
-    sceneData.viewproj = sceneData.proj * sceneData.view;
 }
 
 void FishVulkanEngine::immediate_submit11(std::function<void(VkCommandBuffer cmd)>&& function)

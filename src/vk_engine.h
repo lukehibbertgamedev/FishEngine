@@ -205,6 +205,8 @@ private:
 	void initialise_imgui();
 	//
 	void initialise_default_data();
+	// Set default data for our main camera.
+	void initialise_camera();
 
 	
 	// Unused for now: Initialise all entities, components, and systems for the Entity Component System.
