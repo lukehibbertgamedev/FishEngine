@@ -19,8 +19,8 @@ add_executable (engine
   fish_camera.h
   mesh.h
   mesh.cpp
-  loader.h
-  loader.cpp
+  fish_loader.h
+  fish_loader.cpp
   fish_timer.h
   fish_timer.cpp
   fish_resource_manager.h

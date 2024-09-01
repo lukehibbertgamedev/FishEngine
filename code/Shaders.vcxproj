@@ -225,6 +225,66 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\colored_triangle_mesh.vert.spv.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/colored_triangle_mesh.vert.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/colored_triangle_mesh.vert -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/colored_triangle_mesh.vert.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle_mesh.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle_mesh.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/colored_triangle_mesh.vert.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/colored_triangle_mesh.vert -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/colored_triangle_mesh.vert.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle_mesh.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle_mesh.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/colored_triangle_mesh.vert.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/colored_triangle_mesh.vert -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/colored_triangle_mesh.vert.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle_mesh.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle_mesh.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/colored_triangle_mesh.vert.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/colored_triangle_mesh.vert -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/colored_triangle_mesh.vert.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle_mesh.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle_mesh.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
     <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\default_lit.frag.spv.rule">
       <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/default_lit.frag.spv</Message>
@@ -405,6 +465,126 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\mesh.frag.spv.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.frag.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.frag -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.frag.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.frag.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.frag -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.frag.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.frag.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.frag -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.frag.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.frag.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.frag -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.frag.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\mesh.vert.spv.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.vert.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.vert -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.vert.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.vert.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.vert -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.vert.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.vert.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.vert -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.vert.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.vert.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.vert -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/mesh.vert.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.vert;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.vert.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
     <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\redTriangle.frag.spv.rule">
       <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/redTriangle.frag.spv</Message>
@@ -581,6 +761,66 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\tex_image.frag.spv.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/tex_image.frag.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/tex_image.frag -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/tex_image.frag.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\tex_image.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\tex_image.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/tex_image.frag.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/tex_image.frag -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/tex_image.frag.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\tex_image.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\tex_image.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/tex_image.frag.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/tex_image.frag -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/tex_image.frag.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\tex_image.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\tex_image.frag.spv</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Generating C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/tex_image.frag.spv</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+C:\VulkanSDK\1.3.280.0\Bin\glslangValidator.exe -V C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/tex_image.frag -o C:/Users/lukeh/Desktop/FishEngine/Fish/shaders/tex_image.frag.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\tex_image.frag;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\tex_image.frag.spv</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
@@ -775,7 +1015,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\default_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\textured_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangleMesh.vert.spv;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle_mesh.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\default_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\tex_image.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\textured_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangleMesh.vert.spv;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\Shaders</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</VerifyInputsAndOutputsExist>
@@ -788,7 +1028,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\default_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\textured_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangleMesh.vert.spv;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle_mesh.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\default_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\tex_image.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\textured_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangleMesh.vert.spv;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\Shaders</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
       <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</VerifyInputsAndOutputsExist>
@@ -801,7 +1041,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\default_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\textured_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangleMesh.vert.spv;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle_mesh.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\default_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\tex_image.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\textured_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangleMesh.vert.spv;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\Shaders</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
       <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</VerifyInputsAndOutputsExist>
@@ -814,7 +1054,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\default_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\textured_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangleMesh.vert.spv;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\colored_triangle_mesh.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\default_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\gradient_color.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\mesh.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\redTriangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\sky.comp.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\tex_image.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\textured_lit.frag.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangle.vert.spv;C:\Users\lukeh\Desktop\FishEngine\Fish\shaders\triangleMesh.vert.spv;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\Shaders</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
       <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</VerifyInputsAndOutputsExist>

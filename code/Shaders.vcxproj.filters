@@ -7,6 +7,9 @@
     <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\colored_triangle.vert.spv.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\colored_triangle_mesh.vert.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
     <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\default_lit.frag.spv.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
@@ -16,6 +19,12 @@
     <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\gradient_color.comp.spv.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\mesh.frag.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\mesh.vert.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
     <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\redTriangle.frag.spv.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
@@ -23,6 +32,9 @@
       <Filter>CMake Rules</Filter>
     </CustomBuild>
     <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\sky.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\tex_image.frag.spv.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
     <CustomBuild Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\CMakeFiles\b7c0f7e5dca8c7f46d60a585b1f4e0e4\textured_lit.frag.spv.rule">

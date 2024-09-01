@@ -1,22 +1,21 @@
-﻿// vulkan_guide.h : Include file for standard system include files,
-// or project specific include files.
+﻿#pragma once
 
-// This will be the main class for the engine, and where most of the code of the vulkan guide tutorial will go.
-
-#pragma once
+// name: vk_engine.h
+// desc: The main class containing all engine elements and systems.
+// desc: Most of the code is modified from the Vulkan Guide by vblanco20-1 on Git.
+// auth: Luke Hibbert
 
 #include <vk_types.h>
-
 #include <fish_timer.h>
 #include <fish_resource_manager.h>
 #include <fish_ecs.h>
 #include <fish_ecs_systems.h>
-
-#include <unordered_map>
 #include <fish_camera.h>
 #include <fish_gpu_data.h>
+#include <fish_loader.h>
 #include <vk_descriptors.h>
-#include <loader.h>
+
+#include <unordered_map>
 
 class FishVulkanEngine;
 
@@ -79,7 +78,7 @@ struct RenderObject13 {
 	VkBuffer indexBuffer;
 
 	MaterialInstance* material;
-	Bounds bounds;
+	Fish::Loader::Bounds bounds;
 	glm::mat4 transform;
 	VkDeviceAddress vertexBufferAddress;
 };
@@ -91,7 +90,7 @@ struct DrawContext {
 
 struct MeshNode : public Node {
 
-	std::shared_ptr<MeshAsset> mesh;
+	std::shared_ptr<Fish::Loader::MeshAsset> mesh;
 
 	virtual void Draw(const glm::mat4& topMatrix, DrawContext& ctx) override;
 };
@@ -365,7 +364,7 @@ private:
 	VkPipeline _trianglePipeline;
 
 	GPUMeshBuffers rectangle;
-	std::vector<std::shared_ptr<MeshAsset>> testMeshes;					// Container of all loaded meshes to be rendered.
+	std::vector<std::shared_ptr<Fish::Loader::MeshAsset>> testMeshes;					// Container of all loaded meshes to be rendered.
 
 	GPUSceneData sceneData;
 
@@ -377,7 +376,7 @@ private:
 
 	void update_scene();
 
-	std::unordered_map<std::string, std::shared_ptr<LoadedGLTF>> loadedScenes;
+	std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes;
 
 	EngineStats stats;
 };

@@ -1,9 +1,8 @@
-﻿// vulkan_guide.h : Include file for standard system include files,
-// or project specific include files.
+﻿#pragma once
 
-// The entire codebase will include this header. it will provide widely used default structures and includes.
-
-#pragma once
+// name: vk_types.h
+// desc: A collection of important header files and structures that most of the codebase will include.
+// auth: Luke Hibbert
 
 #include <memory>
 #include <optional>
@@ -23,10 +22,13 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 
+// Flag to enable/disable the use of validation layers. Should be put into a constants/util file.
 constexpr bool kUseValidationLayers = true;
 
+// 2 for double buffering. Should be put into a constants/util file.
 constexpr unsigned int kFrameOverlap = 2;
 
+// ...
 struct AllocatedImage {
     VkImage image;
     VkImageView imageView;
@@ -35,6 +37,7 @@ struct AllocatedImage {
     VkFormat imageFormat;
 };
 
+// 1.3 - ...
 struct AllocatedBuffer13 {
     VkBuffer buffer;
     VmaAllocation allocation;
@@ -44,7 +47,6 @@ struct AllocatedBuffer13 {
 // The reason that the UV parameters are interleaved (weirdly positioned) is because of alignment limitations
 // on GPUs, it likes to be within blocks of 16 and v3 + float basically = v4 which is beautiful alignment.
 struct Vertex {
-
     glm::vec3 position;
     float uv_x;
     glm::vec3 normal;
@@ -52,7 +54,7 @@ struct Vertex {
     glm::vec4 color;
 };
 
-// Holds the resources needed for a mesh
+// Holds the resources needed for a mesh.
 struct GPUMeshBuffers {
 
     AllocatedBuffer13 indexBuffer;
@@ -60,28 +62,33 @@ struct GPUMeshBuffers {
     VkDeviceAddress vertexBufferAddress;
 };
 
-// Push constants for our mesh object draw calls
+// Push constants for our mesh object draw calls.
 struct GPUDrawPushConstants {
     glm::mat4 worldMatrix;
     VkDeviceAddress vertexBuffer;
 };
 
+// ...
 enum class MaterialPass :uint8_t {
     MainColor,
     Transparent,
     Other
 };
+
+// ...
 struct MaterialPipeline {
     VkPipeline pipeline;
     VkPipelineLayout layout;
 };
 
+// ...
 struct MaterialInstance {
     MaterialPipeline* pipeline;
     VkDescriptorSet materialSet;
     MaterialPass passType;
 };
 
+// Forward declaration.
 struct DrawContext;
 
 // base class for a renderable dynamic object

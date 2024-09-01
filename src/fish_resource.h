@@ -1,66 +1,15 @@
 #pragma once
 
+// name: fish_resource.h
+// desc: A collection of structures related to resources that we may load.
+// auth: Luke Hibbert
+
 #include <vk_types.h>
-#include <fish_components.h>
-#include <vector>
-#include <glm/vec3.hpp>
-#include <glm/vec2.hpp>
-#include <glm/gtx/transform.hpp>
 
 namespace Fish {
 
 	namespace Resource {
 
-		struct VertexInputDescription {
-			std::vector<VkVertexInputBindingDescription> bindings;
-			std::vector<VkVertexInputAttributeDescription> attributes;
-		};
-
-		struct Vertex {
-			glm::vec3 position;
-			glm::vec3 normal;
-			glm::vec3 colour;
-			glm::vec2 uv;
-
-			static VertexInputDescription get_vertex_description();
-		};
-
-		struct Mesh {
-			std::vector<Vertex> vertices;
-			//AllocatedBuffer11 vertexBuffer;
-
-			std::vector<uint32_t> indices;
-			//AllocatedBuffer11 indexBuffer;
-
-			bool load_from_obj(const char* filename);
-		};
-
-		struct Texture {
-			AllocatedImage image;
-
-			VkImageView imageView;
-		};
-
-		struct Material {
-			VkDescriptorSet textureSet{ VK_NULL_HANDLE }; //texture defaulted to null
-			VkPipeline pipeline;
-			VkPipelineLayout pipelineLayout;
-		};
-
-		struct RenderObject11 {
-			Fish::Component::Transform transform = {};
-			Mesh* pMesh = nullptr;
-			Material* pMaterial = nullptr;
-			glm::mat4 transformMatrix = glm::mat4(1.0f);
-
-			void update_model_matrix()
-			{
-				transformMatrix = glm::translate(transform.position) *
-					glm::rotate(glm::radians(transform.eulerRotation.x), glm::vec3(1.0f, 0.0f, 0.0f)) *
-					glm::rotate(glm::radians(transform.eulerRotation.y), glm::vec3(0.0f, 1.0f, 0.0f)) *
-					glm::rotate(glm::radians(transform.eulerRotation.z), glm::vec3(0.0f, 0.0f, 1.0f)) *
-					glm::scale(transform.scale);
-			}
-		};
+		
 	}
 }

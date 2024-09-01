@@ -1,5 +1,7 @@
 ﻿#include <vk_descriptors.h>
 
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------- //
+
 void DescriptorLayoutBuilder::add_binding(uint32_t binding, VkDescriptorType type)
 {
     VkDescriptorSetLayoutBinding newbind{};
@@ -78,6 +80,8 @@ VkDescriptorSet DescriptorAllocator::allocate(VkDevice device, VkDescriptorSetLa
 
     return ds;
 }
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------- //
 
 void DescriptorAllocatorGrowable::init(VkDevice device, uint32_t maxSets, std::span<PoolSizeRatio> poolRatios)
 {
@@ -200,6 +204,8 @@ VkDescriptorPool DescriptorAllocatorGrowable::create_pool(VkDevice device, uint3
     return newPool;
 }
 
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------- //
+
 void DescriptorWriter::write_image(int binding, VkImageView image, VkSampler sampler, VkImageLayout layout, VkDescriptorType type)
 {
     VkDescriptorImageInfo& info = imageInfos.emplace_back(VkDescriptorImageInfo{
@@ -253,3 +259,5 @@ void DescriptorWriter::update_set(VkDevice device, VkDescriptorSet set)
 
     vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
 }
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------- //

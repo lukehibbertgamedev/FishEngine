@@ -319,7 +319,7 @@ void FishVulkanEngine::initialise_camera()
 void FishVulkanEngine::initialise_renderables()
 {
     std::string structurePath = { "../../assets/structure.glb" };
-    auto structureFile = loadGltf(this, structurePath);
+    auto structureFile = Fish::Loader::loadGltf(this, structurePath);
 
     assert(structureFile.has_value());
 
@@ -463,19 +463,19 @@ void FishVulkanEngine::init_background_pipelines()
     // Load any shader files we want to use.
 
     VkShaderModule gradientColourShader;
-    if (!vkutil::load_shader_module("../../shaders/gradient_color.comp.spv", m_Device, &gradientColourShader))
+    if (!Fish::Pipeline::load_shader_module("../../shaders/gradient_color.comp.spv", m_Device, &gradientColourShader))
     {
         fmt::print("Error when building the gradient colour shader \n");
     }
 
     VkShaderModule gradientShader;
-    if (!vkutil::load_shader_module("../../shaders/gradient.comp.spv", m_Device, &gradientShader))
+    if (!Fish::Pipeline::load_shader_module("../../shaders/gradient.comp.spv", m_Device, &gradientShader))
     {
         fmt::print("Error when building the compute/gradient shader \n");
     }
     
     VkShaderModule skyShader;
-    if (!vkutil::load_shader_module("../../shaders/sky.comp.spv", m_Device, &skyShader))
+    if (!Fish::Pipeline::load_shader_module("../../shaders/sky.comp.spv", m_Device, &skyShader))
     {
         fmt::print("Error when building the sky shader \n");
     }
@@ -605,7 +605,7 @@ void FishVulkanEngine::init_background_pipelines()
 void FishVulkanEngine::init_mesh_pipeline()
 {
     VkShaderModule triangleFragShader;
-    if (!vkutil::load_shader_module("../../shaders/tex_image.frag.spv", m_Device, &triangleFragShader)) {
+    if (!Fish::Pipeline::load_shader_module("../../shaders/tex_image.frag.spv", m_Device, &triangleFragShader)) {
         fmt::print("Error when building the triangle fragment shader module");
     }
     else {
@@ -613,7 +613,7 @@ void FishVulkanEngine::init_mesh_pipeline()
     }
 
     VkShaderModule triangleVertexShader;
-    if (!vkutil::load_shader_module("../../shaders/colored_triangle_mesh.vert.spv", m_Device, &triangleVertexShader)) {
+    if (!Fish::Pipeline::load_shader_module("../../shaders/colored_triangle_mesh.vert.spv", m_Device, &triangleVertexShader)) {
         fmt::print("Error when building the triangle vertex shader module");
     }
     else {
@@ -632,7 +632,7 @@ void FishVulkanEngine::init_mesh_pipeline()
     pipeline_layout_info.setLayoutCount = 1;
     VK_CHECK(vkCreatePipelineLayout(m_Device, &pipeline_layout_info, nullptr, &_meshPipelineLayout));
 
-    Fish::PipelineBuilder13 pipelineBuilder;
+    Fish::Pipeline::Builder pipelineBuilder;
 
     //use the triangle layout we created
     pipelineBuilder._pipelineLayout = _meshPipelineLayout;
@@ -1817,12 +1817,12 @@ bool FishVulkanEngine::load_shader_module(const char* filePath, VkShaderModule* 
 void GLTFMetallic_Roughness::build_pipelines(FishVulkanEngine* engine)
 {
     VkShaderModule meshFragShader;
-    if (!vkutil::load_shader_module("../../shaders/mesh.frag.spv", engine->GetDevice(), &meshFragShader)) {
+    if (!Fish::Pipeline::load_shader_module("../../shaders/mesh.frag.spv", engine->GetDevice(), &meshFragShader)) {
         fmt::println("Error when building the triangle fragment shader module");
     }
 
     VkShaderModule meshVertexShader;
-    if (!vkutil::load_shader_module("../../shaders/mesh.vert.spv", engine->GetDevice(), &meshVertexShader)) {
+    if (!Fish::Pipeline::load_shader_module("../../shaders/mesh.vert.spv", engine->GetDevice(), &meshVertexShader)) {
         fmt::println("Error when building the triangle vertex shader module");
     }
 
@@ -1854,7 +1854,7 @@ void GLTFMetallic_Roughness::build_pipelines(FishVulkanEngine* engine)
 
     // build the stage-create-info for both vertex and fragment stages. This lets
     // the pipeline know the shader modules per stage
-    Fish::PipelineBuilder13 pipelineBuilder;
+    Fish::Pipeline::Builder pipelineBuilder;
     pipelineBuilder.set_shaders(meshVertexShader, meshFragShader);
     pipelineBuilder.set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
     pipelineBuilder.set_polygon_mode(VK_POLYGON_MODE_FILL);

@@ -33,7 +33,7 @@ void Fish::Camera::processSDLEvent(SDL_Event& e)
         if (e.key.keysym.sym == SDLK_q) { m_Velocity.y = 1; }   // Down
         if (e.key.keysym.sym == SDLK_e) { m_Velocity.y = -1; }  // Up
 
-        if (e.key.keysym.sym == SDLK_p) { m_Toggle = !m_Toggle; }  // Toggle camera movement.
+        if (e.key.keysym.sym == SDLK_p) { m_Toggle = !m_Toggle; }  // Toggle camera mouse movement.
     }                                     
                                           
     if (e.type == SDL_KEYUP) {            
@@ -46,6 +46,7 @@ void Fish::Camera::processSDLEvent(SDL_Event& e)
 
     }
 
+    // If we haven't turned our directional movement off, and we are trying to move...
     if (e.type == SDL_MOUSEMOTION && m_Toggle) {
         m_Yaw += e.motion.xrel / 200.f;
         m_Pitch -= e.motion.yrel / 200.f;

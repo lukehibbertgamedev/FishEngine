@@ -1,5 +1,9 @@
 ﻿#pragma once
 
+// name: vk_descriptors.h
+// desc: A collection of descriptor abstractions to make our lives a little easier.
+// auth: vblanco20-1 / Luke Hibbert
+
 #include <vk_types.h>
 
 // Abstraction to handle an array of bindings for building a descriptor layout.

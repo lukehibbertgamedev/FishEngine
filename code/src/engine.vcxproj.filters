@@ -31,7 +31,7 @@
     <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\loader.cpp">
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_timer.cpp">
@@ -81,7 +81,7 @@
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\loader.h">
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_timer.h">

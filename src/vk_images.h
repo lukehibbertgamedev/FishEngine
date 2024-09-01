@@ -1,7 +1,9 @@
-
-// This will contain image related vulkan helpers.
-
 #pragma once 
+
+// name: vk_images.h
+// desc: Helper functions for use with images.
+// desc: Most of the code is modified from the Vulkan Guide by vblanco20-1 on Git.
+// auth: Luke Hibbert
 
 namespace vkutil {
 
