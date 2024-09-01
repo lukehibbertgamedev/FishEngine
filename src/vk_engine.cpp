@@ -992,6 +992,18 @@ void FishVulkanEngine::create_imgui_draw_data()
         ImGui::End();
     }
     // End render scale slider
+
+    // Begin engine stats
+    {
+        ImGui::Begin("Stats");
+
+        ImGui::Text("frametime %f ms", stats.frametime);
+        ImGui::Text("drawtime %f ms", stats.mesh_draw_time);
+        ImGui::Text("triangles %i", stats.triangle_count);
+        ImGui::Text("draws %i", stats.drawcall_count);
+        ImGui::End();
+    }
+    // End engine stats
 }
 
 void FishVulkanEngine::imgui_debug_data()
@@ -1274,6 +1286,9 @@ void FishVulkanEngine::run()
     // main loop
     while (!bQuit) {
         
+        // Begin a timer for our engine debug metrics.
+        auto start = std::chrono::system_clock::now();
+
         // Handle events on queue.
         // This will ask SDL for all of the events that the OS has sent to the application
         // during the last frame. Here, we can check for things like keyboard events, mouse input, etc...
@@ -1294,6 +1309,9 @@ void FishVulkanEngine::run()
             
             // Window events.
             else if (e.type == SDL_WINDOWEVENT) {
+                if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+                    swapchain_resize_requested = true;
+                }
                 if (e.window.event == SDL_WINDOWEVENT_MINIMIZED) {
                     m_StopRendering = true;
                 }
@@ -1311,12 +1329,7 @@ void FishVulkanEngine::run()
         } // End event loop.
 
         // do not draw.
-        if (m_StopRendering) {
-
-            // throttle the speed to avoid the endless spinning
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            continue;
-        }
+        if (m_StopRendering) continue;
 
         // if window has been resized in any way, the swapchain needs to be resized to render images to our new window.
         if (swapchain_resize_requested) {
@@ -1325,13 +1338,18 @@ void FishVulkanEngine::run()
 
         m_EngineTimer.tick();
 
-        update_scene();
-
         // Set all draw data for ImGui so that the render loop can submit this data.
-        prepare_imgui();        
+        prepare_imgui();  
+
+        update_scene();
 
         // Main draw loop.
         draw();
+
+        // Calculate our final time for how long this frame took to complete.
+        auto end = std::chrono::system_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        stats.frametime = elapsed.count() / 1000.f;
     }
 }
 
@@ -1376,6 +1394,13 @@ bool is_visible(const RenderObject13& obj, const glm::mat4& viewproj) {
 
 void FishVulkanEngine::draw_geometry(VkCommandBuffer cmd)
 {
+    // Reset our count for this frame.
+    stats.drawcall_count = 0;
+    stats.triangle_count = 0;
+
+    // Begin our geometry timer to see how long it takes to draw all our meshes.
+    auto start = std::chrono::system_clock::now();
+
     std::vector<uint32_t> opaque_draws;
     opaque_draws.reserve(mainDrawContext.OpaqueSurfaces.size());
 
@@ -1464,6 +1489,10 @@ void FishVulkanEngine::draw_geometry(VkCommandBuffer cmd)
         vkCmdPushConstants(cmd, r.material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
 
         vkCmdDrawIndexed(cmd, r.indexCount, 1, r.firstIndex, 0, 0);
+        
+        // Count how many draw calls we have done this frame, along with the amount of triangles being rendered.
+        stats.drawcall_count++;
+        stats.triangle_count += r.indexCount / 3;
     };
 
     for (auto& r : opaque_draws) {
@@ -1477,6 +1506,11 @@ void FishVulkanEngine::draw_geometry(VkCommandBuffer cmd)
     // we delete the draw commands now that we processed them
     mainDrawContext.OpaqueSurfaces.clear();
     mainDrawContext.TransparentSurfaces.clear();
+
+    //convert to microseconds (integer), and then come back to miliseconds
+    auto end = std::chrono::system_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    stats.mesh_draw_time = elapsed.count() / 1000.f;
 }
 
 void FishVulkanEngine::draw_main(VkCommandBuffer cmd)
@@ -1631,13 +1665,17 @@ AllocatedImage FishVulkanEngine::create_image(void* data, VkExtent3D size, VkFor
         copyRegion.imageExtent = size;
 
         // copy the buffer into the image
-        vkCmdCopyBufferToImage(cmd, uploadbuffer.buffer, new_image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+        vkCmdCopyBufferToImage(cmd, uploadbuffer.buffer, new_image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+            &copyRegion);
 
-        vkutil::transition_image(cmd, new_image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); 
+        if (mipmapped) {
+            vkutil::generate_mipmaps(cmd, new_image.image, VkExtent2D{ new_image.imageExtent.width,new_image.imageExtent.height });
+        }
+        else {
+            vkutil::transition_image(cmd, new_image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        }
     });
-
     destroy_buffer(uploadbuffer);
-
     return new_image;
 }
 
@@ -1884,11 +1922,16 @@ void MeshNode::Draw(const glm::mat4& topMatrix, DrawContext& ctx)
         def.firstIndex = s.startIndex;
         def.indexBuffer = mesh->meshBuffers.indexBuffer.buffer;
         def.material = &s.material->data;
-
+        def.bounds = s.bounds;
         def.transform = nodeMatrix;
         def.vertexBufferAddress = mesh->meshBuffers.vertexBufferAddress;
 
-        ctx.OpaqueSurfaces.push_back(def);
+        if (s.material->data.passType == MaterialPass::Transparent) {
+            ctx.TransparentSurfaces.push_back(def);
+        }
+        else {
+            ctx.OpaqueSurfaces.push_back(def);
+        }
     }
 
     // recurse down

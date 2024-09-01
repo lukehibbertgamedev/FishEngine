@@ -35,6 +35,14 @@ struct DeletionQueue {
 	}
 };
 
+struct EngineStats {
+	float frametime;
+	int triangle_count;
+	int drawcall_count;
+	float scene_update_time;
+	float mesh_draw_time;
+};
+
 struct GLTFMetallic_Roughness {
 	MaterialPipeline opaquePipeline;
 	MaterialPipeline transparentPipeline;
@@ -370,4 +378,6 @@ private:
 	void update_scene();
 
 	std::unordered_map<std::string, std::shared_ptr<LoadedGLTF>> loadedScenes;
+
+	EngineStats stats;
 };

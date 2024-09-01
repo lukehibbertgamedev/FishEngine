@@ -95,13 +95,19 @@ Previously:
 	- [X] Completed meshes and camera in Chapter 4 (the final part of Chapter 4)			30/08
 
 	- [X] Brought back the interactive camera from Chapter 5								31/08
+	
+	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+
+	- [X] Completed GLTF scene nodes in Chapter 5											01/09
+	- [X] Completed GLTF textures in Chapter 5												01/09
+	- [X] Completed faster draw in Chapter 5 (the final part of Chapter 5)					01/09 *
 
 
 Next time:
 
-	- [!!!!] Refactor to use Vulkan API 1.3, stabilise the branch, merge to dev, create a scenes branch
+	- [!!!!] Refactor to use Vulkan API 1.3 (done), stabilise the branch (doing), merge to dev, create a scenes branch
 
-	- [ ] Begin chapter 5
+	- [ ] Fix the cleanup error on window close.
 
 	- [ ] Remove most (if not all) validation errors/warnings in the console.
 
