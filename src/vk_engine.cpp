@@ -26,6 +26,8 @@
 #include <fish_pipeline.h>
 #include <vk_pipelines.h>
 
+#include <fish_logger.h>
+
 // We set a *global* pointer for the vulkan engine singleton reference. 
 // We do that instead of a typical singleton because we want to control explicitly when is the class initalized and destroyed. 
 // The normal Cpp singleton pattern doesnt give us control over that.
@@ -42,8 +44,7 @@ void FishEngine::init()
     // We initialize SDL and create a window with it.
     SDL_Init(SDL_INIT_VIDEO);
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
-
-    m_pWindow = SDL_CreateWindow("Fish Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, m_WindowExtents.width, m_WindowExtents.height, window_flags);
+    m_pWindow = SDL_CreateWindow("Fish Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, m_WindowExtents.width, m_WindowExtents.height, window_flags); 
 
     initialise_vulkan();
     initialise_swapchain();
@@ -51,11 +52,9 @@ void FishEngine::init()
     initialise_synchronisation_structures();
     initialise_descriptors();
     initialise_pipelines();
-
     initialise_default_data();
     initialise_camera();
     initialise_renderables();
-
     initialise_imgui(); // Required to be called after Vulkan initialisation.
     // Load meshes.
 
@@ -318,7 +317,7 @@ void FishEngine::initialise_camera()
 
 void FishEngine::initialise_renderables()
 {
-    std::string structurePath = { "../../assets/structure.glb" };
+    std::string structurePath = { "../../assets/house.glb" };
     auto structureFile = Fish::Loader::loadGltf(this, structurePath);
 
     assert(structureFile.has_value());

@@ -52,6 +52,9 @@
     <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_ecs_systems.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_logger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_types.h">
@@ -106,6 +109,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_ecs_systems.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\nlohmann_json.h">

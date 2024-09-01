@@ -513,6 +513,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/MinSizeRel/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/RelWithDebInfo/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_logger.h" />
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_logger.cpp">
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/Debug/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/Release/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/MinSizeRel/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/RelWithDebInfo/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+    </ClCompile>
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\nlohmann_json.h" />
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\nlohmann_json_fwd.h" />
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\tiny_obj_loader.h" />
