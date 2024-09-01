@@ -35,7 +35,6 @@ struct DeletionQueue {
 };
 
 struct EngineStats {
-	float frametime;
 	int triangle_count;
 	int drawcall_count;
 	float scene_update_time;
@@ -188,17 +187,16 @@ public:
 	AllocatedImage& GetDrawImage() { return m_DrawImage; } // By reference accessor.
 	AllocatedImage& GetDepthImage() { return m_DepthImage; } // By reference accessor.
 
+	// Public members (right now this is for absolutely no reason at all other than it isn't important to fix)
 	AllocatedImage _errorCheckerboardImage;
 	AllocatedImage _whiteImage;
 	AllocatedImage _blackImage;
 	AllocatedImage _greyImage;
-
 	VkSampler _defaultSamplerLinear;
-	VkSampler _defaultSamplerNearest;	
+	VkSampler _defaultSamplerNearest;
 	GLTFMetallic_Roughness metalRoughMaterial;
 private:
-	MaterialInstance defaultData;
-
+	
 	// Initialise the Vulkan instance.
 	void initialise_vulkan();
 	// 1.3 - Create the entire swapchain.
@@ -230,6 +228,8 @@ private:
 
 	// Unused for now: Step system calculations forward. Updates systems such as collision and physics.
 	//void update(float deltatime);
+	// 1.3 - Update the camera and draw all renderable GLTF nodes.
+	void update_scene();
 
 	// 1.3 - Main draw loop for sycnhronisation and recording command buffers.
 	void draw();
@@ -262,6 +262,8 @@ private:
 
 	// Return frame data for the frame we are rendering to right now.
 	FrameData& get_current_frame();
+	// Return frame data for the frame we just previously rendered.
+	FrameData& get_last_frame();
 
 	// Pad a uniform buffer size based on the minimum device offset alignment. See more (https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer).
 	size_t pad_uniform_buffer_size(size_t originalSize);
@@ -333,16 +335,14 @@ private:
 	// Misc...
 	Fish::Timer::EngineTimer m_EngineTimer;								// A handle to our timer class so that we can calculate certain frame metrics.
 	UploadContext m_UploadContext;										// ... 
+
 	DeletionQueue m_DeletionQueue;										// More efficient implementation of a deletion/cleanup system. Uses a FIFO order (good for small engines).
-	VkPipeline m_GradientPipeline;										// ...
-	VkPipelineLayout m_GradientPipelineLayout;							// ...
 
-	// 1.1 Implementation.
-	//VkRenderPass m_MainRenderPass;										// All rendering happens here. Begin and End render pass are recorded into the command buffer for other rendering commands between.
+	VkPipeline m_GradientPipeline;										// Compute pipeline for our shader effects.
+	VkPipelineLayout m_GradientPipelineLayout;							// Pipeline layout for use in our compute shaders.
 
-	std::shared_ptr<Fish::ECS::Coordinator> m_Ecs; // m_EntityComponentSystemCoordinator
-	std::shared_ptr<Fish::ECS::System::Physics> m_PhysicsSystem;
-
+	std::shared_ptr<Fish::ECS::Coordinator> m_Ecs;						// m_EntityComponentSystemCoordinator
+	std::shared_ptr<Fish::ECS::System::Physics> m_PhysicsSystem;		// A simple physics system to test out our ECS.
 
 	// These are required for use of immediate GPU commands. An immediate_submit function will
 	// use a fence and a different command buffer from the one we use on draws to send commands to
@@ -372,7 +372,8 @@ private:
 	DrawContext mainDrawContext;
 	std::unordered_map<std::string, std::shared_ptr<Node>> loadedNodes;
 
-	void update_scene();
+	
+	MaterialInstance defaultData;
 
 	std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes;
 

@@ -52,6 +52,11 @@ namespace Fish {
 			return (float)mDeltaTime;
 		}
 
+		float EngineTimer::frame_time() const
+		{
+			return (float)mDeltaTime * 1000.0f;
+		}
+
 		void Fish::Timer::EngineTimer::reset()
 		{
 			__int64 currTime;

@@ -123,7 +123,7 @@ namespace Fish {
 
 			// This can be done in its own function:
 			{
-				std::string logText = "Loading GLTF file: ";
+				std::string logText = "- Loading GLTF file: ";
 				size_t pos = filePath.find_last_of("/\\");
 				std::string_view filename = (pos == std::string::npos) ? filePath : filePath.substr(pos + 1);
 				std::string x = logText + filename.data();

@@ -110,13 +110,15 @@ void FishEngine::initialise_vulkan()
     VkPhysicalDeviceVulkan12Features features12{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
     features12.bufferDeviceAddress = true;
     features12.descriptorIndexing = true;
+    features12.descriptorBindingPartiallyBound = true;
+    features12.descriptorBindingVariableDescriptorCount = true;
+    features12.runtimeDescriptorArray = true;
 
     //use vkbootstrap to select a gpu. 
     //We want a gpu that can write to the SDL surface and supports vulkan 1.3 with the correct features
     vkb::PhysicalDeviceSelector selector{ vkb_instance };
     vkb::PhysicalDevice physicalDevice = selector
         .set_minimum_version(1, 3)
-        //.set_desired_version(1, 3)
         .set_required_features_13(features)
         .set_required_features_12(features12)
         .set_surface(m_SurfaceKHR)
@@ -152,12 +154,13 @@ void FishEngine::initialise_vulkan()
     m_DeletionQueue.push_function([&]() { vmaDestroyAllocator(m_Allocator); });
 
     vkGetPhysicalDeviceProperties(m_PhysicalDevice, &m_GPUProperties);
-
     std::cout << "The GPU has a minimum buffer alignment of " << m_GPUProperties.limits.minUniformBufferOffsetAlignment << std::endl;
 }
 
 void FishEngine::initialise_imgui()
 {
+    FISH_LOG("Initialising ImGui...");
+
     // 1: Create the descriptor pool for ImGui.
 
     // Adapted from the ImGui demos, create structures that ImGui wants.
@@ -319,9 +322,9 @@ void FishEngine::initialise_camera()
     // Zero-out/Initialise the camera's default data.
 
     m_Camera.m_Velocity = glm::vec3(0.f);
-    m_Camera.m_Position = glm::vec3(30.f, -00.f, -085.f);
-    m_Camera.m_Pitch = 0;
-    m_Camera.m_Yaw = 0;
+    m_Camera.m_Position = glm::vec3(28.0f, 22.0f, 21.0f);
+    m_Camera.m_Pitch = -0.3;
+    m_Camera.m_Yaw = 5.6;
 }
 
 void FishEngine::initialise_renderables()
@@ -426,19 +429,6 @@ void FishEngine::initialise_commands()
 
     m_DeletionQueue.push_function([=]() { vkDestroyCommandPool(m_Device, m_ImmediateCommandPool, nullptr); });
     // < Immediate Commands
-
-    //create pool for upload context
-    VkCommandPoolCreateInfo uploadCommandPoolInfo = vkinit::command_pool_create_info(m_GraphicsQueueFamily);
-    VK_CHECK(vkCreateCommandPool(m_Device, &uploadCommandPoolInfo, nullptr, &m_UploadContext.commandPool));
-
-    m_DeletionQueue.push_function([=]() {
-        vkDestroyCommandPool(m_Device, m_UploadContext.commandPool, nullptr);
-    });
-
-    //allocate the default command buffer that we will use for rendering
-    VkCommandBufferAllocateInfo uploadCmdAllocInfo = vkinit::command_buffer_allocate_info(m_UploadContext.commandPool, 1);
-
-    VK_CHECK(vkAllocateCommandBuffers(m_Device, &uploadCmdAllocInfo, &m_UploadContext.commandBuffer));
 }
 
 void FishEngine::initialise_pipelines()
@@ -985,7 +975,7 @@ void FishEngine::create_imgui_draw_data()
 
     // Begin Background Effects
     {
-        if (ImGui::Begin("Background")) {
+        /*if (ImGui::Begin("Background")) {
 
             ComputeEffect& selected = backgroundEffects[currentBackgroundEffect];
 
@@ -998,39 +988,30 @@ void FishEngine::create_imgui_draw_data()
             ImGui::InputFloat4("data3", (float*)&selected.data.data3);
             ImGui::InputFloat4("data4", (float*)&selected.data.data4);
         }
-        ImGui::End();
+        ImGui::End();*/
     }
     // End Background Effects
 
     // Begin render scale slider
     {
-        if (ImGui::Begin("Zoom")) {
+        /*if (ImGui::Begin("Zoom")) {
             ImGui::SliderFloat("Zoom factor", &renderScale, 0.3f, 1.f);
         }
-        ImGui::End();
+        ImGui::End();*/
     }
     // End render scale slider
-
-    // Begin engine stats
-    {
-        ImGui::Begin("Stats");
-
-        ImGui::Text("frametime %f ms", stats.frametime);
-        ImGui::Text("drawtime %f ms", stats.mesh_draw_time);
-        ImGui::Text("triangles %i", stats.triangle_count);
-        ImGui::Text("draws %i", stats.drawcall_count);
-        ImGui::End();
-    }
-    // End engine stats
 }
 
 void FishEngine::imgui_debug_data()
 {
-
     ImGui::Text("Debug data for Fish engine.");
 
     ImGui::Text("Elapsed: %f", m_EngineTimer.engine_time());
-    ImGui::Text("Delta Time: %f", m_EngineTimer.delta_time());
+    ImGui::Text("Frame Time: %fms", m_EngineTimer.frame_time()); 
+    ImGui::Text("Geometry Draw Time: %f ms", stats.mesh_draw_time);
+    ImGui::Text("Scene Update Time: %f ms", stats.scene_update_time);
+    ImGui::Text("Number of triangles: %i", stats.triangle_count);
+    ImGui::Text("Number of draw calls: %i", stats.drawcall_count);
     ImGui::Text("Camera Position: %f, %f, %f", m_Camera.m_Position.x, m_Camera.m_Position.y, m_Camera.m_Position.z);
     ImGui::Text("Camera Pitch/Yaw: %f/%f", m_Camera.m_Pitch, m_Camera.m_Yaw);
 }
@@ -1168,7 +1149,7 @@ void FishEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView)
 void FishEngine::draw()
 {
     // This function gets called at the very start of the draw() function, before waiting on the frame fences.
-    update_scene();
+    //update_scene();
 
     // Wait for the render fence to enter a signalled state meaning the GPU has finished 
     // rendering the previous frame and the GPU is now synchronised with the CPU.
@@ -1296,9 +1277,6 @@ void FishEngine::run()
 
     // main loop
     while (!bQuit) {
-        
-        // Begin a timer for our engine debug metrics.
-        auto start = std::chrono::system_clock::now();
 
         // Handle events on queue.
         // This will ask SDL for all of the events that the OS has sent to the application
@@ -1352,15 +1330,16 @@ void FishEngine::run()
         // Set all draw data for ImGui so that the render loop can submit this data.
         prepare_imgui();  
 
-        update_scene();
+        auto scene_start = std::chrono::system_clock::now();                                                    // Start the timer for the scene update function.
+        
+        update_scene();                                                                                         // Update the scene.
+
+        auto scene_end = std::chrono::system_clock::now();                                                      // End the timer for the scene update function.
+        auto scene_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(scene_end - scene_start);    // Calculate the update time based on start and end time.
+        stats.scene_update_time = scene_elapsed.count() / 1000.f;
 
         // Main draw loop.
         draw();
-
-        // Calculate our final time for how long this frame took to complete.
-        auto end = std::chrono::system_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        stats.frametime = elapsed.count() / 1000.f;
     }
 }
 
@@ -1408,9 +1387,6 @@ void FishEngine::draw_geometry(VkCommandBuffer cmd)
     // Reset our count for this frame.
     stats.drawcall_count = 0;
     stats.triangle_count = 0;
-
-    // Begin our geometry timer to see how long it takes to draw all our meshes.
-    auto start = std::chrono::system_clock::now();
 
     std::vector<uint32_t> opaque_draws;
     opaque_draws.reserve(mainDrawContext.OpaqueSurfaces.size());
@@ -1517,11 +1493,6 @@ void FishEngine::draw_geometry(VkCommandBuffer cmd)
     // we delete the draw commands now that we processed them
     mainDrawContext.OpaqueSurfaces.clear();
     mainDrawContext.TransparentSurfaces.clear();
-
-    //convert to microseconds (integer), and then come back to miliseconds
-    auto end = std::chrono::system_clock::now();
-    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    stats.mesh_draw_time = elapsed.count() / 1000.f;
 }
 
 void FishEngine::draw_main(VkCommandBuffer cmd)
@@ -1593,6 +1564,11 @@ void FishEngine::draw_main(VkCommandBuffer cmd)
 FrameData& FishEngine::get_current_frame()
 {
     return m_Frames[m_FrameNumber % kFrameOverlap];
+}
+
+FrameData& FishEngine::get_last_frame()
+{
+    return m_Frames[(m_FrameNumber - 1) % kFrameOverlap];
 }
 
 AllocatedBuffer13 FishEngine::create_buffer13(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage)

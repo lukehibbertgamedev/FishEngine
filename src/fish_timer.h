@@ -13,6 +13,7 @@ namespace Fish {
 
 			float engine_time() const; // in secs
 			float delta_time() const; // in secs
+			float frame_time() const; // in msecs
 
 			void reset(); // before msg loop
 			void start(); // unpaused
