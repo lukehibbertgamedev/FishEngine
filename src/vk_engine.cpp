@@ -51,11 +51,12 @@ void FishVulkanEngine::init()
     initialise_synchronisation_structures();
     initialise_descriptors();
     initialise_pipelines();
-    initialise_imgui(); // Required to be called after Vulkan initialisation.
 
     initialise_default_data();
     initialise_camera();
+    initialise_renderables();
 
+    initialise_imgui(); // Required to be called after Vulkan initialisation.
     // Load meshes.
 
     // initialise entity component systems
@@ -247,6 +248,15 @@ void FishVulkanEngine::initialise_default_data()
     rect_vertices[2].color = { 1,0, 0,1 };
     rect_vertices[3].color = { 0,1, 0,1 };
 
+    rect_vertices[0].uv_x = 1;
+    rect_vertices[0].uv_y = 0;
+    rect_vertices[1].uv_x = 0;
+    rect_vertices[1].uv_y = 0;
+    rect_vertices[2].uv_x = 1;
+    rect_vertices[2].uv_y = 1;
+    rect_vertices[3].uv_x = 0;
+    rect_vertices[3].uv_y = 1;
+
     std::array<uint32_t, 6> rect_indices;
 
     rect_indices[0] = 0;
@@ -258,14 +268,6 @@ void FishVulkanEngine::initialise_default_data()
     rect_indices[5] = 3;
 
     rectangle = upload_mesh(rect_indices, rect_vertices);
-
-    //delete the rectangle data on engine shutdown
-    m_DeletionQueue.push_function([&]() {
-        destroy_buffer(rectangle.indexBuffer);
-        destroy_buffer(rectangle.vertexBuffer);
-    });
-
-    /////
 
     //3 default textures, white, grey, black. 1 pixel each
     uint32_t white = glm::packUnorm4x8(glm::vec4(1, 1, 1, 1));
@@ -288,6 +290,7 @@ void FishVulkanEngine::initialise_default_data()
             pixels[y * 16 + x] = ((x % 2) ^ (y % 2)) ? magenta : black;
         }
     }
+
     _errorCheckerboardImage = create_image(pixels.data(), VkExtent3D{ 16, 16, 1 }, VK_FORMAT_R8G8B8A8_UNORM,
         VK_IMAGE_USAGE_SAMPLED_BIT);
 
@@ -301,56 +304,6 @@ void FishVulkanEngine::initialise_default_data()
     sampl.magFilter = VK_FILTER_LINEAR;
     sampl.minFilter = VK_FILTER_LINEAR;
     vkCreateSampler(m_Device, &sampl, nullptr, &_defaultSamplerLinear);
-
-    m_DeletionQueue.push_function([&]() {
-        vkDestroySampler(m_Device, _defaultSamplerNearest, nullptr);
-        vkDestroySampler(m_Device, _defaultSamplerLinear, nullptr);
-
-        destroy_image(_whiteImage);
-        destroy_image(_greyImage);
-        destroy_image(_blackImage);
-        destroy_image(_errorCheckerboardImage);
-    });
-
-    GLTFMetallic_Roughness::MaterialResources materialResources;
-    //default the material textures
-    materialResources.colorImage = _whiteImage;
-    materialResources.colorSampler = _defaultSamplerLinear;
-    materialResources.metalRoughImage = _whiteImage;
-    materialResources.metalRoughSampler = _defaultSamplerLinear;
-
-    //set the uniform buffer for the material data
-    AllocatedBuffer13 materialConstants = create_buffer13(sizeof(GLTFMetallic_Roughness::MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-
-    //write the buffer
-    GLTFMetallic_Roughness::MaterialConstants* sceneUniformData = (GLTFMetallic_Roughness::MaterialConstants*)materialConstants.allocation->GetMappedData();
-    sceneUniformData->colorFactors = glm::vec4{ 1,1,1,1 };
-    sceneUniformData->metal_rough_factors = glm::vec4{ 1,0.5,0,0 };
-
-    m_DeletionQueue.push_function([=, this]() {
-        destroy_buffer(materialConstants);
-    });
-
-    materialResources.dataBuffer = materialConstants.buffer;
-    materialResources.dataBufferOffset = 0;
-
-    defaultData = metalRoughMaterial.write_material(m_Device, MaterialPass::MainColor, materialResources, m_GlobalDescriptorAllocatorGrowable);
-
-    testMeshes = loadGltfMeshes(loadedEngine, "..//..//assets//basicmesh.glb").value();
-
-    for (auto& m : testMeshes) {
-        std::shared_ptr<MeshNode> newNode = std::make_shared<MeshNode>();
-        newNode->mesh = m;
-
-        newNode->localTransform = glm::mat4{ 1.f };
-        newNode->worldTransform = glm::mat4{ 1.f };
-
-        for (auto& s : newNode->mesh->surfaces) {
-            s.material = std::make_shared<GLTFMaterial>(defaultData);
-        }
-
-        loadedNodes[m->name] = std::move(newNode);
-    }
 }
 
 void FishVulkanEngine::initialise_camera()
@@ -358,9 +311,19 @@ void FishVulkanEngine::initialise_camera()
     // Zero-out/Initialise the camera's default data.
 
     m_Camera.m_Velocity = glm::vec3(0.f);
-    m_Camera.m_Position = glm::vec3(0, 0, 5);
+    m_Camera.m_Position = glm::vec3(30.f, -00.f, -085.f);
     m_Camera.m_Pitch = 0;
     m_Camera.m_Yaw = 0;
+}
+
+void FishVulkanEngine::initialise_renderables()
+{
+    std::string structurePath = { "../../assets/structure.glb" };
+    auto structureFile = loadGltf(this, structurePath);
+
+    assert(structureFile.has_value());
+
+    loadedScenes["structure"] = *structureFile;
 }
 
 void FishVulkanEngine::initialise_swapchain()
@@ -473,7 +436,7 @@ void FishVulkanEngine::initialise_pipelines()
 
     // Graphics Pipelines.
     //init_triangle_pipeline();
-    init_mesh_pipeline();
+    //init_mesh_pipeline();
 
     metalRoughMaterial.build_pipelines(this);
 }
@@ -880,12 +843,16 @@ void FishVulkanEngine::initialise_descriptors()
     // VK_DESCRIPTOR_TYPE_STORAGE_IMAGE too (matching the pool).
 
     //create a descriptor pool that will hold 10 sets with 1 image each
-    std::vector<DescriptorAllocatorGrowable::PoolSizeRatio> sizes =
+    std::vector<DescriptorAllocator::PoolSizeRatio> sizes =
     {
-        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1 }
+        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 3 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3 },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 3 },
     };
 
-    m_GlobalDescriptorAllocatorGrowable.init(m_Device, 10, sizes);
+    m_GlobalDescriptorAllocator.init_pool(m_Device, 10, sizes);
+    m_DeletionQueue.push_function(
+        [&]() { vkDestroyDescriptorPool(m_Device, m_GlobalDescriptorAllocator.pool, nullptr); });
 
     //make the descriptor set layout for our compute draw
     {
@@ -893,33 +860,23 @@ void FishVulkanEngine::initialise_descriptors()
         builder.add_binding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
         m_DrawImageDescriptorLayout = builder.build(m_Device, VK_SHADER_STAGE_COMPUTE_BIT);
     }
-
-    {
-        DescriptorLayoutBuilder builder;
-        builder.add_binding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-        _singleImageDescriptorLayout = builder.build(m_Device, VK_SHADER_STAGE_FRAGMENT_BIT);
-    }
-
     {
         DescriptorLayoutBuilder builder;
         builder.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
         _gpuSceneDataDescriptorLayout = builder.build(m_Device, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
     }
 
-    //allocate a descriptor set for our draw image
-    m_DrawImageDescriptors = m_GlobalDescriptorAllocatorGrowable.allocate(m_Device, m_DrawImageDescriptorLayout);
-
-    DescriptorWriter writer;
-    writer.write_image(0, m_DrawImage.imageView, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-    writer.update_set(m_Device, m_DrawImageDescriptors);
-
-    //make sure both the descriptor allocator and the new layout get cleaned up properly
     m_DeletionQueue.push_function([&]() {
-        m_GlobalDescriptorAllocatorGrowable.destroy_pools(m_Device);
         vkDestroyDescriptorSetLayout(m_Device, m_DrawImageDescriptorLayout, nullptr);
+        vkDestroyDescriptorSetLayout(m_Device, _gpuSceneDataDescriptorLayout, nullptr);
     });
 
-    // per-frame initialisation and clean up
+    m_DrawImageDescriptors = m_GlobalDescriptorAllocator.allocate(m_Device, m_DrawImageDescriptorLayout);
+    {
+        DescriptorWriter writer;
+        writer.write_image(0, m_DrawImage.imageView, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+        writer.update_set(m_Device, m_DrawImageDescriptors);
+    }
     for (int i = 0; i < kFrameOverlap; i++) {
         // create a descriptor pool
         std::vector<DescriptorAllocatorGrowable::PoolSizeRatio> frame_sizes = {
@@ -931,7 +888,6 @@ void FishVulkanEngine::initialise_descriptors()
 
         m_Frames[i]._frameDescriptors = DescriptorAllocatorGrowable{};
         m_Frames[i]._frameDescriptors.init(m_Device, 1000, frame_sizes);
-
         m_DeletionQueue.push_function([&, i]() {
             m_Frames[i]._frameDescriptors.destroy_pools(m_Device);
         });
@@ -948,19 +904,28 @@ void FishVulkanEngine::cleanup()
 
         //make sure the GPU has stopped doing its things
         vkWaitForFences(m_Device, 1, &get_current_frame().m_RenderFence, true, timeout);
+        vkDeviceWaitIdle(m_Device);
+
+        loadedScenes.clear();
 
         for (auto& mesh : testMeshes) {
             destroy_buffer(mesh->meshBuffers.indexBuffer);
             destroy_buffer(mesh->meshBuffers.vertexBuffer);
         }
+                
+        for (auto& frame : m_Frames) {
+            frame.deletionQueue.flush();
+        }
 
         m_DeletionQueue.flush();
-        
-        //vmaDestroyAllocator(m_Allocator);
+
+        destroy_swapchain();
+
+        vkDestroySurfaceKHR(m_VkInstance, m_SurfaceKHR, nullptr);
+
+        vmaDestroyAllocator(m_Allocator);
 
         vkDestroyDevice(m_Device, nullptr);
-        
-        vkDestroySurfaceKHR(m_VkInstance, m_SurfaceKHR, nullptr);
 
         vkb::destroy_debug_utils_messenger(m_VkInstance, m_DebugMessenger);
 
@@ -1226,9 +1191,10 @@ void FishVulkanEngine::draw()
     // Send our current draw image to be transitioned into a general layout, so that we can write into it.
     // We don't care about the previous layout since we are going to overwrite it.
     vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+    vkutil::transition_image(cmd, m_DepthImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
     // Render our clear colour, or set our background effects.
-    draw_background(cmd);
+    draw_main(cmd);
 
     // Prepare our draw image and a depth image (since geometry can be rendered on top of each other) before calling draw calls.
     vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -1241,6 +1207,10 @@ void FishVulkanEngine::draw()
     vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
     vkutil::transition_image(cmd, m_SwapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     
+    VkExtent2D extent;
+    extent.height = m_WindowExtents.height;
+    extent.width = m_WindowExtents.width;
+
     // Copy our draw image into the swapchain as this is what will eventually be presented to the screen.
     vkutil::copy_image_to_image(cmd, m_DrawImage.image, m_SwapchainImages[swapchainImageIndex], m_DrawExtent, m_SwapchainExtent);
 
@@ -1355,7 +1325,7 @@ void FishVulkanEngine::run()
 
         m_EngineTimer.tick();
 
-        //update(m_EngineTimer.delta_time());
+        update_scene();
 
         // Set all draw data for ImGui so that the render loop can submit this data.
         prepare_imgui();        
@@ -1365,40 +1335,68 @@ void FishVulkanEngine::run()
     }
 }
 
+bool is_visible(const RenderObject13& obj, const glm::mat4& viewproj) {
+    std::array<glm::vec3, 8> corners{
+        glm::vec3 { 1, 1, 1 },
+        glm::vec3 { 1, 1, -1 },
+        glm::vec3 { 1, -1, 1 },
+        glm::vec3 { 1, -1, -1 },
+        glm::vec3 { -1, 1, 1 },
+        glm::vec3 { -1, 1, -1 },
+        glm::vec3 { -1, -1, 1 },
+        glm::vec3 { -1, -1, -1 },
+    };
+
+    glm::mat4 matrix = viewproj * obj.transform;
+
+    glm::vec3 min = { 1.5, 1.5, 1.5 };
+    glm::vec3 max = { -1.5, -1.5, -1.5 };
+
+    for (int c = 0; c < 8; c++) {
+        // project each corner into clip space
+        glm::vec4 v = matrix * glm::vec4(obj.bounds.origin + (corners[c] * obj.bounds.extents), 1.f);
+
+        // perspective correction
+        v.x = v.x / v.w;
+        v.y = v.y / v.w;
+        v.z = v.z / v.w;
+
+        min = glm::min(glm::vec3{ v.x, v.y, v.z }, min);
+        max = glm::max(glm::vec3{ v.x, v.y, v.z }, max);
+    }
+
+    // check the clip space box is within the view
+    if (min.z > 1.f || max.z < 0.f || min.x > 1.f || max.x < -1.f || min.y > 1.f || max.y < -1.f) {
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
 void FishVulkanEngine::draw_geometry(VkCommandBuffer cmd)
 {
-    //begin a render pass  connected to our draw image
-    VkRenderingAttachmentInfo colorAttachment = vkinit::attachment_info(m_DrawImage.imageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    VkRenderingAttachmentInfo depthAttachment = vkinit::depth_attachment_info(m_DepthImage.imageView, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+    std::vector<uint32_t> opaque_draws;
+    opaque_draws.reserve(mainDrawContext.OpaqueSurfaces.size());
 
-    VkRenderingInfo renderInfo = vkinit::rendering_info(m_DrawExtent, &colorAttachment, &depthAttachment);
+    for (int i = 0; i < mainDrawContext.OpaqueSurfaces.size(); i++) {
+        if (is_visible(mainDrawContext.OpaqueSurfaces[i], sceneData.viewproj)) {
+            opaque_draws.push_back(i);
+        }
+    }
 
-    //
-    vkCmdBeginRendering(cmd, &renderInfo);
-    //
+    // sort the opaque surfaces by material and mesh
+    std::sort(opaque_draws.begin(), opaque_draws.end(), [&](const auto& iA, const auto& iB) {
+        const RenderObject13& A = mainDrawContext.OpaqueSurfaces[iA];
+    const RenderObject13& B = mainDrawContext.OpaqueSurfaces[iB];
+    if (A.material == B.material) {
+        return A.indexBuffer < B.indexBuffer;
+    }
+    else {
+        return A.material < B.material;
+    }
+        });
 
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _meshPipeline);
-
-    //set dynamic viewport and scissor
-    VkViewport viewport = {};
-    viewport.x = 0;
-    viewport.y = 0;
-    viewport.width = m_DrawExtent.width;
-    viewport.height = m_DrawExtent.height;
-    viewport.minDepth = 0.f;
-    viewport.maxDepth = 1.f;
-
-    vkCmdSetViewport(cmd, 0, 1, &viewport);
-
-    VkRect2D scissor = {};
-    scissor.offset.x = 0;
-    scissor.offset.y = 0;
-    scissor.extent.width = m_DrawExtent.width;
-    scissor.extent.height = m_DrawExtent.height;
-
-    vkCmdSetScissor(cmd, 0, 1, &scissor);
-
-    // 
     //allocate a new uniform buffer for the scene data
     AllocatedBuffer13 gpuSceneDataBuffer = create_buffer13(sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 
@@ -1418,30 +1416,70 @@ void FishVulkanEngine::draw_geometry(VkCommandBuffer cmd)
     writer.write_buffer(0, gpuSceneDataBuffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     writer.update_set(m_Device, globalDescriptor);
 
-    //
+    MaterialPipeline* lastPipeline = nullptr;
+    MaterialInstance* lastMaterial = nullptr;
+    VkBuffer lastIndexBuffer = VK_NULL_HANDLE;
 
-    for (const RenderObject13& draw : mainDrawContext.OpaqueSurfaces) {
+    auto draw = [&](const RenderObject13& r) {
+        if (r.material != lastMaterial) {
+            lastMaterial = r.material;
+            if (r.material->pipeline != lastPipeline) {
 
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->pipeline);
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->layout, 0, 1, &globalDescriptor, 0, nullptr);
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->layout, 1, 1, &draw.material->materialSet, 0, nullptr);
+                lastPipeline = r.material->pipeline;
+                vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, r.material->pipeline->pipeline);
+                vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, r.material->pipeline->layout, 0, 1,
+                    &globalDescriptor, 0, nullptr);
 
-        vkCmdBindIndexBuffer(cmd, draw.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+                VkViewport viewport = {};
+                viewport.x = 0;
+                viewport.y = 0;
+                viewport.width = (float)m_WindowExtents.width;
+                viewport.height = (float)m_WindowExtents.height;
+                viewport.minDepth = 0.f;
+                viewport.maxDepth = 1.f;
 
-        GPUDrawPushConstants pushConstants;
-        pushConstants.vertexBuffer = draw.vertexBufferAddress;
-        pushConstants.worldMatrix = draw.transform;
-        vkCmdPushConstants(cmd, draw.material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &pushConstants);
+                vkCmdSetViewport(cmd, 0, 1, &viewport);
 
-        vkCmdDrawIndexed(cmd, draw.indexCount, 1, draw.firstIndex, 0, 0);
+                VkRect2D scissor = {};
+                scissor.offset.x = 0;
+                scissor.offset.y = 0;
+                scissor.extent.width = m_WindowExtents.width;
+                scissor.extent.height = m_WindowExtents.height;
+
+                vkCmdSetScissor(cmd, 0, 1, &scissor);
+            }
+
+            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, r.material->pipeline->layout, 1, 1,
+                &r.material->materialSet, 0, nullptr);
+        }
+        if (r.indexBuffer != lastIndexBuffer) {
+            lastIndexBuffer = r.indexBuffer;
+            vkCmdBindIndexBuffer(cmd, r.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        }
+        // calculate final mesh matrix
+        GPUDrawPushConstants push_constants;
+        push_constants.worldMatrix = r.transform;
+        push_constants.vertexBuffer = r.vertexBufferAddress;
+
+        vkCmdPushConstants(cmd, r.material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
+
+        vkCmdDrawIndexed(cmd, r.indexCount, 1, r.firstIndex, 0, 0);
+    };
+
+    for (auto& r : opaque_draws) {
+        draw(mainDrawContext.OpaqueSurfaces[r]);
     }
 
-    //
-    vkCmdEndRendering(cmd);
-    //
+    for (auto& r : mainDrawContext.TransparentSurfaces) {
+        draw(r);
+    }
+
+    // we delete the draw commands now that we processed them
+    mainDrawContext.OpaqueSurfaces.clear();
+    mainDrawContext.TransparentSurfaces.clear();
 }
 
-void FishVulkanEngine::draw_background(VkCommandBuffer cmd)
+void FishVulkanEngine::draw_main(VkCommandBuffer cmd)
 {
     // Get the currently selected effect set by the ImGui overlay.
     ComputeEffect& effect = backgroundEffects[currentBackgroundEffect];
@@ -1460,6 +1498,24 @@ void FishVulkanEngine::draw_background(VkCommandBuffer cmd)
 
     // execute the compute pipeline dispatch. We are using 16x16 workgroup size so we need to divide by it
     vkCmdDispatch(cmd, std::ceil(m_DrawExtent.width / 16.0), std::ceil(m_DrawExtent.height / 16.0), 1);
+
+    vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    VkRenderingAttachmentInfo colorAttachment = vkinit::attachment_info(m_DrawImage.imageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    VkRenderingAttachmentInfo depthAttachment = vkinit::depth_attachment_info(m_DepthImage.imageView, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+
+    VkRenderingInfo renderInfo = vkinit::rendering_info(m_WindowExtents, &colorAttachment, &depthAttachment);
+
+    vkCmdBeginRendering(cmd, &renderInfo);
+    auto start = std::chrono::system_clock::now();
+    draw_geometry(cmd);
+
+    auto end = std::chrono::system_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+    //stats.mesh_draw_time = elapsed.count() / 1000.f;
+
+    vkCmdEndRendering(cmd);
 }
 
 //void FishVulkanEngine::initialise_entity_component_system()
@@ -1616,19 +1672,7 @@ void FishVulkanEngine::update_scene()
     sceneData.proj = projection;
     sceneData.viewproj = projection * view;
 
-    mainDrawContext.OpaqueSurfaces.clear();
-
-    for (auto& m : loadedNodes) {
-        m.second->Draw(glm::mat4{ 1.f }, mainDrawContext);
-    }
-
-    for (int x = -3; x < 3; x++) {
-
-        glm::mat4 scale = glm::scale(glm::vec3{ 0.2 });
-        glm::mat4 translation = glm::translate(glm::vec3{ x, 1, 0 });
-
-        loadedNodes["Cube"]->Draw(translation * scale, mainDrawContext);
-    }
+    loadedScenes["structure"]->Draw(glm::mat4{ 1.f }, mainDrawContext);
 }
 
 void FishVulkanEngine::immediate_submit11(std::function<void(VkCommandBuffer cmd)>&& function)

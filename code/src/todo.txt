@@ -94,6 +94,8 @@ Previously:
 	- [X] Completed setting up materials in Chapter 4										30/08
 	- [X] Completed meshes and camera in Chapter 4 (the final part of Chapter 4)			30/08
 
+	- [X] Brought back the interactive camera from Chapter 5								31/08
+
 
 Next time:
 

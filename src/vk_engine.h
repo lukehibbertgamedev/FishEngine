@@ -71,13 +71,14 @@ struct RenderObject13 {
 	VkBuffer indexBuffer;
 
 	MaterialInstance* material;
-
+	Bounds bounds;
 	glm::mat4 transform;
 	VkDeviceAddress vertexBufferAddress;
 };
 
 struct DrawContext {
 	std::vector<RenderObject13> OpaqueSurfaces;
+	std::vector<RenderObject13> TransparentSurfaces;
 };
 
 struct MeshNode : public Node {
@@ -182,8 +183,16 @@ public:
 	AllocatedImage& GetDrawImage() { return m_DrawImage; } // By reference accessor.
 	AllocatedImage& GetDepthImage() { return m_DepthImage; } // By reference accessor.
 
+	AllocatedImage _errorCheckerboardImage;
+	AllocatedImage _whiteImage;
+	AllocatedImage _blackImage;
+	AllocatedImage _greyImage;
 
+	VkSampler _defaultSamplerLinear;
+	VkSampler _defaultSamplerNearest;	
+	GLTFMetallic_Roughness metalRoughMaterial;
 private:
+	MaterialInstance defaultData;
 
 	// Initialise the Vulkan instance.
 	void initialise_vulkan();
@@ -207,6 +216,8 @@ private:
 	void initialise_default_data();
 	// Set default data for our main camera.
 	void initialise_camera();
+	//
+	void initialise_renderables();
 
 	
 	// Unused for now: Initialise all entities, components, and systems for the Entity Component System.
@@ -218,7 +229,7 @@ private:
 	// 1.3 - Main draw loop for sycnhronisation and recording command buffers.
 	void draw();
 	// 1.3 Draw loop responsible for rendering the clear value or background effect.
-	void draw_background(VkCommandBuffer cmd);
+	void draw_main(VkCommandBuffer cmd);
 	// 1.3 - Draw loop responsible for rendering scene objects/geometry.
 	void draw_geometry(VkCommandBuffer cmd);
 	// 1.3 - Submit the commands for rendering the ImGui draw data.
@@ -353,19 +364,10 @@ private:
 	VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
 	VkDescriptorSetLayout _singleImageDescriptorLayout;
 
-	AllocatedImage _whiteImage;
-	AllocatedImage _blackImage;
-	AllocatedImage _greyImage;
-	AllocatedImage _errorCheckerboardImage;
-
-	VkSampler _defaultSamplerLinear;
-	VkSampler _defaultSamplerNearest;	
-
-	MaterialInstance defaultData;
-	GLTFMetallic_Roughness metalRoughMaterial;
-
 	DrawContext mainDrawContext;
 	std::unordered_map<std::string, std::shared_ptr<Node>> loadedNodes;
 
 	void update_scene();
+
+	std::unordered_map<std::string, std::shared_ptr<LoadedGLTF>> loadedScenes;
 };
