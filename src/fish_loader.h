@@ -7,7 +7,7 @@
 #include <filesystem>
 
 //forward declaration
-class FishVulkanEngine;
+class FishEngine;
 
 namespace Fish {
     namespace Loader {
@@ -57,7 +57,7 @@ namespace Fish {
 
             AllocatedBuffer13 materialDataBuffer;
 
-            FishVulkanEngine* creator;
+            FishEngine* creator;
 
             ~LoadedGLTF() { clearAll(); };
 
@@ -75,10 +75,10 @@ namespace Fish {
         };
 
         // Obsolete load function provided by the Vulkan Guide.
-        std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadGltfMeshes(FishVulkanEngine* engine, std::filesystem::path filePath);
+        std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadGltfMeshes(FishEngine* engine, std::filesystem::path filePath);
 
         // ...
-        std::optional<std::shared_ptr<LoadedGLTF>> loadGltf(FishVulkanEngine* engine, std::string_view filePath);
+        std::optional<std::shared_ptr<LoadedGLTF>> loadGltf(FishEngine* engine, std::string_view filePath);
 
     }
 }

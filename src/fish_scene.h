@@ -12,7 +12,7 @@ namespace Fish {
 		//std::vector<Fish::Resource::RenderObject> GetSceneObjectsVal() { return m_SceneObjects; }
 		//std::vector<Fish::Resource::RenderObject>& GetSceneObjectsRef() { return m_SceneObjects; }
 
-		std::vector<Fish::Resource::RenderObject11> m_SceneObjects {};
+		//std::vector<Fish::Resource::RenderObject11> m_SceneObjects {};
 	private:
 
 	};

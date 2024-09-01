@@ -29,11 +29,11 @@
 // We set a *global* pointer for the vulkan engine singleton reference. 
 // We do that instead of a typical singleton because we want to control explicitly when is the class initalized and destroyed. 
 // The normal Cpp singleton pattern doesnt give us control over that.
-FishVulkanEngine* loadedEngine = nullptr;
+FishEngine* loadedEngine = nullptr;
 
-FishVulkanEngine& FishVulkanEngine::Get() { return *loadedEngine; }
+FishEngine& FishEngine::Get() { return *loadedEngine; }
 
-void FishVulkanEngine::init()
+void FishEngine::init()
 {
     // only one engine initialization is allowed with the application.
     assert(loadedEngine == nullptr);
@@ -70,7 +70,7 @@ void FishVulkanEngine::init()
     m_IsInitialized = true;
 }
 
-void FishVulkanEngine::initialise_vulkan()
+void FishEngine::initialise_vulkan()
 {
     // Abstract the creation of a vulkan context.
     vkb::InstanceBuilder builder;
@@ -152,7 +152,7 @@ void FishVulkanEngine::initialise_vulkan()
     std::cout << "The GPU has a minimum buffer alignment of " << m_GPUProperties.limits.minUniformBufferOffsetAlignment << std::endl;
 }
 
-void FishVulkanEngine::initialise_imgui()
+void FishEngine::initialise_imgui()
 {
     // 1: Create the descriptor pool for ImGui.
 
@@ -234,7 +234,7 @@ void FishVulkanEngine::initialise_imgui()
     });
 }
 
-void FishVulkanEngine::initialise_default_data()
+void FishEngine::initialise_default_data()
 {
     std::array<Vertex, 4> rect_vertices;
 
@@ -306,7 +306,7 @@ void FishVulkanEngine::initialise_default_data()
     vkCreateSampler(m_Device, &sampl, nullptr, &_defaultSamplerLinear);
 }
 
-void FishVulkanEngine::initialise_camera()
+void FishEngine::initialise_camera()
 {
     // Zero-out/Initialise the camera's default data.
 
@@ -316,7 +316,7 @@ void FishVulkanEngine::initialise_camera()
     m_Camera.m_Yaw = 0;
 }
 
-void FishVulkanEngine::initialise_renderables()
+void FishEngine::initialise_renderables()
 {
     std::string structurePath = { "../../assets/structure.glb" };
     auto structureFile = Fish::Loader::loadGltf(this, structurePath);
@@ -326,7 +326,7 @@ void FishVulkanEngine::initialise_renderables()
     loadedScenes["structure"] = *structureFile;
 }
 
-void FishVulkanEngine::initialise_swapchain()
+void FishEngine::initialise_swapchain()
 {
     create_swapchain(m_WindowExtents.width, m_WindowExtents.height);
 
@@ -387,7 +387,7 @@ void FishVulkanEngine::initialise_swapchain()
     });
 }
 
-void FishVulkanEngine::initialise_commands()
+void FishEngine::initialise_commands()
 {
     //create a command pool for commands submitted to the graphics queue.
     //we also want the pool to allow for resetting of individual command buffers
@@ -429,7 +429,7 @@ void FishVulkanEngine::initialise_commands()
     VK_CHECK(vkAllocateCommandBuffers(m_Device, &uploadCmdAllocInfo, &m_UploadContext.commandBuffer));
 }
 
-void FishVulkanEngine::initialise_pipelines()
+void FishEngine::initialise_pipelines()
 {
     // Compute Pipelines.
     init_background_pipelines();
@@ -441,7 +441,7 @@ void FishVulkanEngine::initialise_pipelines()
     metalRoughMaterial.build_pipelines(this);
 }
 
-void FishVulkanEngine::init_background_pipelines()
+void FishEngine::init_background_pipelines()
 {
     // Create the main background effect pipeline layout.
 
@@ -602,7 +602,7 @@ void FishVulkanEngine::init_background_pipelines()
 //    });
 //}
 
-void FishVulkanEngine::init_mesh_pipeline()
+void FishEngine::init_mesh_pipeline()
 {
     VkShaderModule triangleFragShader;
     if (!Fish::Pipeline::load_shader_module("../../shaders/tex_image.frag.spv", m_Device, &triangleFragShader)) {
@@ -670,7 +670,7 @@ void FishVulkanEngine::init_mesh_pipeline()
     });
 }
 
-void FishVulkanEngine::initialise_synchronisation_structures()
+void FishEngine::initialise_synchronisation_structures()
 {
     //create synchronization structures
 
@@ -709,7 +709,7 @@ void FishVulkanEngine::initialise_synchronisation_structures()
     // < Immediate Fence
 }
 
-void FishVulkanEngine::create_swapchain(uint32_t width, uint32_t height)
+void FishEngine::create_swapchain(uint32_t width, uint32_t height)
 {
     vkb::SwapchainBuilder swapchainBuilder{ m_PhysicalDevice, m_Device, m_SurfaceKHR};
 
@@ -733,7 +733,7 @@ void FishVulkanEngine::create_swapchain(uint32_t width, uint32_t height)
     m_SwapchainImageViews = vkbSwapchain.get_image_views().value();
 }
 
-void FishVulkanEngine::destroy_swapchain()
+void FishEngine::destroy_swapchain()
 {
     vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
 
@@ -744,7 +744,7 @@ void FishVulkanEngine::destroy_swapchain()
     }
 }
 
-void FishVulkanEngine::rebuild_swapchain()
+void FishEngine::rebuild_swapchain()
 {
     vkQueueWaitIdle(m_GraphicsQueue);
 
@@ -812,7 +812,7 @@ void FishVulkanEngine::rebuild_swapchain()
     });
 }
 
-void FishVulkanEngine::resize_swapchain()
+void FishEngine::resize_swapchain()
 {
     // Wait for all GPU commands to finish.
     vkDeviceWaitIdle(m_Device);
@@ -833,7 +833,7 @@ void FishVulkanEngine::resize_swapchain()
     swapchain_resize_requested = false;
 }
 
-void FishVulkanEngine::initialise_descriptors()
+void FishEngine::initialise_descriptors()
 {
     // initialize the descriptor allocator with 10 sets, and 
     // 1 descriptor per set of type VK_DESCRIPTOR_TYPE_STORAGE_IMAGE. 
@@ -894,7 +894,7 @@ void FishVulkanEngine::initialise_descriptors()
     }
 }
 
-void FishVulkanEngine::cleanup()
+void FishEngine::cleanup()
 {
     // Delete in the opposite order to what they were created, to avoid dependency errors.
     
@@ -938,7 +938,7 @@ void FishVulkanEngine::cleanup()
     loadedEngine = nullptr;
 }
 
-void FishVulkanEngine::prepare_imgui()
+void FishEngine::prepare_imgui()
 {
     // Connect backend ImGui functionality specifically for Vulkan and SDL2 and create all 
     // basic ImGui functionality so that the demo window or custom windows are able to be rendered and interacted with.
@@ -955,7 +955,7 @@ void FishVulkanEngine::prepare_imgui()
     ImGui::Render();
 }
 
-void FishVulkanEngine::create_imgui_draw_data()
+void FishEngine::create_imgui_draw_data()
 {
     // Begin Debug Overlay
     {
@@ -1006,7 +1006,7 @@ void FishVulkanEngine::create_imgui_draw_data()
     // End engine stats
 }
 
-void FishVulkanEngine::imgui_debug_data()
+void FishEngine::imgui_debug_data()
 {
 
     ImGui::Text("Debug data for Fish engine.");
@@ -1089,7 +1089,7 @@ void FishVulkanEngine::imgui_debug_data()
 //    ImGui::Text("Objects in scene: %i", Fish::ResourceManager::Get().m_Scene.m_SceneObjects.size()); // Must be integer to work.
 //}
 
-GPUMeshBuffers FishVulkanEngine::upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices)
+GPUMeshBuffers FishEngine::upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices)
 {
     const size_t vertexBufferSize = vertices.size() * sizeof(Vertex);
     const size_t indexBufferSize = indices.size() * sizeof(uint32_t);
@@ -1135,7 +1135,7 @@ GPUMeshBuffers FishVulkanEngine::upload_mesh(std::span<uint32_t> indices, std::s
     return newSurface;
 }
 
-void FishVulkanEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView)
+void FishEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView)
 {
     VkRenderingAttachmentInfo colorAttachment = vkinit::attachment_info(targetImageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     VkRenderingInfo renderInfo = vkinit::rendering_info(m_SwapchainExtent, &colorAttachment, nullptr);
@@ -1147,7 +1147,7 @@ void FishVulkanEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageVi
     vkCmdEndRendering(cmd);
 }
 
-void FishVulkanEngine::draw()
+void FishEngine::draw()
 {
     // This function gets called at the very start of the draw() function, before waiting on the frame fences.
     update_scene();
@@ -1207,13 +1207,6 @@ void FishVulkanEngine::draw()
 
     // Render our clear colour, or set our background effects.
     draw_main(cmd);
-
-    // Prepare our draw image and a depth image (since geometry can be rendered on top of each other) before calling draw calls.
-    vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    vkutil::transition_image(cmd, m_DepthImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
-
-    // Render our meshes, primitives, and other into the swapchain.
-    draw_geometry(cmd);
 
     // Transition the draw and swapchain image into their optimal transfer layouts.
     vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
@@ -1276,7 +1269,7 @@ void FishVulkanEngine::draw()
     m_FrameNumber++;
 }
 
-void FishVulkanEngine::run()
+void FishEngine::run()
 {
     SDL_Event e;
     bool bQuit = false;
@@ -1392,7 +1385,7 @@ bool is_visible(const RenderObject13& obj, const glm::mat4& viewproj) {
     }
 }
 
-void FishVulkanEngine::draw_geometry(VkCommandBuffer cmd)
+void FishEngine::draw_geometry(VkCommandBuffer cmd)
 {
     // Reset our count for this frame.
     stats.drawcall_count = 0;
@@ -1513,7 +1506,7 @@ void FishVulkanEngine::draw_geometry(VkCommandBuffer cmd)
     stats.mesh_draw_time = elapsed.count() / 1000.f;
 }
 
-void FishVulkanEngine::draw_main(VkCommandBuffer cmd)
+void FishEngine::draw_main(VkCommandBuffer cmd)
 {
     // Get the currently selected effect set by the ImGui overlay.
     ComputeEffect& effect = backgroundEffects[currentBackgroundEffect];
@@ -1578,12 +1571,12 @@ void FishVulkanEngine::draw_main(VkCommandBuffer cmd)
 //    // ...
 //}
 
-FrameData& FishVulkanEngine::get_current_frame()
+FrameData& FishEngine::get_current_frame()
 {
     return m_Frames[m_FrameNumber % kFrameOverlap];
 }
 
-AllocatedBuffer13 FishVulkanEngine::create_buffer13(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage)
+AllocatedBuffer13 FishEngine::create_buffer13(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage)
 {
     // allocate buffer info
     VkBufferCreateInfo bufferInfo = { .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
@@ -1602,12 +1595,12 @@ AllocatedBuffer13 FishVulkanEngine::create_buffer13(size_t allocSize, VkBufferUs
     return newBuffer;
 }
 
-void FishVulkanEngine::destroy_buffer(const AllocatedBuffer13& buffer)
+void FishEngine::destroy_buffer(const AllocatedBuffer13& buffer)
 {
     vmaDestroyBuffer(m_Allocator, buffer.buffer, buffer.allocation);
 }
 
-AllocatedImage FishVulkanEngine::create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
+AllocatedImage FishEngine::create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
 {
     AllocatedImage newImage;
     newImage.imageFormat = format;
@@ -1642,7 +1635,7 @@ AllocatedImage FishVulkanEngine::create_image(VkExtent3D size, VkFormat format, 
     return newImage;
 }
 
-AllocatedImage FishVulkanEngine::create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
+AllocatedImage FishEngine::create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
 {
     size_t data_size = size.depth * size.width * size.height * 4;
     AllocatedBuffer13 uploadbuffer = create_buffer13(data_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
@@ -1679,13 +1672,13 @@ AllocatedImage FishVulkanEngine::create_image(void* data, VkExtent3D size, VkFor
     return new_image;
 }
 
-void FishVulkanEngine::destroy_image(const AllocatedImage& img)
+void FishEngine::destroy_image(const AllocatedImage& img)
 {
     vkDestroyImageView(m_Device, img.imageView, nullptr);
     vmaDestroyImage(m_Allocator, img.image, img.allocation);
 }
 
-size_t FishVulkanEngine::pad_uniform_buffer_size(size_t originalSize)
+size_t FishEngine::pad_uniform_buffer_size(size_t originalSize)
 {
     // Calculate required alignment based on minimum device offset alignment
     size_t minUboAlignment = m_GPUProperties.limits.minUniformBufferOffsetAlignment;
@@ -1696,7 +1689,7 @@ size_t FishVulkanEngine::pad_uniform_buffer_size(size_t originalSize)
     return alignedSize;
 }
 
-void FishVulkanEngine::update_scene()
+void FishEngine::update_scene()
 {
     m_Camera.update();
 
@@ -1713,7 +1706,7 @@ void FishVulkanEngine::update_scene()
     loadedScenes["structure"]->Draw(glm::mat4{ 1.f }, mainDrawContext);
 }
 
-void FishVulkanEngine::immediate_submit11(std::function<void(VkCommandBuffer cmd)>&& function)
+void FishEngine::immediate_submit11(std::function<void(VkCommandBuffer cmd)>&& function)
 {
     VkCommandBuffer cmd = m_UploadContext.commandBuffer;
 
@@ -1740,7 +1733,7 @@ void FishVulkanEngine::immediate_submit11(std::function<void(VkCommandBuffer cmd
     vkResetCommandPool(m_Device, m_UploadContext.commandPool, 0);
 }
 
-void FishVulkanEngine::immediate_submit13(std::function<void(VkCommandBuffer cmd)>&& function)
+void FishEngine::immediate_submit13(std::function<void(VkCommandBuffer cmd)>&& function)
 {
     const unsigned int timeout = 9999999999;
     VK_CHECK(vkResetFences(m_Device, 1, &m_ImmediateFence));
@@ -1766,7 +1759,7 @@ void FishVulkanEngine::immediate_submit13(std::function<void(VkCommandBuffer cmd
     VK_CHECK(vkWaitForFences(m_Device, 1, &m_ImmediateFence, true, timeout));
 }
 
-bool FishVulkanEngine::load_shader_module(const char* filePath, VkShaderModule* outShaderModule)
+bool FishEngine::load_shader_module(const char* filePath, VkShaderModule* outShaderModule)
 {
     //open the file. With cursor at the end
     std::ifstream file(filePath, std::ios::ate | std::ios::binary);
@@ -1814,7 +1807,7 @@ bool FishVulkanEngine::load_shader_module(const char* filePath, VkShaderModule* 
 //    //m_PhysicsSystem->update(deltatime);
 //}
 
-void GLTFMetallic_Roughness::build_pipelines(FishVulkanEngine* engine)
+void GLTFMetallic_Roughness::build_pipelines(FishEngine* engine)
 {
     VkShaderModule meshFragShader;
     if (!Fish::Pipeline::load_shader_module("../../shaders/mesh.frag.spv", engine->GetDevice(), &meshFragShader)) {

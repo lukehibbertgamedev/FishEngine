@@ -1,8 +1,12 @@
+// name: main.cpp
+// desc: The entry point of our engine/application. Completes the entire lifetime of Fish.
+// auth: Luke Hibbert
+
 #include <vk_engine.h>
 
 int main(int argc, char* argv[])
 {
-	FishVulkanEngine engine;
+	FishEngine engine;
 
 	engine.init();	
 	

@@ -1,15 +1,14 @@
-
 #pragma once
 
+// name: mesh.h
+// desc: Structures and functions related to a mesh and its data.
+// auth: Luke Hibbert
+
 #include <vk_types.h>
-#include <vector>
-#include <glm/vec3.hpp>
-#include <glm/vec2.hpp>
 
 namespace Fish {
 
-	namespace Model {
-
+	namespace Mesh {
 		
 	}
 }

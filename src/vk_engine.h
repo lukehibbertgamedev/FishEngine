@@ -17,7 +17,7 @@
 
 #include <unordered_map>
 
-class FishVulkanEngine;
+class FishEngine;
 
 // Safely handle the cleanup of a growing amount of objects.
 struct DeletionQueue {
@@ -66,7 +66,7 @@ struct GLTFMetallic_Roughness {
 
 	DescriptorWriter writer;
 
-	void build_pipelines(FishVulkanEngine* engine);
+	void build_pipelines(FishEngine* engine);
 	void clear_resources(VkDevice device);
 
 	MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, DescriptorAllocatorGrowable& descriptorAllocator);
@@ -148,11 +148,11 @@ struct FrameData {
 	DescriptorAllocatorGrowable _frameDescriptors;						// Used to create global scene data descriptor every frame (holds stuff like camera matrices).
 };
 
-class FishVulkanEngine {
+class FishEngine {
 public:
 
 	// Singleton instance accessor.
-	static FishVulkanEngine& Get();
+	static FishEngine& Get();
 	// Initialises the entire engine. 
 	void init();
 	// Delets any engine related allocated memory and safely shuts down the application.

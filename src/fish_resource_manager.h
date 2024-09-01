@@ -1,3 +1,11 @@
+#pragma once
+
+// name: fish_resource_manager.h
+// desc: A system to manage the loading of all resources in our engine.
+// auth: Luke Hibbert
+
+// !! Currently not in use due to the refactor, this will be returning.
+
 //
 //#pragma once
 //

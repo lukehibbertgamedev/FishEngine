@@ -105,6 +105,9 @@ Previously:
 	- [X] Completed faster draw in Chapter 5 (the final part of Chapter 5)					01/09 *
 	- [X] Completed the refactor to use Vulkan API 1.3										01/09 *
 
+	- [X] Further commenting of all code (renaming and understanding code)					01/09
+	- [X] Fixed all validation errors/warnings within the console							01/09 *
+
 Next time:
 
 	- [ ] Abstract/Refactor new 1.3 codebase

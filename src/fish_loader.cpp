@@ -16,7 +16,7 @@ namespace Fish {
 
 	namespace Loader {
 
-		std::optional<AllocatedImage> load_image(FishVulkanEngine* engine, fastgltf::Asset& asset, fastgltf::Image& image)
+		std::optional<AllocatedImage> load_image(FishEngine* engine, fastgltf::Asset& asset, fastgltf::Image& image)
 		{
 			AllocatedImage newImage{};
 
@@ -116,7 +116,7 @@ namespace Fish {
 			}
 		}
 
-		std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadGltfMeshes(FishVulkanEngine* engine, std::filesystem::path filePath)
+		std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadGltfMeshes(FishEngine* engine, std::filesystem::path filePath)
 		{
 			std::cout << "Loading GLTF: " << filePath << std::endl;
 
@@ -237,7 +237,7 @@ namespace Fish {
 			return meshes;
 		}
 
-		std::optional<std::shared_ptr<LoadedGLTF>> loadGltf(FishVulkanEngine* engine, std::string_view filePath)
+		std::optional<std::shared_ptr<LoadedGLTF>> loadGltf(FishEngine* engine, std::string_view filePath)
 		{
 			// 1. Configure and open GLTF file.
 
