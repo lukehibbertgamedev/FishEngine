@@ -162,8 +162,6 @@ public:
 
 	// Useful functions that need to be public:
 	
-	// 1.1 - Send commands to the GPU without synchronisation with the swapchain or rendering logic.
-	void immediate_submit11(std::function<void(VkCommandBuffer cmd)>&& function);
 	// 1.3 - Send commands to the GPU without synchronisation with the swapchain or rendering logic.
 	void immediate_submit13(std::function<void(VkCommandBuffer cmd)>&& function);
 

@@ -37,6 +37,8 @@ FishEngine& FishEngine::Get() { return *loadedEngine; }
 
 void FishEngine::init()
 {
+    FISH_LOG("Initialising Fish engine.");
+
     // only one engine initialization is allowed with the application.
     assert(loadedEngine == nullptr);
     loadedEngine = this;
@@ -67,10 +69,13 @@ void FishEngine::init()
 
     // everything went fine
     m_IsInitialized = true;
+    FISH_LOG("Engine successfully initialised.");
 }
 
 void FishEngine::initialise_vulkan()
 {
+    FISH_LOG("Initialising Vulkan...");
+
     // Abstract the creation of a vulkan context.
     vkb::InstanceBuilder builder;
 
@@ -235,6 +240,8 @@ void FishEngine::initialise_imgui()
 
 void FishEngine::initialise_default_data()
 {
+    FISH_LOG("Initialising default data...");
+
     std::array<Vertex, 4> rect_vertices;
 
     rect_vertices[0].position = { 0.5,-0.5, 0 };
@@ -307,6 +314,8 @@ void FishEngine::initialise_default_data()
 
 void FishEngine::initialise_camera()
 {
+    FISH_LOG("Initialising camera...");
+
     // Zero-out/Initialise the camera's default data.
 
     m_Camera.m_Velocity = glm::vec3(0.f);
@@ -317,16 +326,18 @@ void FishEngine::initialise_camera()
 
 void FishEngine::initialise_renderables()
 {
-    std::string structurePath = { "../../assets/house.glb" };
+    FISH_LOG("Initialising renderables...");
+
+    std::string structurePath = { "../../assets/house2.glb" };
     auto structureFile = Fish::Loader::loadGltf(this, structurePath);
-
     assert(structureFile.has_value());
-
     loadedScenes["structure"] = *structureFile;
 }
 
 void FishEngine::initialise_swapchain()
 {
+    FISH_LOG("Initialising swapchain...");
+
     create_swapchain(m_WindowExtents.width, m_WindowExtents.height);
 
     //depth image size will match the window
@@ -388,6 +399,8 @@ void FishEngine::initialise_swapchain()
 
 void FishEngine::initialise_commands()
 {
+    FISH_LOG("Initialising commands...");
+
     //create a command pool for commands submitted to the graphics queue.
     //we also want the pool to allow for resetting of individual command buffers
     VkCommandPoolCreateInfo commandPoolInfo = vkinit::command_pool_create_info(m_GraphicsQueueFamily, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
@@ -430,6 +443,8 @@ void FishEngine::initialise_commands()
 
 void FishEngine::initialise_pipelines()
 {
+    FISH_LOG("Initialising pipelines...");
+
     // Compute Pipelines.
     init_background_pipelines();
 
@@ -671,6 +686,8 @@ void FishEngine::init_mesh_pipeline()
 
 void FishEngine::initialise_synchronisation_structures()
 {
+    FISH_LOG("Initialising sync structures...");
+
     //create synchronization structures
 
     //we want to create the fence with the Create Signaled flag, so we can wait on it before using it on a GPU command (for the first frame)
@@ -834,6 +851,8 @@ void FishEngine::resize_swapchain()
 
 void FishEngine::initialise_descriptors()
 {
+    FISH_LOG("Initialising descriptors...");
+
     // initialize the descriptor allocator with 10 sets, and 
     // 1 descriptor per set of type VK_DESCRIPTOR_TYPE_STORAGE_IMAGE. 
     // Thats the type used for a image that can be written to from a compute shader.
@@ -1515,31 +1534,32 @@ void FishEngine::draw_main(VkCommandBuffer cmd)
     // This compute shader stage is not part of the graphics pipeline and they have their own pipeline that runs independently.
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, effect.pipeline);
 
-    // bind the descriptor set containing the draw image for the compute pipeline
-    // Bind the 
+    // Bind the descriptor set containing the draw image for the compute pipeline.
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, m_GradientPipelineLayout, 0, 1, &m_DrawImageDescriptors, 0, nullptr);
 
     // Submit the push constants to the GPU to be accessible within the shader.
     vkCmdPushConstants(cmd, m_GradientPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ComputePushConstants), &effect.data);
 
-    // execute the compute pipeline dispatch. We are using 16x16 workgroup size so we need to divide by it
+    // Execute the compute pipeline dispatch. According to the Vulkan Guide, we are using a 16x16 size workgroup so we need to divide by that.
     vkCmdDispatch(cmd, std::ceil(m_DrawExtent.width / 16.0), std::ceil(m_DrawExtent.height / 16.0), 1);
 
+    // Transition our draw image to prepare for geometry rendering.
     vkutil::transition_image(cmd, m_DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
     VkRenderingAttachmentInfo colorAttachment = vkinit::attachment_info(m_DrawImage.imageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     VkRenderingAttachmentInfo depthAttachment = vkinit::depth_attachment_info(m_DepthImage.imageView, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
-
     VkRenderingInfo renderInfo = vkinit::rendering_info(m_WindowExtents, &colorAttachment, &depthAttachment);
 
     vkCmdBeginRendering(cmd, &renderInfo);
-    auto start = std::chrono::system_clock::now();
+
+    auto start = std::chrono::system_clock::now(); // Start the geometry draw timer.
+
     draw_geometry(cmd);
 
+    // End and calculate the geometry draw time.
     auto end = std::chrono::system_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-
-    //stats.mesh_draw_time = elapsed.count() / 1000.f;
+    stats.mesh_draw_time = elapsed.count() / 1000.f;
 
     vkCmdEndRendering(cmd);
 }
@@ -1705,33 +1725,6 @@ void FishEngine::update_scene()
     loadedScenes["structure"]->Draw(glm::mat4{ 1.f }, mainDrawContext);
 }
 
-void FishEngine::immediate_submit11(std::function<void(VkCommandBuffer cmd)>&& function)
-{
-    VkCommandBuffer cmd = m_UploadContext.commandBuffer;
-
-    //begin the command buffer recording. We will use this command buffer exactly once before resetting, so we tell vulkan that
-    VkCommandBufferBeginInfo cmdBeginInfo = vkinit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-
-    VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
-
-    //execute the function
-    function(cmd);
-
-    VK_CHECK(vkEndCommandBuffer(cmd));
-
-    VkSubmitInfo submit = vkinit::submit_info(&cmd);
-
-    //submit command buffer to the queue and execute it.
-    // _uploadFence will now block until the graphic commands finish execution
-    VK_CHECK(vkQueueSubmit(m_GraphicsQueue, 1, &submit, m_UploadContext.uploadFence));
-
-    vkWaitForFences(m_Device, 1, &m_UploadContext.uploadFence, true, 9999999999);
-    vkResetFences(m_Device, 1, &m_UploadContext.uploadFence);
-
-    // reset the command buffers inside the command pool
-    vkResetCommandPool(m_Device, m_UploadContext.commandPool, 0);
-}
-
 void FishEngine::immediate_submit13(std::function<void(VkCommandBuffer cmd)>&& function)
 {
     const unsigned int timeout = 9999999999;
@@ -1854,8 +1847,6 @@ void GLTFMetallic_Roughness::build_pipelines(FishEngine* engine)
     pipelineBuilder.set_multisampling_none();
     pipelineBuilder.disable_blending();
     pipelineBuilder.enable_depthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL);
-
-    //render format
     pipelineBuilder.set_color_attachment_format(engine->GetDrawImage().imageFormat);
     pipelineBuilder.set_depth_format(engine->GetDepthImage().imageFormat);
 

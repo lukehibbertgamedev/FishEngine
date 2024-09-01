@@ -74,9 +74,6 @@ namespace Fish {
             void clearAll();
         };
 
-        // Obsolete load function provided by the Vulkan Guide.
-        std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadGltfMeshes(FishEngine* engine, std::filesystem::path filePath);
-
         // ...
         std::optional<std::shared_ptr<LoadedGLTF>> loadGltf(FishEngine* engine, std::string_view filePath);
 
