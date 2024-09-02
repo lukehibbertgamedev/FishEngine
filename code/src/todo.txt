@@ -108,10 +108,15 @@ Previously:
 	- [X] Further commenting of all code (renaming and understanding code)					01/09
 	- [X] Fixed all validation errors/warnings within the console							01/09 *
 
-Next time:
+	- [X] Abstracted some engine code into their own files									02/09
+	- [X] Loading 2 models of different .glb files											02/09
 
-	- [ ] Abstract/Refactor new 1.3 codebase
+Next time:
 	
+	- [ ] Move objects at runtime using ImGui
+	- [ ] Load several models which are listed in an ImGui scene object list
+	- [ ] Begin saving all positions of the scene objects
+
 	- [ ] Comment all functions and variables with at least something
 	
 	- [ ] Mess around with the current version and test out new models/textures/primitives

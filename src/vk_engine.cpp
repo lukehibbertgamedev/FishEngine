@@ -331,10 +331,19 @@ void FishEngine::initialise_renderables()
 {
     FISH_LOG("Initialising renderables...");
 
-    std::string structurePath = { "../../assets/house2.glb" };
-    auto structureFile = Fish::Loader::loadGltf(this, structurePath);
-    assert(structureFile.has_value());
-    loadedScenes["structure"] = *structureFile;
+    {
+        //std::string structurePath = { "../../assets/house2.glb" };
+        std::string structurePath = { "../../assets/PolyPizza/Trampoline.glb" };
+        auto structureFile = Fish::Loader::loadGltf(this, structurePath);
+        assert(structureFile.has_value());
+        loadedScenes["structure"] = *structureFile;
+    }
+    {
+        std::string structurePath = { "../../assets/house.glb" };
+        auto structureFile = Fish::Loader::loadGltf(this, structurePath);
+        assert(structureFile.has_value());
+        loadedScenes["structure2"] = *structureFile;
+    }
 }
 
 void FishEngine::initialise_swapchain()
@@ -1700,6 +1709,7 @@ void FishEngine::update_scene()
     sceneData.viewproj = projection * view;
 
     loadedScenes["structure"]->Draw(glm::mat4{ 1.f }, mainDrawContext);
+    loadedScenes["structure2"]->Draw(glm::mat4{ 1.f }, mainDrawContext);
 }
 
 void FishEngine::immediate_submit13(std::function<void(VkCommandBuffer cmd)>&& function)
