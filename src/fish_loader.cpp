@@ -220,7 +220,7 @@ namespace Fish {
 					else {
 						// we failed to load, so lets give the slot a default white texture to not
 						// completely break loading
-						images.push_back(engine->_errorCheckerboardImage);
+						images.push_back(engine->GetErrorCheckerboardImage());
 						{
 							std::string logText = "GLTF failed to load texture: ";
 							std::string x = logText + image.name.c_str();
@@ -259,10 +259,10 @@ namespace Fish {
 
 				GLTFMetallic_Roughness::MaterialResources materialResources;
 				// default the material textures
-				materialResources.colorImage = engine->_whiteImage;
-				materialResources.colorSampler = engine->_defaultSamplerLinear;
-				materialResources.metalRoughImage = engine->_whiteImage;
-				materialResources.metalRoughSampler = engine->_defaultSamplerLinear;
+				materialResources.colorImage = engine->GetWhiteImage();
+				materialResources.colorSampler = engine->GetDefaultSamplerLinear();
+				materialResources.metalRoughImage = engine->GetWhiteImage();
+				materialResources.metalRoughSampler = engine->GetDefaultSamplerLinear();
 
 				// set the uniform buffer for the material data
 				materialResources.dataBuffer = file.materialDataBuffer.buffer;
@@ -276,7 +276,7 @@ namespace Fish {
 					materialResources.colorSampler = file.samplers[sampler];
 				}
 				// build material
-				newMat->data = engine->metalRoughMaterial.write_material(engine->GetDevice(), passType, materialResources, file.descriptorPool);
+				newMat->data = engine->GetMetalRoughMaterial().write_material(engine->GetDevice(), passType, materialResources, file.descriptorPool);
 
 				data_index++;
 			}
@@ -456,7 +456,7 @@ namespace Fish {
 
 			for (auto& [k, v] : images) {
 
-				if (v.image == creator->_errorCheckerboardImage.image) {
+				if (v.image == creator->GetErrorCheckerboardImage().image) {
 					//dont destroy the default images
 					continue;
 				}

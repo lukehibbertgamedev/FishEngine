@@ -7,7 +7,7 @@
 
 #include <vk_types.h>
 #include <fish_timer.h>
-#include <fish_resource_manager.h>
+#include <fish_resource.h>
 #include <fish_ecs.h>
 #include <fish_ecs_systems.h>
 #include <fish_camera.h>
@@ -19,26 +19,16 @@
 
 class FishEngine;
 
-// Safely handle the cleanup of a growing amount of objects.
-struct DeletionQueue {
-	std::deque<std::function<void()>> toDelete;
-
-	void push_function(std::function<void()>&& function) { toDelete.push_back(function); }
-
-	void flush() {
-		// reverse iterate the deletion queue to execute all the functions
-		for (auto it = toDelete.rbegin(); it != toDelete.rend(); it++) {
-			(*it)(); //call functors
-		}
-		toDelete.clear();
-	}
-};
-
 struct EngineStats {
+	float total_elapsed;
+	float frame_time;
+	float geometry_draw_time;
+	float scene_update_time;
 	int triangle_count;
 	int drawcall_count;
-	float scene_update_time;
-	float mesh_draw_time;
+	glm::vec3 camera_position;
+	float camera_pitch;
+	float camera_yaw;
 };
 
 struct GLTFMetallic_Roughness {
@@ -71,20 +61,11 @@ struct GLTFMetallic_Roughness {
 	MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, DescriptorAllocatorGrowable& descriptorAllocator);
 };
 
-struct RenderObject13 {
-	uint32_t indexCount;
-	uint32_t firstIndex;
-	VkBuffer indexBuffer;
 
-	MaterialInstance* material;
-	Fish::Loader::Bounds bounds;
-	glm::mat4 transform;
-	VkDeviceAddress vertexBufferAddress;
-};
 
 struct DrawContext {
-	std::vector<RenderObject13> OpaqueSurfaces;
-	std::vector<RenderObject13> TransparentSurfaces;
+	std::vector<Fish::Resource::RenderObject> OpaqueSurfaces;
+	std::vector<Fish::Resource::RenderObject> TransparentSurfaces;
 };
 
 struct MeshNode : public Node {
@@ -124,27 +105,13 @@ struct ComputeEffect {
 	ComputePushConstants data;
 };
 
-struct UploadContext {
-	VkFence uploadFence;
-	VkCommandPool commandPool;
-	VkCommandBuffer commandBuffer;
-};
-
 struct FrameData {
-	VkCommandPool m_CommandPool;										// A collection of command buffers. Resetting the command pool resets all command buffers allocated from it.
-	VkCommandBuffer m_CommandBuffer;									// All commands are recorded into a command buffer, this won't do anything unless submitted to the GPU.
-	VkFence m_RenderFence;												// Used for GPU -> CPU communication.
-	VkSemaphore m_PresentSemaphore, m_RenderSemaphore;					// Used for GPU -> GPU synchronisation.
-
-	//AllocatedBuffer11 cameraBuffer;									// Buffer holding a single GPUCameraData to use during rendering.
-	//VkDescriptorSet globalDescriptor;									// Holds the matrices that we need.
-
-	//AllocatedBuffer11 objectBuffer;									//
-	//VkDescriptorSet objectDescriptor;									// Holds the matrices that we need.
-
-	DeletionQueue deletionQueue;										// Allows the deletion of objects within the next frame after use.
-
-	DescriptorAllocatorGrowable _frameDescriptors;						// Used to create global scene data descriptor every frame (holds stuff like camera matrices).
+	VkCommandPool commandPool;										// A collection of command buffers. Resetting the command pool resets all command buffers allocated from it.
+	VkCommandBuffer commandBuffer;									// All commands are recorded into a command buffer, this won't do anything unless submitted to the GPU.
+	VkFence renderFence;											// Used for GPU -> CPU communication.
+	VkSemaphore presentSemaphore, renderSemaphore;					// Used for GPU -> GPU synchronisation.
+	DeletionQueue deletionQueue;									// Allows the deletion of objects within the next frame after use.
+	DescriptorAllocatorGrowable frameDescriptors;					// Used to create global scene data descriptor every frame (holds stuff like camera matrices).
 };
 
 class FishEngine {
@@ -177,24 +144,23 @@ public:
 	GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
 
 	// Accessors:
-	VmaAllocator GetAllocator() { return m_Allocator; }	 // By value accessor.
+	VmaAllocator GetAllocator() { return m_Allocator; }														// Value accessor.
 
-	DeletionQueue& GetDeletionQueue() { return m_DeletionQueue; } // By reference accessor.
-	VkDevice& GetDevice() { return m_Device; } // By reference accessor.
-	VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; } // By reference accessor.
-	VkDescriptorSetLayout& GetSingleTextureSetLayout() { return m_SingleTextureSetLayout; } // By reference accessor.
-	VkDescriptorSetLayout& GetGPUSceneDataDescriptorLayout() { return _gpuSceneDataDescriptorLayout; } // By reference accessor.
-	AllocatedImage& GetDrawImage() { return m_DrawImage; } // By reference accessor.
-	AllocatedImage& GetDepthImage() { return m_DepthImage; } // By reference accessor.
-
-	// Public members (right now this is for absolutely no reason at all other than it isn't important to fix)
-	AllocatedImage _errorCheckerboardImage;
-	AllocatedImage _whiteImage;
-	AllocatedImage _blackImage;
-	AllocatedImage _greyImage;
-	VkSampler _defaultSamplerLinear;
-	VkSampler _defaultSamplerNearest;
-	GLTFMetallic_Roughness metalRoughMaterial;
+	DeletionQueue& GetDeletionQueue() { return m_DeletionQueue; }											// Reference accessor.
+	VkDevice& GetDevice() { return m_Device; }																// Reference accessor.
+	VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }										// Reference accessor.
+	VkDescriptorSetLayout& GetSingleTextureSetLayout() { return m_SingleTextureSetLayout; }					// Reference accessor.
+	VkDescriptorSetLayout& GetGPUSceneDataDescriptorLayout() { return _gpuSceneDataDescriptorLayout; }		// Reference accessor.
+	AllocatedImage& GetDrawImage() { return m_DrawImage; }													// Reference accessor.
+	AllocatedImage& GetDepthImage() { return m_DepthImage; }												// Reference accessor.
+	AllocatedImage& GetErrorCheckerboardImage() { return _errorCheckerboardImage; }							// Reference accessor.
+	AllocatedImage& GetWhiteImage() { return _whiteImage; }													// Reference accessor.
+	AllocatedImage& GetBlackImage() { return _blackImage; }													// Reference accessor.
+	AllocatedImage& GetGreyImage() { return _greyImage; }													// Reference accessor.
+	VkSampler& GetDefaultSamplerLinear() { return _defaultSamplerLinear; }									// Reference accessor.
+	VkSampler& GetDefaultSamplerNearest() { return _defaultSamplerNearest; }								// Reference accessor.
+	GLTFMetallic_Roughness& GetMetalRoughMaterial() { return metalRoughMaterial; }							// Reference accessor.
+	
 private:
 	
 	// Initialise the Vulkan instance.
@@ -215,20 +181,18 @@ private:
 	void init_mesh_pipeline();
 	// 1.3 - Hook Vulkan, SDL2, and ImGui together with ImGui initialisation.
 	void initialise_imgui();
-	//
+	// ...
 	void initialise_default_data();
 	// Set default data for our main camera.
 	void initialise_camera();
-	//
+	// ...
 	void initialise_renderables();
-
 	
 	// Unused for now: Initialise all entities, components, and systems for the Entity Component System.
 	//void initialise_entity_component_system();	
-
-	// Unused for now: Step system calculations forward. Updates systems such as collision and physics.
-	//void update(float deltatime);
+	
 	// 1.3 - Update the camera and draw all renderable GLTF nodes.
+	void update();
 	void update_scene();
 
 	// 1.3 - Main draw loop for sycnhronisation and recording command buffers.
@@ -328,13 +292,15 @@ private:
 	VkDescriptorPool m_ImGuiDescriptorPool;								// ... Descriptor pool info but one specific for ImGui.
 	
 	// Scene Data.
-	Fish::GPU::SceneData m_SceneParameters;								// ...
-	//AllocatedBuffer11 m_SceneParametersBuffer;						// ...
 	Fish::Camera m_Camera;												// A handle to our camera so we can move around our scene (expanded to current/main camera in future).
+	GPUSceneData sceneData;
+	VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
+	std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes;
 
 	// Misc...
+	EngineStats stats;
+
 	Fish::Timer::EngineTimer m_EngineTimer;								// A handle to our timer class so that we can calculate certain frame metrics.
-	UploadContext m_UploadContext;										// ... 
 
 	DeletionQueue m_DeletionQueue;										// More efficient implementation of a deletion/cleanup system. Uses a FIFO order (good for small engines).
 
@@ -354,28 +320,27 @@ private:
 	//
 
 	std::vector<ComputeEffect> backgroundEffects;						// Container of shader effects for our background to be rendered.
-	int currentBackgroundEffect{ 0 };									// Currently selected background effect.
+	int currentBackgroundEffect{ 1 };									// Currently selected background effect.
 
 	VkPipelineLayout _meshPipelineLayout;								// Pipeline layout configured to render meshes.
 	VkPipeline _meshPipeline;											// Pipeline structure configured to render meshes.
-	VkPipelineLayout _trianglePipelineLayout;
-	VkPipeline _trianglePipeline;
+	VkDescriptorSetLayout _singleImageDescriptorLayout;					// Descriptor set layout for use in the mesh pipeline.
 
-	GPUMeshBuffers rectangle;
-	std::vector<std::shared_ptr<Fish::Loader::MeshAsset>> testMeshes;					// Container of all loaded meshes to be rendered.
+	GPUMeshBuffers rectangle;											// ...
 
-	GPUSceneData sceneData;
-
-	VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
-	VkDescriptorSetLayout _singleImageDescriptorLayout;
-
-	DrawContext mainDrawContext;
-	std::unordered_map<std::string, std::shared_ptr<Node>> loadedNodes;
+	DrawContext mainDrawContext;										// ...
+	std::unordered_map<std::string, std::shared_ptr<Node>> loadedNodes;	// ...
 
 	
 	MaterialInstance defaultData;
 
-	std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes;
+	// Public members (right now this is for absolutely no reason at all other than it isn't important to fix)
+	AllocatedImage _errorCheckerboardImage;
+	AllocatedImage _whiteImage;
+	AllocatedImage _blackImage;
+	AllocatedImage _greyImage;
+	VkSampler _defaultSamplerLinear;
+	VkSampler _defaultSamplerNearest;
+	GLTFMetallic_Roughness metalRoughMaterial;
 
-	EngineStats stats;
 };

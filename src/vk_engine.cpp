@@ -229,7 +229,7 @@ void FishEngine::initialise_imgui()
     // Calling this function outside of the immediate_submit13(...) function will cause ImGui
     // to not actually render. I spent some time messing around with this before I realised it wasn't
     // stated in the tutorial to do this. 
-    VkCommandBuffer cmd = get_current_frame().m_CommandBuffer;
+    VkCommandBuffer cmd = get_current_frame().commandBuffer;
     immediate_submit13([=](VkCommandBuffer cmd) {
         ImGui_ImplVulkan_CreateFontsTexture(cmd);
     });
@@ -410,13 +410,13 @@ void FishEngine::initialise_commands()
 
     for (int i = 0; i < kFrameOverlap; ++i)
     {
-        VK_CHECK(vkCreateCommandPool(m_Device, &commandPoolInfo, nullptr, &m_Frames[i].m_CommandPool));
+        VK_CHECK(vkCreateCommandPool(m_Device, &commandPoolInfo, nullptr, &m_Frames[i].commandPool));
 
         //allocate the default command buffer that we will use for rendering
-        VkCommandBufferAllocateInfo cmdAllocInfo = vkinit::command_buffer_allocate_info(m_Frames[i].m_CommandPool, 1);
-        VK_CHECK(vkAllocateCommandBuffers(m_Device, &cmdAllocInfo, &m_Frames[i].m_CommandBuffer));
+        VkCommandBufferAllocateInfo cmdAllocInfo = vkinit::command_buffer_allocate_info(m_Frames[i].commandPool, 1);
+        VK_CHECK(vkAllocateCommandBuffers(m_Device, &cmdAllocInfo, &m_Frames[i].commandBuffer));
                 
-        m_DeletionQueue.push_function([=]() { vkDestroyCommandPool(m_Device, m_Frames[i].m_CommandPool, nullptr); });
+        m_DeletionQueue.push_function([=]() { vkDestroyCommandPool(m_Device, m_Frames[i].commandPool, nullptr); });
     }    
 
     // > Immediate Commands
@@ -688,24 +688,20 @@ void FishEngine::initialise_synchronisation_structures()
 
     for (int i = 0; i < kFrameOverlap; ++i)
     {
-        VK_CHECK(vkCreateFence(m_Device, &fenceCreateInfo, nullptr, &m_Frames[i].m_RenderFence));
-        
-        VkFenceCreateInfo uploadFenceCreateInfo = vkinit::fence_create_info();
-        VK_CHECK(vkCreateFence(m_Device, &uploadFenceCreateInfo, nullptr, &m_UploadContext.uploadFence));
+        VK_CHECK(vkCreateFence(m_Device, &fenceCreateInfo, nullptr, &m_Frames[i].renderFence));
 
         // queue destruction of fences.
         m_DeletionQueue.push_function([=]() { 
-            vkDestroyFence(m_Device, m_Frames[i].m_RenderFence, nullptr); 
-            vkDestroyFence(m_Device, m_UploadContext.uploadFence, nullptr);
+            vkDestroyFence(m_Device, m_Frames[i].renderFence, nullptr); 
         });
 
-        VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &m_Frames[i].m_PresentSemaphore));
-        VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &m_Frames[i].m_RenderSemaphore));
+        VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &m_Frames[i].presentSemaphore));
+        VK_CHECK(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, nullptr, &m_Frames[i].renderSemaphore));
 
         // queue destruction of semaphores.
         m_DeletionQueue.push_function([=]() {
-            vkDestroySemaphore(m_Device, m_Frames[i].m_PresentSemaphore, nullptr);
-            vkDestroySemaphore(m_Device, m_Frames[i].m_RenderSemaphore, nullptr);
+            vkDestroySemaphore(m_Device, m_Frames[i].presentSemaphore, nullptr);
+            vkDestroySemaphore(m_Device, m_Frames[i].renderSemaphore, nullptr);
         });
     }    
 
@@ -894,10 +890,10 @@ void FishEngine::initialise_descriptors()
             { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4 },
         };
 
-        m_Frames[i]._frameDescriptors = DescriptorAllocatorGrowable{};
-        m_Frames[i]._frameDescriptors.init(m_Device, 1000, frame_sizes);
+        m_Frames[i].frameDescriptors = DescriptorAllocatorGrowable{};
+        m_Frames[i].frameDescriptors.init(m_Device, 1000, frame_sizes);
         m_DeletionQueue.push_function([&, i]() {
-            m_Frames[i]._frameDescriptors.destroy_pools(m_Device);
+            m_Frames[i].frameDescriptors.destroy_pools(m_Device);
         });
     }
 }
@@ -911,15 +907,10 @@ void FishEngine::cleanup()
     if (m_IsInitialized) {
 
         //make sure the GPU has stopped doing its things
-        vkWaitForFences(m_Device, 1, &get_current_frame().m_RenderFence, true, timeout);
+        vkWaitForFences(m_Device, 1, &get_current_frame().renderFence, true, timeout);
         vkDeviceWaitIdle(m_Device);
 
         loadedScenes.clear();
-
-        for (auto& mesh : testMeshes) {
-            destroy_buffer(mesh->meshBuffers.indexBuffer);
-            destroy_buffer(mesh->meshBuffers.vertexBuffer);
-        }
                 
         for (auto& frame : m_Frames) {
             frame.deletionQueue.flush();
@@ -1006,14 +997,14 @@ void FishEngine::imgui_debug_data()
 {
     ImGui::Text("Debug data for Fish engine.");
 
-    ImGui::Text("Elapsed: %f", m_EngineTimer.engine_time());
-    ImGui::Text("Frame Time: %fms", m_EngineTimer.frame_time()); 
-    ImGui::Text("Geometry Draw Time: %f ms", stats.mesh_draw_time);
-    ImGui::Text("Scene Update Time: %f ms", stats.scene_update_time);
+    ImGui::Text("Elapsed: %fs", stats.total_elapsed);
+    ImGui::Text("Frame Time: %fms", stats.frame_time); 
+    ImGui::Text("Geometry Draw Time: %fms", stats.geometry_draw_time);
+    ImGui::Text("Scene Update Time: %fms", stats.scene_update_time);
     ImGui::Text("Number of triangles: %i", stats.triangle_count);
     ImGui::Text("Number of draw calls: %i", stats.drawcall_count);
-    ImGui::Text("Camera Position: %f, %f, %f", m_Camera.m_Position.x, m_Camera.m_Position.y, m_Camera.m_Position.z);
-    ImGui::Text("Camera Pitch/Yaw: %f/%f", m_Camera.m_Pitch, m_Camera.m_Yaw);
+    ImGui::Text("Camera Position: %f, %f, %f", stats.camera_position.x, stats.camera_position.y, stats.camera_position.z);
+    ImGui::Text("Camera Pitch/Yaw: %f/%f", stats.camera_pitch, stats.camera_yaw);
 }
 
 //void FishVulkanEngine::imgui_object_hierarchy()
@@ -1154,17 +1145,17 @@ void FishEngine::draw()
     // Wait for the render fence to enter a signalled state meaning the GPU has finished 
     // rendering the previous frame and the GPU is now synchronised with the CPU.
     const unsigned int timeout = 1000000000;
-    VK_CHECK(vkWaitForFences(m_Device, 1, &get_current_frame().m_RenderFence, true, timeout));
+    VK_CHECK(vkWaitForFences(m_Device, 1, &get_current_frame().renderFence, true, timeout));
 
     // Clear all per-frame memory allocation.
     get_current_frame().deletionQueue.flush();
-    get_current_frame()._frameDescriptors.clear_pools(m_Device);
+    get_current_frame().frameDescriptors.clear_pools(m_Device);
 
     // The swapchain image index from our different images that we want to request for the next frame.
     uint32_t swapchainImageIndex;
 
     // Request the next swapchain image.
-    VkResult e = vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout, get_current_frame().m_PresentSemaphore, nullptr, &swapchainImageIndex);
+    VkResult e = vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout, get_current_frame().presentSemaphore, nullptr, &swapchainImageIndex);
 
     // If the swapchain image that we received is out of date, it will need to be reconstructed.
     if (e == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -1179,14 +1170,14 @@ void FishEngine::draw()
     // Set the state of the render fence to be unsignaled, we already waited for the fence synchronisation so now
     // we want to make sure it's ready to be used again this frame. You can't use the same fence on multiple
     // GPU commands without resetting it at some point.
-    VK_CHECK(vkResetFences(m_Device, 1, &get_current_frame().m_RenderFence));
+    VK_CHECK(vkResetFences(m_Device, 1, &get_current_frame().renderFence));
 
     // Since everything is synchronised and the previous frame is not executing any more commands, we can safely
     // reset our command buffer so that we can begin recording commands for this frame.
-    VK_CHECK(vkResetCommandBuffer(get_current_frame().m_CommandBuffer, 0));
+    VK_CHECK(vkResetCommandBuffer(get_current_frame().commandBuffer, 0));
 
     // The current frame's command buffer in shorthand for easier writing.
-    VkCommandBuffer cmd = get_current_frame().m_CommandBuffer;
+    VkCommandBuffer cmd = get_current_frame().commandBuffer;
 
     // Configure the settings for how we want to begin recording this frame's command buffer. 
     // We only use this command buffer once so we need to let Vulkan know that.
@@ -1237,12 +1228,12 @@ void FishEngine::draw()
     // We need to wait for the present semaphore so we know our swapchain is ready. And we signal our render semaphore to alert our rendering has finished.
 
     VkCommandBufferSubmitInfo cmdinfo = vkinit::command_buffer_submit_info(cmd);
-    VkSemaphoreSubmitInfo waitInfo = vkinit::semaphore_submit_info2(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, get_current_frame().m_PresentSemaphore);
-    VkSemaphoreSubmitInfo signalInfo = vkinit::semaphore_submit_info2(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, get_current_frame().m_RenderSemaphore);
+    VkSemaphoreSubmitInfo waitInfo = vkinit::semaphore_submit_info2(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, get_current_frame().presentSemaphore);
+    VkSemaphoreSubmitInfo signalInfo = vkinit::semaphore_submit_info2(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, get_current_frame().renderSemaphore);
     VkSubmitInfo2 submit = vkinit::submit_info2(&cmdinfo, &signalInfo, &waitInfo);
 
     // Submit our command buffer to the graphics queue. Our render fence will be signaled once all submitted command buffers have been executed.
-    VK_CHECK(vkQueueSubmit2(m_GraphicsQueue, 1, &submit, get_current_frame().m_RenderFence));
+    VK_CHECK(vkQueueSubmit2(m_GraphicsQueue, 1, &submit, get_current_frame().renderFence));
 
     // Prepare presentation of the swapchain that we rendered into to be displayed to our screen.
     // We need to wait on the render semaphore to signal that vkQueueSubmit2 executed properly before we can issue the present request.
@@ -1251,7 +1242,7 @@ void FishEngine::draw()
     VkPresentInfoKHR presentInfo = vkinit::present_info();
     presentInfo.pSwapchains = &m_Swapchain;
     presentInfo.swapchainCount = 1;
-    presentInfo.pWaitSemaphores = &get_current_frame().m_RenderSemaphore;
+    presentInfo.pWaitSemaphores = &get_current_frame().renderSemaphore;
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pImageIndices = &swapchainImageIndex;
 
@@ -1326,13 +1317,15 @@ void FishEngine::run()
         }
 
         m_EngineTimer.tick();
+        stats.total_elapsed = m_EngineTimer.engine_time();
+        stats.frame_time = m_EngineTimer.frame_time();        
 
         // Set all draw data for ImGui so that the render loop can submit this data.
         prepare_imgui();  
 
         auto scene_start = std::chrono::system_clock::now();                                                    // Start the timer for the scene update function.
         
-        update_scene();                                                                                         // Update the scene.
+        update();                                                                                         // Update the scene.
 
         auto scene_end = std::chrono::system_clock::now();                                                      // End the timer for the scene update function.
         auto scene_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(scene_end - scene_start);    // Calculate the update time based on start and end time.
@@ -1343,7 +1336,7 @@ void FishEngine::run()
     }
 }
 
-bool is_visible(const RenderObject13& obj, const glm::mat4& viewproj) {
+bool is_visible(const Fish::Resource::RenderObject& obj, const glm::mat4& viewproj) {
     std::array<glm::vec3, 8> corners{
         glm::vec3 { 1, 1, 1 },
         glm::vec3 { 1, 1, -1 },
@@ -1399,8 +1392,8 @@ void FishEngine::draw_geometry(VkCommandBuffer cmd)
 
     // sort the opaque surfaces by material and mesh
     std::sort(opaque_draws.begin(), opaque_draws.end(), [&](const auto& iA, const auto& iB) {
-        const RenderObject13& A = mainDrawContext.OpaqueSurfaces[iA];
-    const RenderObject13& B = mainDrawContext.OpaqueSurfaces[iB];
+        const Fish::Resource::RenderObject& A = mainDrawContext.OpaqueSurfaces[iA];
+    const Fish::Resource::RenderObject& B = mainDrawContext.OpaqueSurfaces[iB];
     if (A.material == B.material) {
         return A.indexBuffer < B.indexBuffer;
     }
@@ -1422,7 +1415,7 @@ void FishEngine::draw_geometry(VkCommandBuffer cmd)
     *sceneUniformData = sceneData;
 
     //create a descriptor set that binds that buffer and update it
-    VkDescriptorSet globalDescriptor = get_current_frame()._frameDescriptors.allocate(m_Device, _gpuSceneDataDescriptorLayout);
+    VkDescriptorSet globalDescriptor = get_current_frame().frameDescriptors.allocate(m_Device, _gpuSceneDataDescriptorLayout);
 
     DescriptorWriter writer;
     writer.write_buffer(0, gpuSceneDataBuffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
@@ -1432,7 +1425,7 @@ void FishEngine::draw_geometry(VkCommandBuffer cmd)
     MaterialInstance* lastMaterial = nullptr;
     VkBuffer lastIndexBuffer = VK_NULL_HANDLE;
 
-    auto draw = [&](const RenderObject13& r) {
+    auto draw = [&](const Fish::Resource::RenderObject& r) {
         if (r.material != lastMaterial) {
             lastMaterial = r.material;
             if (r.material->pipeline != lastPipeline) {
@@ -1530,7 +1523,7 @@ void FishEngine::draw_main(VkCommandBuffer cmd)
     // End and calculate the geometry draw time.
     auto end = std::chrono::system_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    stats.mesh_draw_time = elapsed.count() / 1000.f;
+    stats.geometry_draw_time = elapsed.count() / 1000.f;
 
     vkCmdEndRendering(cmd);
 }
@@ -1684,10 +1677,18 @@ size_t FishEngine::pad_uniform_buffer_size(size_t originalSize)
     return alignedSize;
 }
 
-void FishEngine::update_scene()
+void FishEngine::update()
 {
     m_Camera.update();
+    stats.camera_position = m_Camera.m_Position;
+    stats.camera_pitch = m_Camera.m_Pitch;
+    stats.camera_yaw = m_Camera.m_Yaw;
 
+    update_scene();
+}
+
+void FishEngine::update_scene()
+{
     glm::mat4 view = m_Camera.get_view_matrix();
     glm::mat4 projection = glm::perspective(glm::radians(70.f), (float)m_WindowExtents.width / (float)m_WindowExtents.height, 10000.f, 0.1f);
 
@@ -1876,7 +1877,7 @@ void MeshNode::Draw(const glm::mat4& topMatrix, DrawContext& ctx)
     glm::mat4 nodeMatrix = topMatrix * worldTransform;
 
     for (auto& s : mesh->surfaces) {
-        RenderObject13 def;
+        Fish::Resource::RenderObject def;
         def.indexCount = s.count;
         def.firstIndex = s.startIndex;
         def.indexBuffer = mesh->meshBuffers.indexBuffer.buffer;

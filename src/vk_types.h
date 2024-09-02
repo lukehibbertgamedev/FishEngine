@@ -28,6 +28,21 @@ constexpr bool kUseValidationLayers = true;
 // 2 for double buffering. Should be put into a constants/util file.
 constexpr unsigned int kFrameOverlap = 2;
 
+// Safely handle the cleanup of a growing amount of objects.
+struct DeletionQueue {
+    std::deque<std::function<void()>> toDelete;
+
+    void push_function(std::function<void()>&& function) { toDelete.push_back(function); }
+
+    void flush() {
+        // reverse iterate the deletion queue to execute all the functions
+        for (auto it = toDelete.rbegin(); it != toDelete.rend(); it++) {
+            (*it)(); //call functors
+        }
+        toDelete.clear();
+    }
+};
+
 // ...
 struct AllocatedImage {
     VkImage image;
