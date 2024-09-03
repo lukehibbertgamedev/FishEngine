@@ -43,6 +43,12 @@ struct DeletionQueue {
     }
 };
 
+struct Transform {
+    glm::vec4 position;
+    glm::vec4 rotation;
+    glm::vec4 scale;
+};
+
 // ...
 struct AllocatedImage {
     VkImage image;
@@ -109,7 +115,7 @@ struct DrawContext;
 // base class for a renderable dynamic object
 class IRenderable {
 
-    virtual void Draw(const glm::mat4& topMatrix, DrawContext& ctx) = 0;
+    virtual void Draw(const glm::mat4& transformationMatrix, DrawContext& ctx) = 0;
 };
 
 // implementation of a drawable scene node.
@@ -121,22 +127,22 @@ struct Node : public IRenderable {
     std::weak_ptr<Node> parent;
     std::vector<std::shared_ptr<Node>> children;
 
-    glm::mat4 localTransform;
-    glm::mat4 worldTransform;
+    glm::mat4 localTransformMatrix;
+    glm::mat4 worldTransformMatrix;
 
     void refreshTransform(const glm::mat4& parentMatrix)
     {
-        worldTransform = parentMatrix * localTransform;
+        worldTransformMatrix = parentMatrix * localTransformMatrix;
         for (auto c : children) {
-            c->refreshTransform(worldTransform);
+            c->refreshTransform(worldTransformMatrix);
         }
     }
 
-    virtual void Draw(const glm::mat4& topMatrix, DrawContext& ctx)
+    virtual void Draw(const glm::mat4& transformationMatrix, DrawContext& ctx)
     {
         // draw children
         for (auto& c : children) {
-            c->Draw(topMatrix, ctx);
+            c->Draw(transformationMatrix, ctx);
         }
     }
 };

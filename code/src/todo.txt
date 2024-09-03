@@ -111,9 +111,10 @@ Previously:
 	- [X] Abstracted some engine code into their own files									02/09
 	- [X] Loading 2 models of different .glb files											02/09
 
+	- [X] Move objects at runtime using ImGui												03/09
+
 Next time:
 	
-	- [ ] Move objects at runtime using ImGui
 	- [ ] Load several models which are listed in an ImGui scene object list
 	- [ ] Begin saving all positions of the scene objects
 

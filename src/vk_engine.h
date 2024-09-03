@@ -210,6 +210,8 @@ private:
 	void create_imgui_draw_data();
 	// ImGui debug data overlay displaying generic debug information.
 	void imgui_debug_data();
+	// ImGui scene object hierarchy.
+	void imgui_scene_hierarchy();
 
 	// Use the swapchain builder to build a basic swapchain.
 	void create_swapchain(uint32_t width, uint32_t height);

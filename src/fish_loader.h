@@ -41,7 +41,7 @@ namespace Fish {
 
         // See (https://vkguide.dev/docs/new_chapter_5/gltf_nodes/) for more.
         struct LoadedGLTF : public IRenderable {
-
+        public:
             // storage for all the data on a given gltf file
             std::unordered_map<std::string, std::shared_ptr<MeshAsset>> meshes;
             std::unordered_map<std::string, std::shared_ptr<Node>> nodes;
@@ -50,6 +50,8 @@ namespace Fish {
 
             // nodes that dont have a parent, for iterating through the file in tree order
             std::vector<std::shared_ptr<Node>> topNodes;
+
+            Transform transform;
 
             std::vector<VkSampler> samplers;
 
@@ -61,11 +63,11 @@ namespace Fish {
 
             ~LoadedGLTF() { clearAll(); };
 
-            virtual void Draw(const glm::mat4& topMatrix, DrawContext& ctx)
+            virtual void Draw(const glm::mat4& transformationMatrix, DrawContext& ctx)
             {
                 // create renderables from the scenenodes
                 for (auto& n : topNodes) {
-                    n->Draw(topMatrix, ctx);
+                    n->Draw(transformationMatrix, ctx);
                 }
             }
 

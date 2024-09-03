@@ -336,13 +336,13 @@ void FishEngine::initialise_renderables()
         std::string structurePath = { "../../assets/PolyPizza/Trampoline.glb" };
         auto structureFile = Fish::Loader::loadGltf(this, structurePath);
         assert(structureFile.has_value());
-        loadedScenes["structure"] = *structureFile;
+        loadedScenes["Trampoline"] = *structureFile;
     }
     {
         std::string structurePath = { "../../assets/house.glb" };
         auto structureFile = Fish::Loader::loadGltf(this, structurePath);
         assert(structureFile.has_value());
-        loadedScenes["structure2"] = *structureFile;
+        loadedScenes["House"] = *structureFile;
     }
 }
 
@@ -973,6 +973,14 @@ void FishEngine::create_imgui_draw_data()
     }
     // End Debug Overlay
 
+    // Begin Scene Hierarchy
+    {
+        ImGui::Begin("Scene Hierarchy", (bool*)0);
+        imgui_scene_hierarchy();
+        ImGui::End();
+    }
+    // End Scene Hierarchy
+
     // Begin Background Effects
     {
         /*if (ImGui::Begin("Background")) {
@@ -1014,6 +1022,79 @@ void FishEngine::imgui_debug_data()
     ImGui::Text("Number of draw calls: %i", stats.drawcall_count);
     ImGui::Text("Camera Position: %f, %f, %f", stats.camera_position.x, stats.camera_position.y, stats.camera_position.z);
     ImGui::Text("Camera Pitch/Yaw: %f/%f", stats.camera_pitch, stats.camera_yaw);
+}
+
+void FishEngine::imgui_scene_hierarchy()
+{
+    int index = 0;
+    for (auto& object : loadedScenes)
+    {
+        // Shared ptr must be dereferenced into a reference (not sure why I struggled here).
+        Fish::Loader::LoadedGLTF& obj = *object.second;
+
+        if (ImGui::TreeNode(object.first.c_str())) {
+            ImGui::NewLine();
+
+            // Cache -> modify -> update.
+            float position[4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
+            float rotation[4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
+            float scale[4]      = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+            position[0] = obj.transform.position.x;
+            position[1] = obj.transform.position.y;
+            position[2] = obj.transform.position.z;
+            rotation[0] = obj.transform.rotation.x;
+            rotation[1] = obj.transform.rotation.y;
+            rotation[2] = obj.transform.rotation.z;
+            scale[0] = obj.transform.scale.x;
+            scale[1] = obj.transform.scale.y;
+            scale[2] = obj.transform.scale.z;
+
+            ImGui::DragFloat3("Position", position);
+            ImGui::DragFloat3("Rotation", rotation);
+            ImGui::DragFloat3("Scale", scale);
+
+            obj.transform.position.x = position[0];
+            obj.transform.position.y = position[1];
+            obj.transform.position.z = position[2];
+            obj.transform.rotation.x = rotation[0];
+            obj.transform.rotation.y = rotation[1];
+            obj.transform.rotation.z = rotation[2];
+            obj.transform.scale.x = scale[0];
+            obj.transform.scale.y = scale[1];
+            obj.transform.scale.z = scale[2];
+
+            glm::vec3 t(position[0], position[1], position[2]);
+            glm::mat4 tm = glm::translate(glm::mat4(1.0f), t);
+
+            glm::vec3 rx(1.0f, 0.0f, 0.0f);
+            glm::vec3 ry(0.0f, 1.0f, 0.0f);
+            glm::vec3 rz(0.0f, 0.0f, 1.0f);
+            glm::mat4 rxm = glm::rotate(glm::mat4(1.0f), glm::radians(rotation[0]), rx);
+            glm::mat4 rym = glm::rotate(glm::mat4(1.0f), glm::radians(rotation[1]), ry);
+            glm::mat4 rzm = glm::rotate(glm::mat4(1.0f), glm::radians(rotation[2]), rz);
+            glm::mat4 rm = rzm * rym * rxm;
+
+            glm::vec3 s(scale[0], scale[1], scale[2]);
+            glm::mat4 sm = glm::scale(glm::mat4(1.0f), s);
+
+            glm::mat4 _final = tm * rm * sm;
+
+            // This code below only sets the very first node in the node tree. 
+            // For the trampoline model, this works well.
+            // But for more complex models, you will need to iterate/update the children node's local transform.
+
+            // set world matrix
+            Node& first = *(obj.topNodes[0]);
+            first.worldTransformMatrix = _final;
+            //if (first.children.size() > 0) {
+            //    first.refreshTransform(_final);
+            //}
+
+            ImGui::TreePop();
+        }
+        ++index;
+    }
 }
 
 //void FishVulkanEngine::imgui_object_hierarchy()
@@ -1357,7 +1438,7 @@ bool is_visible(const Fish::Resource::RenderObject& obj, const glm::mat4& viewpr
         glm::vec3 { -1, -1, -1 },
     };
 
-    glm::mat4 matrix = viewproj * obj.transform;
+    glm::mat4 matrix = viewproj * obj.transformationMatrix;
 
     glm::vec3 min = { 1.5, 1.5, 1.5 };
     glm::vec3 max = { -1.5, -1.5, -1.5 };
@@ -1434,6 +1515,7 @@ void FishEngine::draw_geometry(VkCommandBuffer cmd)
     MaterialInstance* lastMaterial = nullptr;
     VkBuffer lastIndexBuffer = VK_NULL_HANDLE;
 
+    // void draw_single_instance(const Fish::Resource::RenderObject& r);
     auto draw = [&](const Fish::Resource::RenderObject& r) {
         if (r.material != lastMaterial) {
             lastMaterial = r.material;
@@ -1441,8 +1523,7 @@ void FishEngine::draw_geometry(VkCommandBuffer cmd)
 
                 lastPipeline = r.material->pipeline;
                 vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, r.material->pipeline->pipeline);
-                vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, r.material->pipeline->layout, 0, 1,
-                    &globalDescriptor, 0, nullptr);
+                vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, r.material->pipeline->layout, 0, 1, &globalDescriptor, 0, nullptr);
 
                 VkViewport viewport = {};
                 viewport.x = 0;
@@ -1451,7 +1532,6 @@ void FishEngine::draw_geometry(VkCommandBuffer cmd)
                 viewport.height = (float)m_WindowExtents.height;
                 viewport.minDepth = 0.f;
                 viewport.maxDepth = 1.f;
-
                 vkCmdSetViewport(cmd, 0, 1, &viewport);
 
                 VkRect2D scissor = {};
@@ -1459,20 +1539,21 @@ void FishEngine::draw_geometry(VkCommandBuffer cmd)
                 scissor.offset.y = 0;
                 scissor.extent.width = m_WindowExtents.width;
                 scissor.extent.height = m_WindowExtents.height;
-
                 vkCmdSetScissor(cmd, 0, 1, &scissor);
             }
 
-            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, r.material->pipeline->layout, 1, 1,
-                &r.material->materialSet, 0, nullptr);
+            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, r.material->pipeline->layout, 1, 1, &r.material->materialSet, 0, nullptr);
         }
         if (r.indexBuffer != lastIndexBuffer) {
             lastIndexBuffer = r.indexBuffer;
+
+            if (!r.indexBuffer) FISH_FATAL("RenderObject.indexBuffer failed to read.");
             vkCmdBindIndexBuffer(cmd, r.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
         }
         // calculate final mesh matrix
-        GPUDrawPushConstants push_constants;
-        push_constants.worldMatrix = r.transform;
+        GPUDrawPushConstants push_constants = {};
+        if (!r.vertexBufferAddress) FISH_FATAL("RenderObject.vertexBufferAddress failed to read.");
+        push_constants.worldMatrix = r.transformationMatrix;
         push_constants.vertexBuffer = r.vertexBufferAddress;
 
         vkCmdPushConstants(cmd, r.material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
@@ -1708,8 +1789,8 @@ void FishEngine::update_scene()
     sceneData.proj = projection;
     sceneData.viewproj = projection * view;
 
-    loadedScenes["structure"]->Draw(glm::mat4{ 1.f }, mainDrawContext);
-    loadedScenes["structure2"]->Draw(glm::mat4{ 1.f }, mainDrawContext);
+    loadedScenes["House"]->Draw(glm::mat4{ 1.f }, mainDrawContext);
+    loadedScenes["Trampoline"]->Draw(glm::mat4{ 1.f }, mainDrawContext);
 }
 
 void FishEngine::immediate_submit13(std::function<void(VkCommandBuffer cmd)>&& function)
@@ -1884,7 +1965,7 @@ MaterialInstance GLTFMetallic_Roughness::write_material(VkDevice device, Materia
 
 void MeshNode::Draw(const glm::mat4& topMatrix, DrawContext& ctx)
 {
-    glm::mat4 nodeMatrix = topMatrix * worldTransform;
+    glm::mat4 nodeMatrix = topMatrix * worldTransformMatrix;
 
     for (auto& s : mesh->surfaces) {
         Fish::Resource::RenderObject def;
@@ -1893,7 +1974,7 @@ void MeshNode::Draw(const glm::mat4& topMatrix, DrawContext& ctx)
         def.indexBuffer = mesh->meshBuffers.indexBuffer.buffer;
         def.material = &s.material->data;
         def.bounds = s.bounds;
-        def.transform = nodeMatrix;
+        def.transformationMatrix = nodeMatrix;
         def.vertexBufferAddress = mesh->meshBuffers.vertexBufferAddress;
 
         if (s.material->data.passType == MaterialPass::Transparent) {

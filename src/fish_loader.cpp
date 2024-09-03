@@ -405,7 +405,7 @@ namespace Fish {
 				file.nodes[node.name.c_str()];
 
 				std::visit(fastgltf::visitor{ [&](fastgltf::Node::TransformMatrix matrix) {
-					memcpy(&newNode->localTransform, matrix.data(), sizeof(matrix));
+					memcpy(&newNode->localTransformMatrix, matrix.data(), sizeof(matrix));
 				},
 					[&](fastgltf::Node::TRS transform) {
 					   glm::vec3 tl(transform.translation[0], transform.translation[1], transform.translation[2]);
@@ -414,7 +414,7 @@ namespace Fish {
 					   glm::mat4 tm = glm::translate(glm::mat4(1.f), tl);
 					   glm::mat4 rm = glm::toMat4(rot);
 					   glm::mat4 sm = glm::scale(glm::mat4(1.f), sc);
-					   newNode->localTransform = tm * rm * sm;
+					   newNode->localTransformMatrix = tm * rm * sm;
 					}
 					},
 					node.transform);
