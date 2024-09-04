@@ -39,6 +39,8 @@ add_executable (engine
   fish_logger.cpp
   fish_utils.h
   fish_utils.cpp
+  fish_json_handler.h
+  fish_json_handler.cpp
   nlohmann_json.h
   nlohmann_json_fwd.h
   tiny_obj_loader.h

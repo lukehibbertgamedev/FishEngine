@@ -8,6 +8,7 @@
 #include <vk_types.h>
 #include <fish_timer.h>
 #include <fish_resource.h>
+#include <fish_scene.h>
 #include <fish_ecs.h>
 #include <fish_ecs_systems.h>
 #include <fish_camera.h>
@@ -81,14 +82,7 @@ struct MeshPushConstants11 {
 	glm::mat4 matrix;
 };
 
-struct GPUSceneData {
-	glm::mat4 view;
-	glm::mat4 proj;
-	glm::mat4 viewproj;
-	glm::vec4 ambientColor;
-	glm::vec4 sunlightDirection; // w for sun power
-	glm::vec4 sunlightColor;
-};
+
 
 // Test push constants for use in the compute pipeline.
 struct ComputePushConstants {
@@ -145,22 +139,22 @@ public:
 	GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
 
 	// Accessors:
-	VmaAllocator GetAllocator() { return m_Allocator; }														// Value accessor.
+	VmaAllocator GetAllocator() { return m_Allocator; }																	// Value accessor.
 
-	DeletionQueue& GetDeletionQueue() { return m_DeletionQueue; }											// Reference accessor.
-	VkDevice& GetDevice() { return m_Device; }																// Reference accessor.
-	VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }										// Reference accessor.
-	VkDescriptorSetLayout& GetSingleTextureSetLayout() { return m_SingleTextureSetLayout; }					// Reference accessor.
-	VkDescriptorSetLayout& GetGPUSceneDataDescriptorLayout() { return _gpuSceneDataDescriptorLayout; }		// Reference accessor.
-	AllocatedImage& GetDrawImage() { return m_DrawImage; }													// Reference accessor.
-	AllocatedImage& GetDepthImage() { return m_DepthImage; }												// Reference accessor.
-	AllocatedImage& GetErrorCheckerboardImage() { return _errorCheckerboardImage; }							// Reference accessor.
-	AllocatedImage& GetWhiteImage() { return _whiteImage; }													// Reference accessor.
-	AllocatedImage& GetBlackImage() { return _blackImage; }													// Reference accessor.
-	AllocatedImage& GetGreyImage() { return _greyImage; }													// Reference accessor.
-	VkSampler& GetDefaultSamplerLinear() { return _defaultSamplerLinear; }									// Reference accessor.
-	VkSampler& GetDefaultSamplerNearest() { return _defaultSamplerNearest; }								// Reference accessor.
-	GLTFMetallic_Roughness& GetMetalRoughMaterial() { return metalRoughMaterial; }							// Reference accessor.
+	DeletionQueue& GetDeletionQueue() { return m_DeletionQueue; }														// Reference accessor.
+	VkDevice& GetDevice() { return m_Device; }																			// Reference accessor.
+	VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }													// Reference accessor.
+	VkDescriptorSetLayout& GetSingleTextureSetLayout() { return m_SingleTextureSetLayout; }								// Reference accessor.
+	VkDescriptorSetLayout& GetGPUSceneDataDescriptorLayout() { return currentScene._gpuSceneDataDescriptorLayout; }		// Reference accessor.
+	AllocatedImage& GetDrawImage() { return m_DrawImage; }																// Reference accessor.
+	AllocatedImage& GetDepthImage() { return m_DepthImage; }															// Reference accessor.
+	AllocatedImage& GetErrorCheckerboardImage() { return _errorCheckerboardImage; }										// Reference accessor.
+	AllocatedImage& GetWhiteImage() { return _whiteImage; }																// Reference accessor.
+	AllocatedImage& GetBlackImage() { return _blackImage; }																// Reference accessor.
+	AllocatedImage& GetGreyImage() { return _greyImage; }																// Reference accessor.
+	VkSampler& GetDefaultSamplerLinear() { return _defaultSamplerLinear; }												// Reference accessor.
+	VkSampler& GetDefaultSamplerNearest() { return _defaultSamplerNearest; }											// Reference accessor.
+	GLTFMetallic_Roughness& GetMetalRoughMaterial() { return metalRoughMaterial; }										// Reference accessor.
 	
 private:
 	
@@ -213,6 +207,8 @@ private:
 	void imgui_debug_data();
 	// ImGui scene object hierarchy.
 	void imgui_scene_hierarchy();
+	// ImGui useful buttons.
+	void imgui_util_buttons();
 
 	// Use the swapchain builder to build a basic swapchain.
 	void create_swapchain(uint32_t width, uint32_t height);
@@ -294,11 +290,8 @@ private:
 	VkDescriptorSetLayout m_DrawImageDescriptorLayout;					// ...
 	VkDescriptorPool m_ImGuiDescriptorPool;								// ... Descriptor pool info but one specific for ImGui.
 	
-	// Scene Data.
-	Fish::Camera m_Camera;												// A handle to our camera so we can move around our scene (expanded to current/main camera in future).
-	GPUSceneData sceneData;
-	VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
-	std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes;
+	// Scene
+	Fish::Scene currentScene;
 
 	// Misc...
 	EngineStats stats;

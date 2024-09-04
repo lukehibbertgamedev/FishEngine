@@ -111,7 +111,10 @@ Previously:
 	- [X] Abstracted some engine code into their own files									02/09
 	- [X] Loading 2 models of different .glb files											02/09
 
-	- [X] Move objects at runtime using ImGui												03/09
+	- [X] Move objects at runtime using ImGui (slight error with child nodes)				03/09
+
+	- [X] Full runtime movement using ImGui													04/09
+	- [X] Saving test data to JSON file														04/09
 
 Next time:
 	
