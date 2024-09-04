@@ -118,8 +118,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>
-      </Message>
+      <Message></Message>
       <Command>setlocal
 C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -E copy C:/Users/lukeh/Desktop/FishEngine/Fish/code/third_party/SDL/Debug/SDL2d.dll C:/Users/lukeh/Desktop/FishEngine/Fish/bin/Debug
 if %errorlevel% neq 0 goto :cmEnd
@@ -178,8 +177,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>
-      </Message>
+      <Message></Message>
       <Command>setlocal
 C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -E copy C:/Users/lukeh/Desktop/FishEngine/Fish/code/third_party/SDL/Release/SDL2.dll C:/Users/lukeh/Desktop/FishEngine/Fish/bin/Release
 if %errorlevel% neq 0 goto :cmEnd
@@ -238,8 +236,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>
-      </Message>
+      <Message></Message>
       <Command>setlocal
 C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -E copy C:/Users/lukeh/Desktop/FishEngine/Fish/code/third_party/SDL/MinSizeRel/SDL2.dll C:/Users/lukeh/Desktop/FishEngine/Fish/bin/MinSizeRel
 if %errorlevel% neq 0 goto :cmEnd
@@ -297,8 +294,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>
-      </Message>
+      <Message></Message>
       <Command>setlocal
 C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -E copy C:/Users/lukeh/Desktop/FishEngine/Fish/code/third_party/SDL/RelWithDebInfo/SDL2.dll C:/Users/lukeh/Desktop/FishEngine/Fish/bin/RelWithDebInfo
 if %errorlevel% neq 0 goto :cmEnd
@@ -524,6 +520,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/MinSizeRel/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/RelWithDebInfo/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_utils.h" />
+    <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_utils.cpp">
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/Debug/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/Release/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/MinSizeRel/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/RelWithDebInfo/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+    </ClCompile>
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\nlohmann_json.h" />
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\nlohmann_json_fwd.h" />
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\tiny_obj_loader.h" />
@@ -563,9 +566,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Project>{D482E9FD-A8AB-3E34-ACE1-4F07E2873737}</Project>
       <Name>vkbootstrap</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\..\src\References.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

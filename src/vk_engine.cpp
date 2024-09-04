@@ -336,13 +336,14 @@ void FishEngine::initialise_renderables()
         std::string structurePath = { "../../assets/PolyPizza/Trampoline.glb" };
         auto structureFile = Fish::Loader::loadGltf(this, structurePath);
         assert(structureFile.has_value());
-        loadedScenes["Trampoline"] = *structureFile;
+        std::string extracted = Fish::Utility::extract_file_name(structurePath);
+        loadedScenes[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
     }
     {
         std::string structurePath = { "../../assets/house.glb" };
         auto structureFile = Fish::Loader::loadGltf(this, structurePath);
         assert(structureFile.has_value());
-        loadedScenes["House"] = *structureFile;
+        loadedScenes[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
     }
 }
 
@@ -1035,10 +1036,10 @@ void FishEngine::imgui_scene_hierarchy()
         if (ImGui::TreeNode(object.first.c_str())) {
             ImGui::NewLine();
 
-            // Cache -> modify -> update.
+            // Local cache, with thanks to MellOH for the idea.
             float position[4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
             float rotation[4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
-            float scale[4]      = { 0.0f, 0.0f, 0.0f, 0.0f };
+            float scale[4]      = { 1.0f, 1.0f, 1.0f, 1.0f };
 
             position[0] = obj.transform.position.x;
             position[1] = obj.transform.position.y;
@@ -1060,37 +1061,34 @@ void FishEngine::imgui_scene_hierarchy()
             obj.transform.rotation.x = rotation[0];
             obj.transform.rotation.y = rotation[1];
             obj.transform.rotation.z = rotation[2];
-            obj.transform.scale.x = scale[0];
-            obj.transform.scale.y = scale[1];
-            obj.transform.scale.z = scale[2];
+            obj.transform.scale.x = scale[0];      
+            obj.transform.scale.y = scale[1];      
+            obj.transform.scale.z = scale[2];      
 
-            glm::vec3 t(position[0], position[1], position[2]);
-            glm::mat4 tm = glm::translate(glm::mat4(1.0f), t);
+            glm::vec3 t(position[0], position[1], position[2]);                             // Translation.
+            glm::mat4 tm = glm::translate(glm::mat4(1.0f), t);                              // Translation.
+            glm::vec3 rx(1.0f, 0.0f, 0.0f);                                                 // Rotation.
+            glm::vec3 ry(0.0f, 1.0f, 0.0f);                                                 // Rotation.
+            glm::vec3 rz(0.0f, 0.0f, 1.0f);                                                 // Rotation.
+            glm::mat4 rxm = glm::rotate(glm::mat4(1.0f), glm::radians(rotation[0]), rx);    // Rotation.
+            glm::mat4 rym = glm::rotate(glm::mat4(1.0f), glm::radians(rotation[1]), ry);    // Rotation.
+            glm::mat4 rzm = glm::rotate(glm::mat4(1.0f), glm::radians(rotation[2]), rz);    // Rotation.
+            glm::mat4 rm = rzm * rym * rxm;                                                 // Rotation.
+            glm::vec3 s(scale[0], scale[1], scale[2]);                                      // Scale.
+            glm::mat4 sm = glm::scale(glm::mat4(1.0f), s);                                  // Scale.
+            glm::mat4 _final = tm * rm * sm;                                                // Combined.
 
-            glm::vec3 rx(1.0f, 0.0f, 0.0f);
-            glm::vec3 ry(0.0f, 1.0f, 0.0f);
-            glm::vec3 rz(0.0f, 0.0f, 1.0f);
-            glm::mat4 rxm = glm::rotate(glm::mat4(1.0f), glm::radians(rotation[0]), rx);
-            glm::mat4 rym = glm::rotate(glm::mat4(1.0f), glm::radians(rotation[1]), ry);
-            glm::mat4 rzm = glm::rotate(glm::mat4(1.0f), glm::radians(rotation[2]), rz);
-            glm::mat4 rm = rzm * rym * rxm;
+            // Set all node transforms. All children nodes must be multiplied by the new parent/world transformation matrix.
 
-            glm::vec3 s(scale[0], scale[1], scale[2]);
-            glm::mat4 sm = glm::scale(glm::mat4(1.0f), s);
+            for (auto& n : obj.topNodes) {
+                Node& _n = *n;
+                for (auto& c : _n.children) {
+                    Node& _c = *c;
 
-            glm::mat4 _final = tm * rm * sm;
-
-            // This code below only sets the very first node in the node tree. 
-            // For the trampoline model, this works well.
-            // But for more complex models, you will need to iterate/update the children node's local transform.
-
-            // set world matrix
-            Node& first = *(obj.topNodes[0]);
-            first.worldTransformMatrix = _final;
-            //if (first.children.size() > 0) {
-            //    first.refreshTransform(_final);
-            //}
-
+                    _c.localTransformMatrix *= _final;
+                }
+                _n.worldTransformMatrix = _final;
+            }
             ImGui::TreePop();
         }
         ++index;
@@ -1789,8 +1787,10 @@ void FishEngine::update_scene()
     sceneData.proj = projection;
     sceneData.viewproj = projection * view;
 
-    loadedScenes["House"]->Draw(glm::mat4{ 1.f }, mainDrawContext);
-    loadedScenes["Trampoline"]->Draw(glm::mat4{ 1.f }, mainDrawContext);
+    // Draw all objects within the loadedScenes container.
+    for (const auto& instance : loadedScenes) {
+        loadedScenes[instance.first]->Draw(glm::mat4{ 1.0f }, mainDrawContext);
+    }
 }
 
 void FishEngine::immediate_submit13(std::function<void(VkCommandBuffer cmd)>&& function)

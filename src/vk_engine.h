@@ -13,6 +13,7 @@
 #include <fish_camera.h>
 #include <fish_gpu_data.h>
 #include <fish_loader.h>
+#include <fish_utils.h>
 #include <vk_descriptors.h>
 
 #include <unordered_map>
