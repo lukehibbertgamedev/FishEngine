@@ -2,34 +2,37 @@
 
 #include <fmt/format.h>
 
-void Fish::JSON::Handler::test_save()
+void Fish::JSON::Handler::save()
 {
+	// Make sure we have a file to write to.
 	if (!file_exists()) {
 		create_file();
 	}
 
-	Transform t;
-	t.position.x = 5.0f;
-	t.position.y = 10.0f;
-	t.position.z = 15.0f;
-	t.rotation.x = 90.0f;
-	t.rotation.y = 180.0f;
-	t.rotation.z = 45.0f;
-	t.scale.x = 1.0f;
-	t.scale.y = 1.5f;
-	t.scale.z = 2.0f;
-	std::string n = "House_Test";
+	// Format all save-able data into one container.
+	std::vector<nlohmann::json> dataToSave = {};
+	for (auto& data : m_LoadedScenes)
+	{
+		const std::string& name = data.first;
+		Fish::Loader::LoadedGLTF& obj = *data.second;
+		Transform thisTransform = obj.transform;
 
-	nlohmann::json data = nlohmann::json::object();
-	data["name"] = { "House_Test" };
-	data["position"] = { 0.0f, 5.0f, 10.0f };
-	data["rotation"] = { 90.0f, 45.0f, 180.0f };
-	data["scale"] = { 1.0f, 1.5f, 2.0f };
+		nlohmann::json jsonData = nlohmann::json::object();
+		jsonData["name"] = { name };
+		jsonData["position"] = { thisTransform.position.x, thisTransform.position.y, thisTransform.position.z };
+		jsonData["rotation"] = { thisTransform.rotation.x, thisTransform.rotation.y, thisTransform.rotation.z };
+		jsonData["scale"] = { thisTransform.scale.x, thisTransform.scale.y, thisTransform.scale.z };
 
+		dataToSave.push_back(jsonData);
+	}
+
+	// Write all the data from our container.
 	std::ofstream outputFile(m_Filepath);
 	if (outputFile.is_open()) {
-		outputFile << std::setw(4) << data << std::endl;
-		FISH_LOG("Test data has been written to JSON.");
+		for (int i = 0; i < dataToSave.size(); ++i) {
+			outputFile << std::setw(4) << dataToSave[i] << std::endl;
+			FISH_LOG("- Data has been written to JSON.");
+		}
 	}
 	else {
 		FISH_FATAL("Failed to open for writing.");
@@ -57,12 +60,12 @@ bool Fish::JSON::Handler::create_file()
 	}
 }
 
-nlohmann::json& Fish::JSON::Handler::format_transform(const Transform& transform, const std::string& name)
-{
-	nlohmann::json data = nlohmann::json::object();
-	data["name"] = { name };
-	data["position"] = { transform.position.x, transform.position.y, transform.position.z };
-	data["rotation"] = { transform.rotation.x, transform.rotation.y, transform.rotation.z };
-	data["scale"] = { transform.scale.x, transform.scale.y, transform.scale.z };
-	return data;
-}
+//nlohmann::json& Fish::JSON::Handler::format_transform(const Transform& transform, const std::string& name)
+//{
+//	nlohmann::json data = nlohmann::json::object();
+//	data["name"] = { name };
+//	data["position"] = { transform.position.x, transform.position.y, transform.position.z };
+//	data["rotation"] = { transform.rotation.x, transform.rotation.y, transform.rotation.z };
+//	data["scale"] = { transform.scale.x, transform.scale.y, transform.scale.z };
+//	return data;
+//}
