@@ -2,16 +2,26 @@
 
 #include <fmt/format.h>
 
-void Fish::JSON::Handler::save()
+void Fish::JSON::Handler::save(std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes, Fish::Camera camera)
 {
 	// Make sure we have a file to write to.
 	if (!file_exists()) {
 		create_file();
 	}
 
-	// Format all save-able data into one container.
+	// Load all json objects into here to be written to json.
 	std::vector<nlohmann::json> dataToSave = {};
-	for (auto& data : m_LoadedScenes)
+
+	// Format our camera data into a save-able state.
+	nlohmann::json cameraData = nlohmann::json::object();
+	cameraData["name"] = { "mainCamera" };
+	cameraData["position"] = { camera.m_Position.x, camera.m_Position.y, camera.m_Position.z };
+	cameraData["pitch"] = { camera.m_Pitch };
+	cameraData["yaw"] = { camera.m_Yaw };
+	dataToSave.push_back(cameraData);
+
+	// Format all object save-able data into one container.
+	for (auto& data : loadedScenes)
 	{
 		const std::string& name = data.first;
 		Fish::Loader::LoadedGLTF& obj = *data.second;

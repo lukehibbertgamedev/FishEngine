@@ -115,7 +115,7 @@ Previously:
 
 	- [X] Full runtime movement using ImGui													04/09
 	- [X] Saving test data to JSON file														04/09
-	- [X] Saving all loaded object's transform and name to JSON								04/09 *
+	- [X] Saving all loaded object's transform, name, and camera data to JSON				04/09 *
 
 Next time:
 	

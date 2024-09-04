@@ -13,6 +13,7 @@
 #include <nlohmann_json.h>
 #include <nlohmann_json_fwd.h>
 #include <fish_loader.h>
+#include <fish_camera.h>
 
 namespace Fish {
 
@@ -23,9 +24,9 @@ namespace Fish {
 
 			Handler() = delete; // Force handler to only be constructed with a filepath.
 			Handler(const Fish::JSON::Handler&) = delete; // Force handler to only be constructed with a filepath.
-			Handler(const std::filesystem::path& filepath, std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes) : m_Filepath(filepath), m_LoadedScenes(loadedScenes) {}
+			Handler(const std::filesystem::path& filepath) : m_Filepath(filepath) {}
 
-			void save();
+			void save(std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes, Fish::Camera camera);
 
 			bool file_exists();
 
@@ -33,7 +34,7 @@ namespace Fish {
 
 		private:
 			const std::filesystem::path m_Filepath;
-			std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> m_LoadedScenes;
+			//std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> m_LoadedScenes;
 		};
 	}
 }
