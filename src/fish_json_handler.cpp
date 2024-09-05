@@ -56,9 +56,10 @@ void Fish::JSON::Handler::load_camera_data(std::vector<Fish::ResourceData::Camer
 	
 }
 
-void Fish::JSON::Handler::load_object_data(std::vector<Fish::ResourceData::Object>& outObjectData, std::vector<Fish::ResourceData::Camera>& outCameraData)
+void Fish::JSON::Handler::load_object_data(std::vector<Fish::ResourceData::Object>& outObjectData, Fish::ResourceData::Camera& outCameraData)
 {
 	std::vector<Fish::ResourceData::Object> dataContainer = {};
+	Fish::ResourceData::Camera camera;
 
 	std::ifstream input(m_Filepath);
 	if (!input.is_open()) {
@@ -72,7 +73,6 @@ void Fish::JSON::Handler::load_object_data(std::vector<Fish::ResourceData::Objec
 	for (const auto& [key, value] : data.items()) {
 
 		if (key == "mainCamera") {
-			Fish::ResourceData::Camera camera;
 			camera.position = parse_vec3(value.at("position"));
 			camera.pitch = value.at("pitch").get<float>();
 			camera.yaw = value.at("yaw").get<float>();
@@ -101,6 +101,7 @@ void Fish::JSON::Handler::load_object_data(std::vector<Fish::ResourceData::Objec
 	}
 
 	outObjectData = dataContainer;
+	outCameraData = camera;
 }
 
 bool Fish::JSON::Handler::file_exists()

@@ -59,7 +59,7 @@ void FishEngine::init()
     initialise_renderables();
     initialise_imgui(); // Required to be called after Vulkan initialisation.
 
-    //currentScene.load();
+    currentScene.load();
 
     // initialise entity component systems
     //init_ecs();
@@ -1059,7 +1059,7 @@ void FishEngine::imgui_scene_hierarchy()
         if (ImGui::TreeNode(object.first.c_str())) {
             ImGui::NewLine();
 
-            // Local cache, with thanks to MellOH for the idea.
+            // Local cache, with thanks to MellOH for the help.
             float position[4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
             float rotation[4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
             float scale[4]      = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -1102,7 +1102,6 @@ void FishEngine::imgui_scene_hierarchy()
             glm::mat4 _final = tm * rm * sm;                                                // Combined.
 
             // Set all node transforms. All children nodes must be multiplied by the new parent/world transformation matrix.
-
             for (auto& n : obj.topNodes) {
                 Node& _n = *n;
                 for (auto& c : _n.children) {
@@ -1781,6 +1780,9 @@ void FishEngine::update_scene()
 
     // Draw all objects within the loadedScenes container.
     for (const auto& instance : currentScene.loadedScenes) {
+
+        currentScene.loadedScenes[instance.first]->Update();
+
         currentScene.loadedScenes[instance.first]->Draw(glm::mat4{ 1.0f }, mainDrawContext);
     }
 }

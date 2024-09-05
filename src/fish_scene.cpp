@@ -12,14 +12,14 @@ void Fish::Scene::load()
 	Fish::JSON::Handler handler("../../src/test_save.json");
 	handler.load_object_data(objectCache, cameraCache);
 
+	// Ensure the objectCache index matches the object that we want to apply that data to.
 	std::unordered_map<std::string, size_t> nameToIndexMap;
 	for (size_t i = 0; i < objectCache.size(); ++i) {
 		nameToIndexMap[objectCache[i].name] = i;
 	}
 
-	// Set runtime data.
+	// Set object runtime data.
 	for (auto& [key, value] : loadedScenes) {
-
 		auto it = nameToIndexMap.find(key);
 		if (it != nameToIndexMap.end()) {
 			Fish::Loader::LoadedGLTF& obj = *value;
@@ -32,4 +32,9 @@ void Fish::Scene::load()
 		}
 		else FISH_FATAL("No matching object found for: " + key);
 	}
+
+	// Set camera runtime data.
+	camera.m_Position = cameraCache.position;
+	camera.m_Pitch = cameraCache.pitch;
+	camera.m_Yaw = cameraCache.yaw;
 }
