@@ -35,7 +35,7 @@ namespace Fish {
 			void save(std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes, Fish::Camera camera);
 			
 			void load_camera_data(std::vector<Fish::ResourceData::Camera>& outCameraData);
-			void load_object_data(std::vector<Fish::ResourceData::Object>& outObjectData);
+			void load_object_data(std::vector<Fish::ResourceData::Object>& outObjectData, std::vector<Fish::ResourceData::Camera>& outCameraData);
 
 			bool file_exists();
 			bool create_file();

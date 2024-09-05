@@ -56,7 +56,7 @@ void Fish::JSON::Handler::load_camera_data(std::vector<Fish::ResourceData::Camer
 	
 }
 
-void Fish::JSON::Handler::load_object_data(std::vector<Fish::ResourceData::Object>& outObjectData)
+void Fish::JSON::Handler::load_object_data(std::vector<Fish::ResourceData::Object>& outObjectData, std::vector<Fish::ResourceData::Camera>& outCameraData)
 {
 	std::vector<Fish::ResourceData::Object> dataContainer = {};
 
