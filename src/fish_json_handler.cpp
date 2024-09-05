@@ -1,6 +1,17 @@
 #include "fish_json_handler.h"
 
 #include <fmt/format.h>
+#include <iostream>
+
+glm::vec3 Fish::JSON::Handler::parse_vec3(const nlohmann::json& vec)
+{
+	return glm::vec3(vec.at(0).get<float>(), vec.at(1).get<float>(), vec.at(2).get<float>());
+}
+
+nlohmann::json Fish::JSON::Handler::serialise_vec3(const glm::vec3& vec)
+{
+	return nlohmann::json::array({ vec.x, vec.y, vec.z });
+}
 
 void Fish::JSON::Handler::save(std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes, Fish::Camera camera)
 {
@@ -9,44 +20,73 @@ void Fish::JSON::Handler::save(std::unordered_map<std::string, std::shared_ptr<F
 		create_file();
 	}
 
-	// Load all json objects into here to be written to json.
-	std::vector<nlohmann::json> dataToSave = {};
+	// Our top level container to hold the camera and object data.
+	nlohmann::json jsonData = nlohmann::json::object();
 
 	// Format our camera data into a save-able state.
 	nlohmann::json cameraData = nlohmann::json::object();
-	cameraData["name"] = { "mainCamera" };
 	cameraData["position"] = { camera.m_Position.x, camera.m_Position.y, camera.m_Position.z };
 	cameraData["pitch"] = { camera.m_Pitch };
 	cameraData["yaw"] = { camera.m_Yaw };
-	dataToSave.push_back(cameraData);
+	jsonData["mainCamera"] = cameraData; // Add this to the top level.
 
 	// Format all object save-able data into one container.
-	for (auto& data : loadedScenes)
+	for (const auto& [key, data] : loadedScenes)
 	{
-		const std::string& name = data.first;
-		Fish::Loader::LoadedGLTF& obj = *data.second;
-		Transform thisTransform = obj.transform;
-
-		nlohmann::json jsonData = nlohmann::json::object();
-		jsonData["name"] = { name };
-		jsonData["position"] = { thisTransform.position.x, thisTransform.position.y, thisTransform.position.z };
-		jsonData["rotation"] = { thisTransform.rotation.x, thisTransform.rotation.y, thisTransform.rotation.z };
-		jsonData["scale"] = { thisTransform.scale.x, thisTransform.scale.y, thisTransform.scale.z };
-
-		dataToSave.push_back(jsonData);
+		nlohmann::json objectData = nlohmann::json::object();
+		objectData["position"] = serialise_vec3(data->transform.position);
+		objectData["rotation"] = serialise_vec3(data->transform.rotation);
+		objectData["scale"] = serialise_vec3(data->transform.scale);
+		jsonData[key] = objectData; // Todo: Add this to the object level.
 	}
 
 	// Write all the data from our container.
 	std::ofstream outputFile(m_Filepath);
 	if (outputFile.is_open()) {
-		for (int i = 0; i < dataToSave.size(); ++i) {
-			outputFile << std::setw(4) << dataToSave[i] << std::endl;
-			FISH_LOG("- Data has been written to JSON.");
-		}
+		outputFile << std::setw(4) << jsonData << std::endl;
+		FISH_LOG("- Data has been written to JSON.");
 	}
 	else {
 		FISH_FATAL("Failed to open for writing.");
 	}
+}
+
+void Fish::JSON::Handler::load_camera_data(std::vector<Fish::ResourceData::Camera>& outCameraData)
+{
+	
+}
+
+void Fish::JSON::Handler::load_object_data(std::vector<Fish::ResourceData::Object>& outObjectData)
+{
+	std::vector<Fish::ResourceData::Object> dataContainer = {};
+
+	std::ifstream input(m_Filepath);
+	if (!input.is_open()) {
+		FISH_FATAL("Failed to open file for reading.");
+	}
+
+	nlohmann::json data;
+	input >> data;
+	input.close();
+
+	for (const auto& [key, value] : data.items()) {
+
+		Fish::ResourceData::Object object;
+		object.name = key;
+		object.position = parse_vec3(value.at("position"));
+		object.rotation = parse_vec3(value.at("rotation"));
+		object.scale = parse_vec3(value.at("scale"));
+		dataContainer.push_back(object);
+	}
+
+	for (const auto& obj : dataContainer) {
+		std::cout << "Object: " << obj.name << std::endl;
+		std::cout << "  Position: (" << obj.position.x << ", " << obj.position.y << ", " << obj.position.z << ")" << std::endl;
+		std::cout << "  Rotation: (" << obj.rotation.x << ", " << obj.rotation.y << ", " << obj.rotation.z << ")" << std::endl;
+		std::cout << "  Scale: (" << obj.scale.x << ", " << obj.scale.y << ", " << obj.scale.z << ")" << std::endl;
+	}
+
+	outObjectData = dataContainer;
 }
 
 bool Fish::JSON::Handler::file_exists()

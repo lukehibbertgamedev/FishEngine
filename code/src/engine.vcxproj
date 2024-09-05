@@ -118,7 +118,8 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message></Message>
+      <Message>
+      </Message>
       <Command>setlocal
 C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -E copy C:/Users/lukeh/Desktop/FishEngine/Fish/code/third_party/SDL/Debug/SDL2d.dll C:/Users/lukeh/Desktop/FishEngine/Fish/bin/Debug
 if %errorlevel% neq 0 goto :cmEnd
@@ -177,7 +178,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message></Message>
+      <Message>
+      </Message>
       <Command>setlocal
 C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -E copy C:/Users/lukeh/Desktop/FishEngine/Fish/code/third_party/SDL/Release/SDL2.dll C:/Users/lukeh/Desktop/FishEngine/Fish/bin/Release
 if %errorlevel% neq 0 goto :cmEnd
@@ -236,7 +238,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message></Message>
+      <Message>
+      </Message>
       <Command>setlocal
 C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -E copy C:/Users/lukeh/Desktop/FishEngine/Fish/code/third_party/SDL/MinSizeRel/SDL2.dll C:/Users/lukeh/Desktop/FishEngine/Fish/bin/MinSizeRel
 if %errorlevel% neq 0 goto :cmEnd
@@ -294,7 +297,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message></Message>
+      <Message>
+      </Message>
       <Command>setlocal
 C:\Users\lukeh\Downloads\cmake-3.29.4-windows-x86_64\bin\cmake.exe -E copy C:/Users/lukeh/Desktop/FishEngine/Fish/code/third_party/SDL/RelWithDebInfo/SDL2.dll C:/Users/lukeh/Desktop/FishEngine/Fish/bin/RelWithDebInfo
 if %errorlevel% neq 0 goto :cmEnd
@@ -405,6 +409,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/MinSizeRel/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/RelWithDebInfo/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
+    <ClInclude Include="..\..\src\fish_resource_data.h" />
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_types.h" />
     <ClCompile Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\vk_initializers.cpp">
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:/Users/lukeh/Desktop/FishEngine/Fish/code/src/CMakeFiles/engine.dir/Debug/cmake_pch.hxx;%(ForcedIncludeFiles)</ForcedIncludeFiles>

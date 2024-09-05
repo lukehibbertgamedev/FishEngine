@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
 
 	engine.cleanup();	
 
-	//FISH_LOG("----- CLOSING FISH ENGINE -----");
+	FISH_LOG("----- CLOSING FISH ENGINE -----");
 
 	return 0;
 }

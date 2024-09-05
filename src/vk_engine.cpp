@@ -58,7 +58,8 @@ void FishEngine::init()
     initialise_camera();
     initialise_renderables();
     initialise_imgui(); // Required to be called after Vulkan initialisation.
-    // Load meshes.
+
+    //currentScene.load();
 
     // initialise entity component systems
     //init_ecs();
@@ -1128,7 +1129,8 @@ void FishEngine::imgui_util_buttons()
     }
     if (ImGui::Button("Load Scene", defaultButtonSize))
     {
-        FISH_WARN("Load Scene functionality not implemented...");
+        FISH_LOG("Loading scene...");
+        currentScene.load();
     }
     if (ImGui::Button("New Scene", defaultButtonSize))
     {

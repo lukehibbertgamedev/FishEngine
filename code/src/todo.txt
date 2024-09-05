@@ -117,6 +117,8 @@ Previously:
 	- [X] Saving test data to JSON file														04/09
 	- [X] Saving all loaded object's transform, name, and camera data to JSON				04/09 *
 
+	- [X] Attempting to load from JSON														05/09
+
 Next time:
 	
 	- [ ] Load several models which are listed in an ImGui scene object list

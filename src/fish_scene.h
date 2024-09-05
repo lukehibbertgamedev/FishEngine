@@ -22,7 +22,13 @@ namespace Fish {
 		VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
 		std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes;
 
+		std::vector<Fish::ResourceData::Camera> cameraCache;
+		std::vector<Fish::ResourceData::Object> objectCache;
+
 		// Let the json handler save our scene.
 		void save();
+
+		// ...
+		void load();
 	};
 }
