@@ -13,7 +13,7 @@ nlohmann::json Fish::JSON::Handler::serialise_vec3(const glm::vec3& vec)
 	return nlohmann::json::array({ vec.x, vec.y, vec.z });
 }
 
-void Fish::JSON::Handler::save(std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes, Fish::Camera camera)
+void Fish::JSON::Handler::serialise_scene_data(std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes, Fish::Camera camera)
 {
 	// Make sure we have a file to write to.
 	if (!file_exists()) {
@@ -51,38 +51,32 @@ void Fish::JSON::Handler::save(std::unordered_map<std::string, std::shared_ptr<F
 	}
 }
 
-void Fish::JSON::Handler::load_camera_data(std::vector<Fish::ResourceData::Camera>& outCameraData)
-{
-	
-}
-
-void Fish::JSON::Handler::load_object_data(std::vector<Fish::ResourceData::Object>& outObjectData, Fish::ResourceData::Camera& outCameraData)
+void Fish::JSON::Handler::parse_scene_data(std::vector<Fish::ResourceData::Object>& outObjectData, Fish::ResourceData::Camera& outCameraData)
 {
 	std::vector<Fish::ResourceData::Object> dataContainer = {};
-	Fish::ResourceData::Camera camera;
+	Fish::ResourceData::Camera camera = {};
 
+	// Open the file for reading.
 	std::ifstream input(m_Filepath);
 	if (!input.is_open()) {
 		FISH_FATAL("Failed to open file for reading.");
 	}
 
+	// Stream the file contents into our JSON container.
 	nlohmann::json data;
 	input >> data;
 	input.close();
 
+	// Go through all the contents that we read from file.
 	for (const auto& [key, value] : data.items()) {
 
+		// Special case for our camera.
 		if (key == "mainCamera") {
 			camera.position = parse_vec3(value.at("position"));
 			camera.pitch = value.at("pitch").get<float>();
 			camera.yaw = value.at("yaw").get<float>();
-
-			// You can store or use the camera data as needed
-			// For example: store in a camera data structure
-			std::cout << "  Position: (" << camera.position.x << ", " << camera.position.y << ", " << camera.position.z << ")" << std::endl;
-			std::cout << "  Pitch: " << camera.pitch << std::endl;
-			std::cout << "  Yaw: " << camera.yaw << std::endl;
 		}
+		// Load object data too.
 		else {
 			Fish::ResourceData::Object object;
 			object.name = key;
@@ -93,13 +87,7 @@ void Fish::JSON::Handler::load_object_data(std::vector<Fish::ResourceData::Objec
 		}
 	}
 
-	for (const auto& obj : dataContainer) {
-		std::cout << "Object: " << obj.name << std::endl;
-		std::cout << "  Position: (" << obj.position.x << ", " << obj.position.y << ", " << obj.position.z << ")" << std::endl;
-		std::cout << "  Rotation: (" << obj.rotation.x << ", " << obj.rotation.y << ", " << obj.rotation.z << ")" << std::endl;
-		std::cout << "  Scale: (" << obj.scale.x << ", " << obj.scale.y << ", " << obj.scale.z << ")" << std::endl;
-	}
-
+	// Set our out parameters.
 	outObjectData = dataContainer;
 	outCameraData = camera;
 }
@@ -124,13 +112,3 @@ bool Fish::JSON::Handler::create_file()
 		return false;
 	}
 }
-
-//nlohmann::json& Fish::JSON::Handler::format_transform(const Transform& transform, const std::string& name)
-//{
-//	nlohmann::json data = nlohmann::json::object();
-//	data["name"] = { name };
-//	data["position"] = { transform.position.x, transform.position.y, transform.position.z };
-//	data["rotation"] = { transform.rotation.x, transform.rotation.y, transform.rotation.z };
-//	data["scale"] = { transform.scale.x, transform.scale.y, transform.scale.z };
-//	return data;
-//}

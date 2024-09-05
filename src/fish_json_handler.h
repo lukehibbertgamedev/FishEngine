@@ -24,7 +24,6 @@ namespace Fish {
 
 		class Handler {
 		public:
-
 			Handler() = delete; // Force handler to only be constructed with a filepath.
 			Handler(const Fish::JSON::Handler&) = delete; // Force handler to only be constructed with a filepath.
 			Handler(const std::filesystem::path& filepath) : m_Filepath(filepath) {}
@@ -32,17 +31,14 @@ namespace Fish {
 			glm::vec3 parse_vec3(const nlohmann::json& vec);
 			nlohmann::json serialise_vec3(const glm::vec3& vec);
 
-			void save(std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes, Fish::Camera camera);
-			
-			void load_camera_data(std::vector<Fish::ResourceData::Camera>& outCameraData);
-			void load_object_data(std::vector<Fish::ResourceData::Object>& outObjectData, Fish::ResourceData::Camera& outCameraData);
-
 			bool file_exists();
 			bool create_file();
 
+			void serialise_scene_data(std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes, Fish::Camera camera);			
+			void parse_scene_data(std::vector<Fish::ResourceData::Object>& outObjectData, Fish::ResourceData::Camera& outCameraData);
+
 		private:
 			const std::filesystem::path m_Filepath;
-			//std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> m_LoadedScenes;
 		};
 	}
 }

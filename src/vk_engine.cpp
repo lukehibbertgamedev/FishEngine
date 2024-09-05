@@ -59,6 +59,7 @@ void FishEngine::init()
     initialise_renderables();
     initialise_imgui(); // Required to be called after Vulkan initialisation.
 
+    // If there is no scene to load, create a new empty scene and save that.
     currentScene.load();
 
     // initialise entity component systems
