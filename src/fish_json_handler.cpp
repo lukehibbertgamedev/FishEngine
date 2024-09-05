@@ -26,8 +26,8 @@ void Fish::JSON::Handler::save(std::unordered_map<std::string, std::shared_ptr<F
 	// Format our camera data into a save-able state.
 	nlohmann::json cameraData = nlohmann::json::object();
 	cameraData["position"] = { camera.m_Position.x, camera.m_Position.y, camera.m_Position.z };
-	cameraData["pitch"] = { camera.m_Pitch };
-	cameraData["yaw"] = { camera.m_Yaw };
+	cameraData["pitch"] = camera.m_Pitch;// Singular values can be directly assigned.
+	cameraData["yaw"] = camera.m_Yaw;	 // Singular values can be directly assigned.
 	jsonData["mainCamera"] = cameraData; // Add this to the top level.
 
 	// Format all object save-able data into one container.
@@ -71,12 +71,26 @@ void Fish::JSON::Handler::load_object_data(std::vector<Fish::ResourceData::Objec
 
 	for (const auto& [key, value] : data.items()) {
 
-		Fish::ResourceData::Object object;
-		object.name = key;
-		object.position = parse_vec3(value.at("position"));
-		object.rotation = parse_vec3(value.at("rotation"));
-		object.scale = parse_vec3(value.at("scale"));
-		dataContainer.push_back(object);
+		if (key == "mainCamera") {
+			Fish::ResourceData::Camera camera;
+			camera.position = parse_vec3(value.at("position"));
+			camera.pitch = value.at("pitch").get<float>();
+			camera.yaw = value.at("yaw").get<float>();
+
+			// You can store or use the camera data as needed
+			// For example: store in a camera data structure
+			std::cout << "  Position: (" << camera.position.x << ", " << camera.position.y << ", " << camera.position.z << ")" << std::endl;
+			std::cout << "  Pitch: " << camera.pitch << std::endl;
+			std::cout << "  Yaw: " << camera.yaw << std::endl;
+		}
+		else {
+			Fish::ResourceData::Object object;
+			object.name = key;
+			object.position = parse_vec3(value.at("position"));
+			object.rotation = parse_vec3(value.at("rotation"));
+			object.scale = parse_vec3(value.at("scale"));
+			dataContainer.push_back(object);
+		}
 	}
 
 	for (const auto& obj : dataContainer) {
