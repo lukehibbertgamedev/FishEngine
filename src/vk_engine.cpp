@@ -355,12 +355,6 @@ void FishEngine::initialise_renderables()
         assert(structureFile.has_value());
         currentScene.loadedScenes[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
     }
-    {
-        std::string structurePath = { "../../assets/PolyPizza/Tree.glb" };
-        auto structureFile = Fish::Loader::loadGltf(this, structurePath);
-        assert(structureFile.has_value());
-        currentScene.loadedScenes[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
-    }
 }
 
 void FishEngine::initialise_swapchain()
@@ -992,7 +986,7 @@ void FishEngine::create_imgui_draw_data()
 
     // Begin Scene Hierarchy
     {
-        ImGui::Begin("Scene Hierarchy", (bool*)0);
+        ImGui::Begin("Scene Hierarchy", (bool*)0, ImGuiWindowFlags_NoMove);
         imgui_scene_hierarchy();
         ImGui::End();
     }
@@ -1003,6 +997,7 @@ void FishEngine::create_imgui_draw_data()
         ImGui::Begin("Utility Buttons", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
         imgui_util_buttons();
         ImGui::End();
+        
     }
     // End Util Buttons
 
@@ -1051,6 +1046,10 @@ void FishEngine::imgui_debug_data()
 
 void FishEngine::imgui_scene_hierarchy()
 {
+    std::string sceneNameText = "Scene Name: " + currentScene.sceneName;
+    ImGui::Text(sceneNameText.c_str());
+    ImGui::NewLine();
+
     int index = 0;
     for (auto& object : currentScene.loadedScenes)
     {
@@ -1136,6 +1135,34 @@ void FishEngine::imgui_util_buttons()
     {
         FISH_WARN("New Scene functionality not implemented...");
     }
+    if (ImGui::Button("Add another modal..", defaultButtonSize)) 
+    {
+        ImGui::OpenPopup("Rename Scene");
+    }
+    rename_scene_modal();
+    
+}
+
+void FishEngine::rename_scene_modal()
+{
+    // Always center this window when appearing
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+    if (ImGui::BeginPopupModal("Rename Scene", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        static char str0[128] = "Hello, world!";
+        ImGui::InputText("input text", str0, IM_ARRAYSIZE(str0));
+
+        if (ImGui::Button("OK", ImVec2(120, 0))) {
+            ImGui::CloseCurrentPopup();
+            currentScene.sceneName = str0;
+        }
+        ImGui::SetItemDefaultFocus();
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+        ImGui::EndPopup();
+    }
 }
 
 //void FishVulkanEngine::imgui_scene_data()
@@ -1219,8 +1246,10 @@ void FishEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView)
 
 void FishEngine::draw()
 {
-    // This function gets called at the very start of the draw() function, before waiting on the frame fences.
-    //update_scene();
+    // Draw all objects within the loadedScenes container.
+    for (const auto& instance : currentScene.loadedScenes) {
+        currentScene.loadedScenes[instance.first]->Draw(glm::mat4{ 1.0f }, mainDrawContext);
+    }
 
     // Wait for the render fence to enter a signalled state meaning the GPU has finished 
     // rendering the previous frame and the GPU is now synchronised with the CPU.
@@ -1784,7 +1813,7 @@ void FishEngine::update_scene()
 
         currentScene.loadedScenes[instance.first]->Update();
 
-        currentScene.loadedScenes[instance.first]->Draw(glm::mat4{ 1.0f }, mainDrawContext);
+        //currentScene.loadedScenes[instance.first]->Draw(glm::mat4{ 1.0f }, mainDrawContext);
     }
 }
 

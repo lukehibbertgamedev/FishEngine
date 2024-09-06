@@ -209,6 +209,8 @@ private:
 	void imgui_scene_hierarchy();
 	// ImGui useful buttons.
 	void imgui_util_buttons();
+	// ImGui option to rename scene.
+	void rename_scene_modal();
 
 	// Use the swapchain builder to build a basic swapchain.
 	void create_swapchain(uint32_t width, uint32_t height);
@@ -339,4 +341,5 @@ private:
 	VkSampler _defaultSamplerNearest;
 	GLTFMetallic_Roughness metalRoughMaterial;
 
+	bool showModel = false;
 };

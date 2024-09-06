@@ -122,6 +122,8 @@ Previously:
 	
 	- [X] Loading object and camera data from JSON and applying it at runtime				06/09 *
 
+	- [X] Renaming scene functionality working												06/09
+
 Next time:
 		
 	- [ ] Comment all functions and variables with at least something

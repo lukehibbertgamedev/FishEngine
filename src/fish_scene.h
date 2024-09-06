@@ -21,6 +21,7 @@ namespace Fish {
 		Fish::GPU::GPUSceneData sceneData;
 		VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
 		std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes;
+		std::string sceneName = "DefaultText";
 
 		// Containers that will be populated on load() to be accessed to set data.
 		Fish::ResourceData::Camera outCameraCache;

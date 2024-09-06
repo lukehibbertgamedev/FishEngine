@@ -19,7 +19,7 @@ namespace Fish {
 		float m_Pitch{ 0.0f };
 		float m_Yaw{ 0.0f };
 
-		bool m_Toggle = true;
+		bool m_Toggle = false;
 
 		glm::mat4 get_view_matrix();
 		glm::mat4 get_rotation_matrix();
