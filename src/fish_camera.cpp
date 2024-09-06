@@ -58,3 +58,11 @@ void Fish::Camera::update()
      glm::mat4 cameraRotation = get_rotation_matrix();
      m_Position += glm::vec3(cameraRotation * glm::vec4(m_Velocity * 0.5f, 0.f));
 }
+
+void Fish::Camera::reset()
+{
+    m_Position = glm::vec3(0.0f);
+    m_Velocity = glm::vec3(0.0f);
+    m_Pitch = 0.0f;
+    m_Yaw = 0.0f;
+}

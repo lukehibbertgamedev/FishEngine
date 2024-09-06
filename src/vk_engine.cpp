@@ -1133,9 +1133,9 @@ void FishEngine::imgui_util_buttons()
     }
     if (ImGui::Button("New Scene", defaultButtonSize))
     {
-        FISH_WARN("New Scene functionality not implemented...");
+        currentScene.create_new();
     }
-    if (ImGui::Button("Add another modal..", defaultButtonSize)) 
+    if (ImGui::Button("Rename scene", defaultButtonSize)) 
     {
         ImGui::OpenPopup("Rename Scene");
     }

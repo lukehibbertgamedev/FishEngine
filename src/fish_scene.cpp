@@ -38,3 +38,10 @@ void Fish::Scene::load()
 	camera.m_Pitch = outCameraCache.pitch;
 	camera.m_Yaw = outCameraCache.yaw;
 }
+
+void Fish::Scene::create_new()
+{
+	loadedScenes.clear();
+	camera.reset();
+	sceneName = "NewScene";
+}

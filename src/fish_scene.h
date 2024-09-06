@@ -21,7 +21,7 @@ namespace Fish {
 		Fish::GPU::GPUSceneData sceneData;
 		VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
 		std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes;
-		std::string sceneName = "DefaultText";
+		std::string sceneName = "_";
 
 		// Containers that will be populated on load() to be accessed to set data.
 		Fish::ResourceData::Camera outCameraCache;
@@ -32,5 +32,7 @@ namespace Fish {
 
 		// Let the json handler obtain all written data and store it in temporary structures.
 		void load();
+
+		void create_new();
 	};
 }

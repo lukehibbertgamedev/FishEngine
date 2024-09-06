@@ -27,5 +27,6 @@ namespace Fish {
 		void processSDLEvent(SDL_Event& e);
 
 		void update();
+		void reset();
 	};
 }
