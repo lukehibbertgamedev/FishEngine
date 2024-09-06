@@ -13,7 +13,7 @@ nlohmann::json Fish::JSON::Handler::serialise_vec3(const glm::vec3& vec)
 	return nlohmann::json::array({ vec.x, vec.y, vec.z });
 }
 
-void Fish::JSON::Handler::serialise_scene_data(std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes, Fish::Camera camera)
+void Fish::JSON::Handler::serialise_scene_data(std::string sceneName, std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes, Fish::Camera camera)
 {
 	// Make sure we have a file to write to.
 	if (!file_exists()) {
@@ -22,6 +22,7 @@ void Fish::JSON::Handler::serialise_scene_data(std::unordered_map<std::string, s
 
 	// Our top level container to hold the camera and object data.
 	nlohmann::json jsonData = nlohmann::json::object();
+	jsonData["_sceneName"] = sceneName; // _sceneName so it comes first since JSON writes alphabetically.
 
 	// Format our camera data into a save-able state.
 	nlohmann::json cameraData = nlohmann::json::object();
@@ -51,7 +52,7 @@ void Fish::JSON::Handler::serialise_scene_data(std::unordered_map<std::string, s
 	}
 }
 
-void Fish::JSON::Handler::parse_scene_data(std::vector<Fish::ResourceData::Object>& outObjectData, Fish::ResourceData::Camera& outCameraData)
+void Fish::JSON::Handler::parse_scene_data(std::string& outSceneName, std::vector<Fish::ResourceData::Object>& outObjectData, Fish::ResourceData::Camera& outCameraData)
 {
 	std::vector<Fish::ResourceData::Object> dataContainer = {};
 	Fish::ResourceData::Camera camera = {};
@@ -70,8 +71,11 @@ void Fish::JSON::Handler::parse_scene_data(std::vector<Fish::ResourceData::Objec
 	// Go through all the contents that we read from file.
 	for (const auto& [key, value] : data.items()) {
 
+		if (key == "_sceneName") {
+			outSceneName = value.get<std::string>(); // No need for value.at here since we are at the top level and that is used for accessing nested values.
+		}
 		// Special case for our camera.
-		if (key == "mainCamera") {
+		else if (key == "mainCamera") {
 			camera.position = parse_vec3(value.at("position"));
 			camera.pitch = value.at("pitch").get<float>();
 			camera.yaw = value.at("yaw").get<float>();

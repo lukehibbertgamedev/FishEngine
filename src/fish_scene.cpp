@@ -3,14 +3,14 @@
 void Fish::Scene::save()
 {
 	Fish::JSON::Handler handler("../../src/default_scene_01.json");
-	handler.serialise_scene_data(loadedScenes, camera);
+	handler.serialise_scene_data(sceneName, loadedScenes, camera);
 }
 
 void Fish::Scene::load()
 {
 	// Read data from file.
 	Fish::JSON::Handler handler("../../src/default_scene_01.json");
-	handler.parse_scene_data(outObjectCache, outCameraCache); // Populate data containers.
+	handler.parse_scene_data(sceneName, outObjectCache, outCameraCache); // Populate data containers.
 
 	// Ensure the objectCache index matches the object that we want to apply that data to.
 	std::unordered_map<std::string, size_t> nameToIndexMap;
