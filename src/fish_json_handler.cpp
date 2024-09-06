@@ -13,7 +13,7 @@ nlohmann::json Fish::JSON::Handler::serialise_vec3(const glm::vec3& vec)
 	return nlohmann::json::array({ vec.x, vec.y, vec.z });
 }
 
-void Fish::JSON::Handler::serialise_scene_data(std::string sceneName, std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes, Fish::Camera camera)
+void Fish::JSON::Handler::serialise_scene_data(std::string sceneName, std::unordered_map<std::string, Fish::ResourceData::Object> objectsInScene, Fish::Camera camera)
 {
 	// Make sure we have a file to write to.
 	if (!file_exists()) {
@@ -32,13 +32,13 @@ void Fish::JSON::Handler::serialise_scene_data(std::string sceneName, std::unord
 	jsonData["mainCamera"] = cameraData; // Add this to the top level.
 
 	// Format all object save-able data into one container.
-	for (const auto& [key, data] : loadedScenes)
+	for (const auto& [objName, objData] : objectsInScene)
 	{
 		nlohmann::json objectData = nlohmann::json::object();
-		objectData["position"] = serialise_vec3(data->transform.position);
-		objectData["rotation"] = serialise_vec3(data->transform.rotation);
-		objectData["scale"] = serialise_vec3(data->transform.scale);
-		jsonData[key] = objectData; // Todo: Add this to the object level.
+		objectData["position"] = serialise_vec3(objData.position);
+		objectData["rotation"] = serialise_vec3(objData.rotation);
+		objectData["scale"] = serialise_vec3(objData.scale);
+		jsonData[objName] = objectData; // Todo: Add this to the object level.
 	}
 
 	// Write all the data from our container.
@@ -52,7 +52,7 @@ void Fish::JSON::Handler::serialise_scene_data(std::string sceneName, std::unord
 	}
 }
 
-void Fish::JSON::Handler::parse_scene_data(std::string& outSceneName, std::vector<Fish::ResourceData::Object>& outObjectData, Fish::ResourceData::Camera& outCameraData)
+void Fish::JSON::Handler::parse_scene_data(std::string& outSceneName, std::unordered_map<std::string, Fish::ResourceData::Object>& outObjectData, Fish::ResourceData::Camera& outCameraData)
 {
 	std::vector<Fish::ResourceData::Object> dataContainer = {};
 	Fish::ResourceData::Camera camera = {};
@@ -92,7 +92,12 @@ void Fish::JSON::Handler::parse_scene_data(std::string& outSceneName, std::vecto
 	}
 
 	// Set our out parameters.
-	outObjectData = dataContainer;
+
+	outObjectData.clear();
+	for (const auto& obj : dataContainer) {
+		outObjectData[obj.name] = obj;
+	}
+	//outObjectData = dataContainer;
 	outCameraData = camera;
 }
 

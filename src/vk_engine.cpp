@@ -52,6 +52,9 @@ void FishEngine::init()
     initialise_swapchain();
     initialise_commands();
     initialise_synchronisation_structures();
+
+    initialise_default_scene(); // This needs to be called before descriptors so that the scene data descriptor layouts can be accessed to be set.
+
     initialise_descriptors();
     initialise_pipelines();
     initialise_default_data();
@@ -59,8 +62,7 @@ void FishEngine::init()
     initialise_renderables();
     initialise_imgui(); // Required to be called after Vulkan initialisation.
 
-    // If there is no scene to load, create a new empty scene and save that.
-    currentScene.load();
+    pCurrentScene->load(); // If there is no scene to load, create a new empty scene and save that.
 
     // initialise entity component systems
     //init_ecs();
@@ -323,10 +325,10 @@ void FishEngine::initialise_camera()
 
     // Zero-out/Initialise the camera's default data.
 
-    currentScene.camera.m_Velocity = glm::vec3(0.f);
-    currentScene.camera.m_Position = glm::vec3(28.0f, 22.0f, 21.0f);
-    currentScene.camera.m_Pitch = -0.3;
-    currentScene.camera.m_Yaw = 5.6;
+    pCurrentScene->camera.m_Velocity = glm::vec3(0.f);
+    pCurrentScene->camera.m_Position = glm::vec3(28.0f, 22.0f, 21.0f);
+    pCurrentScene->camera.m_Pitch = -0.3;
+    pCurrentScene->camera.m_Yaw = 5.6;
 }
 
 void FishEngine::initialise_renderables()
@@ -341,20 +343,30 @@ void FishEngine::initialise_renderables()
         std::string structurePath = { "../../assets/PolyPizza/Trampoline.glb" };
         auto structureFile = Fish::Loader::loadGltf(this, structurePath);
         assert(structureFile.has_value());
-        currentScene.loadedScenes[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
+        ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
     }
     {
         std::string structurePath = { "../../assets/house.glb" };
         auto structureFile = Fish::Loader::loadGltf(this, structurePath);
         assert(structureFile.has_value());
-        currentScene.loadedScenes[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
+        ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
     }
     {
         std::string structurePath = { "../../assets/PolyPizza/BasicCar.glb" };
         auto structureFile = Fish::Loader::loadGltf(this, structurePath);
         assert(structureFile.has_value());
-        currentScene.loadedScenes[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
+        ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
     }
+}
+
+void FishEngine::initialise_default_scene()
+{
+    FISH_LOG("Initialising default scene...");
+
+    if (!pCurrentScene) {
+        pCurrentScene = new Fish::Scene();
+    }
+    sceneManager.pActiveScene = pCurrentScene;
 }
 
 void FishEngine::initialise_swapchain()
@@ -887,12 +899,12 @@ void FishEngine::initialise_descriptors()
     {
         DescriptorLayoutBuilder builder;
         builder.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-        currentScene._gpuSceneDataDescriptorLayout = builder.build(m_Device, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+        pCurrentScene->_gpuSceneDataDescriptorLayout = builder.build(m_Device, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT); // FIX: pCurrentScene is nullptr as of here.
     }
 
     m_DeletionQueue.push_function([&]() {
         vkDestroyDescriptorSetLayout(m_Device, m_DrawImageDescriptorLayout, nullptr);
-        vkDestroyDescriptorSetLayout(m_Device, currentScene._gpuSceneDataDescriptorLayout, nullptr);
+        vkDestroyDescriptorSetLayout(m_Device, pCurrentScene->_gpuSceneDataDescriptorLayout, nullptr);
     });
 
     m_DrawImageDescriptors = m_GlobalDescriptorAllocator.allocate(m_Device, m_DrawImageDescriptorLayout);
@@ -930,7 +942,7 @@ void FishEngine::cleanup()
         vkWaitForFences(m_Device, 1, &get_current_frame().renderFence, true, timeout);
         vkDeviceWaitIdle(m_Device);
 
-        currentScene.loadedScenes.clear();
+        ResourceManager::Get().loadedResources.clear();
                 
         for (auto& frame : m_Frames) {
             frame.deletionQueue.flush();
@@ -1046,15 +1058,16 @@ void FishEngine::imgui_debug_data()
 
 void FishEngine::imgui_scene_hierarchy()
 {
-    std::string sceneNameText = "Scene Name: " + currentScene.sceneName;
+    std::string sceneNameText = "Scene Name: " + pCurrentScene->sceneName;
     ImGui::Text(sceneNameText.c_str());
     ImGui::NewLine();
 
     int index = 0;
-    for (auto& object : currentScene.loadedScenes)
+    for (auto& object : pCurrentScene->objectsInScene) // FIX: Scene object container containing transform and string ID
     {
         // Shared ptr must be dereferenced into a reference (not sure why I struggled here).
-        Fish::Loader::LoadedGLTF& obj = *object.second;
+        //Fish::ResourceData::Object& obj = object.second;
+        Fish::Loader::LoadedGLTF& obj = *ResourceManager::Get().loadedResources[object.first];
 
         if (ImGui::TreeNode(object.first.c_str())) {
             ImGui::NewLine();
@@ -1102,7 +1115,7 @@ void FishEngine::imgui_scene_hierarchy()
             glm::mat4 _final = tm * rm * sm;                                                // Combined.
 
             // Set all node transforms. All children nodes must be multiplied by the new parent/world transformation matrix.
-            for (auto& n : obj.topNodes) {
+            /*for (auto& n : obj.topNodes) {
                 Node& _n = *n;
                 for (auto& c : _n.children) {
                     Node& _c = *c;
@@ -1110,7 +1123,7 @@ void FishEngine::imgui_scene_hierarchy()
                     _c.localTransformMatrix *= _final;
                 }
                 _n.worldTransformMatrix = _final;
-            }
+            }*/
             ImGui::TreePop();
         }
         ++index;
@@ -1124,16 +1137,16 @@ void FishEngine::imgui_util_buttons()
     if (ImGui::Button("Save Scene", defaultButtonSize))
     {
         FISH_LOG("Saving scene...");
-        currentScene.save();
+        pCurrentScene->save();
     }
     if (ImGui::Button("Load Scene", defaultButtonSize))
     {
         FISH_LOG("Loading scene...");
-        currentScene.load();
+        pCurrentScene->load();
     }
     if (ImGui::Button("New Scene", defaultButtonSize))
     {
-        currentScene.create_new();
+        sceneManager.create_new_scene("TestNameForNow");
     }
     if (ImGui::Button("Rename scene", defaultButtonSize)) 
     {
@@ -1156,7 +1169,7 @@ void FishEngine::rename_scene_modal()
 
         if (ImGui::Button("OK", ImVec2(120, 0))) {
             ImGui::CloseCurrentPopup();
-            currentScene.sceneName = str0;
+            pCurrentScene->sceneName = str0;
         }
         ImGui::SetItemDefaultFocus();
         ImGui::SameLine();
@@ -1247,8 +1260,8 @@ void FishEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView)
 void FishEngine::draw()
 {
     // Draw all objects within the loadedScenes container.
-    for (const auto& instance : currentScene.loadedScenes) {
-        currentScene.loadedScenes[instance.first]->Draw(glm::mat4{ 1.0f }, mainDrawContext);
+    for (const auto& instance : pCurrentScene->objectsInScene) {  // FIX: Scene object container containing transform and string ID
+        ResourceManager::Get().loadedResources[instance.first]->Draw(glm::mat4{ 1.0f }, mainDrawContext);
     }
 
     // Wait for the render fence to enter a signalled state meaning the GPU has finished 
@@ -1410,7 +1423,7 @@ void FishEngine::run()
             }
 
             // Have the camera process the events.
-            currentScene.camera.processSDLEvent(e);
+            pCurrentScene->camera.processSDLEvent(e);
 
             // Have ImGui process the events.
             ImGui_ImplSDL2_ProcessEvent(&e);
@@ -1494,7 +1507,7 @@ void FishEngine::draw_geometry(VkCommandBuffer cmd)
     opaque_draws.reserve(mainDrawContext.OpaqueSurfaces.size());
 
     for (int i = 0; i < mainDrawContext.OpaqueSurfaces.size(); i++) {
-        if (is_visible(mainDrawContext.OpaqueSurfaces[i], currentScene.sceneData.viewproj)) {
+        if (is_visible(mainDrawContext.OpaqueSurfaces[i], pCurrentScene->sceneData.viewproj)) {
             opaque_draws.push_back(i);
         }
     }
@@ -1521,10 +1534,10 @@ void FishEngine::draw_geometry(VkCommandBuffer cmd)
 
     //write the buffer
     Fish::GPU::GPUSceneData* sceneUniformData = (Fish::GPU::GPUSceneData*)gpuSceneDataBuffer.allocation->GetMappedData();
-    *sceneUniformData = currentScene.sceneData;
+    *sceneUniformData = pCurrentScene->sceneData;
 
     //create a descriptor set that binds that buffer and update it
-    VkDescriptorSet globalDescriptor = get_current_frame().frameDescriptors.allocate(m_Device, currentScene._gpuSceneDataDescriptorLayout);
+    VkDescriptorSet globalDescriptor = get_current_frame().frameDescriptors.allocate(m_Device, pCurrentScene->_gpuSceneDataDescriptorLayout);
 
     DescriptorWriter writer;
     writer.write_buffer(0, gpuSceneDataBuffer.buffer, sizeof(Fish::GPU::GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
@@ -1788,31 +1801,32 @@ size_t FishEngine::pad_uniform_buffer_size(size_t originalSize)
 
 void FishEngine::update()
 {
-    currentScene.camera.update();
-    stats.camera_position = currentScene.camera.m_Position;
-    stats.camera_pitch = currentScene.camera.m_Pitch;
-    stats.camera_yaw = currentScene.camera.m_Yaw;
+    pCurrentScene->camera.update();
+    stats.camera_position = pCurrentScene->camera.m_Position;
+    stats.camera_pitch = pCurrentScene->camera.m_Pitch;
+    stats.camera_yaw = pCurrentScene->camera.m_Yaw;
 
     update_scene();
 }
 
-void FishEngine::update_scene()
+void FishEngine::update_scene() // Todo: Move this into the scene class (make sure to get access to window extents from engine)
 {
-    glm::mat4 view = currentScene.camera.get_view_matrix();
+    glm::mat4 view = pCurrentScene->camera.get_view_matrix();
     glm::mat4 projection = glm::perspective(glm::radians(70.f), (float)m_WindowExtents.width / (float)m_WindowExtents.height, 10000.f, 0.1f);
 
     // invert the Y direction on projection matrix so that we are more similar
     // to opengl and gltf axis
     projection[1][1] *= -1;
-    currentScene.sceneData.view = view;
-    currentScene.sceneData.proj = projection;
-    currentScene.sceneData.viewproj = projection * view;
+    pCurrentScene->sceneData.view = view;
+    pCurrentScene->sceneData.proj = projection;
+    pCurrentScene->sceneData.viewproj = projection * view;
 
     // Draw all objects within the loadedScenes container.
-    for (const auto& instance : currentScene.loadedScenes) {
+    for (const auto& instance : pCurrentScene->objectsInScene) {
 
-        currentScene.loadedScenes[instance.first]->Update();
-
+        ResourceManager::Get().loadedResources[instance.first]->Update();
+        // 
+        //currentScene.loadedScenes[instance.first]->Update();
         //currentScene.loadedScenes[instance.first]->Draw(glm::mat4{ 1.0f }, mainDrawContext);
     }
 }

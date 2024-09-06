@@ -4,6 +4,7 @@
 #include <fish_camera.h>
 #include <fish_loader.h>
 #include <fish_gpu_data.h>
+#include <fish_resource_manager.h>
 
 #include <string>
 #include <memory>
@@ -20,7 +21,8 @@ namespace Fish {
 		Fish::Camera camera;												// A handle to our camera so we can move around our scene (expanded to current/main camera in future).
 		Fish::GPU::GPUSceneData sceneData;
 		VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
-		std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes;
+		//std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes;
+		std::unordered_map<std::string, Fish::ResourceData::Object> objectsInScene;
 		std::string sceneName = "_";
 
 		// Containers that will be populated on load() to be accessed to set data.
@@ -33,6 +35,18 @@ namespace Fish {
 		// Let the json handler obtain all written data and store it in temporary structures.
 		void load();
 
-		void create_new();
+		void clear_scene();
+	};
+
+	class SceneManager {
+	public:
+
+		std::unordered_map<std::string, Scene> scenes;
+		Scene* pActiveScene;
+
+		void create_new_scene(const std::string& name);
+		void switch_scene(const std::string& sceneNameToLoad); // Todo: Overload this function to go by sceneIndex
+		// void save_active_scene();
+		// void load_scene(); // If selected a file, it will load that scene from file and set to active.
 	};
 }

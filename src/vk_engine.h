@@ -8,6 +8,7 @@
 #include <vk_types.h>
 #include <fish_timer.h>
 #include <fish_resource.h>
+#include <fish_resource_manager.h>
 #include <fish_scene.h>
 #include <fish_ecs.h>
 #include <fish_ecs_systems.h>
@@ -145,7 +146,7 @@ public:
 	VkDevice& GetDevice() { return m_Device; }																			// Reference accessor.
 	VkDescriptorPool& GetDescriptorPool() { return m_DescriptorPool; }													// Reference accessor.
 	VkDescriptorSetLayout& GetSingleTextureSetLayout() { return m_SingleTextureSetLayout; }								// Reference accessor.
-	VkDescriptorSetLayout& GetGPUSceneDataDescriptorLayout() { return currentScene._gpuSceneDataDescriptorLayout; }		// Reference accessor.
+	VkDescriptorSetLayout& GetGPUSceneDataDescriptorLayout() { return sceneManager.pActiveScene->_gpuSceneDataDescriptorLayout; }		// Reference accessor.
 	AllocatedImage& GetDrawImage() { return m_DrawImage; }																// Reference accessor.
 	AllocatedImage& GetDepthImage() { return m_DepthImage; }															// Reference accessor.
 	AllocatedImage& GetErrorCheckerboardImage() { return _errorCheckerboardImage; }										// Reference accessor.
@@ -182,6 +183,8 @@ private:
 	void initialise_camera();
 	// ...
 	void initialise_renderables();
+	// ...
+	void initialise_default_scene();
 	
 	// Unused for now: Initialise all entities, components, and systems for the Entity Component System.
 	//void initialise_entity_component_system();	
@@ -293,7 +296,10 @@ private:
 	VkDescriptorPool m_ImGuiDescriptorPool;								// ... Descriptor pool info but one specific for ImGui.
 	
 	// Scene
-	Fish::Scene currentScene;
+	//Fish::Scene currentScene;
+	Fish::SceneManager sceneManager;
+	Fish::Scene* pCurrentScene = nullptr;
+
 
 	// Misc...
 	EngineStats stats;

@@ -34,8 +34,8 @@ namespace Fish {
 			bool file_exists();
 			bool create_file();
 
-			void serialise_scene_data(std::string sceneName, std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes, Fish::Camera camera);			
-			void parse_scene_data(std::string& outSceneName, std::vector<Fish::ResourceData::Object>& outObjectData, Fish::ResourceData::Camera& outCameraData);
+			void serialise_scene_data(std::string sceneName, std::unordered_map<std::string, Fish::ResourceData::Object> objectsInScene, Fish::Camera camera);
+			void parse_scene_data(std::string& outSceneName, std::unordered_map<std::string, Fish::ResourceData::Object>& outObjectData, Fish::ResourceData::Camera& outCameraData);
 
 		private:
 			const std::filesystem::path m_Filepath;

@@ -1,10 +1,28 @@
 #pragma once
 
+#include <unordered_map>
+#include <memory>
+#include <string>
+#include <fish_loader.h>
+
 // name: fish_resource_manager.h
 // desc: A system to manage the loading of all resources in our engine.
 // auth: Luke Hibbert
 
 // !! Currently not in use due to the refactor, this will be returning.
+
+
+class ResourceManager {
+public:
+	std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedResources;
+
+	// singleton implementation.
+	static ResourceManager& Get() { static ResourceManager instance; return instance; }
+	ResourceManager(ResourceManager const&) = delete;
+	void operator=(ResourceManager const&) = delete;
+private: 
+	ResourceManager() {} // private constructor for singleton implementation
+};
 
 //
 //#pragma once
