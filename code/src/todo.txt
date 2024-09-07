@@ -10,6 +10,7 @@ Future Todo:
 	- [ ] When creating our draw image, set its initial dimensions to be the monitor resolution instead of window extents.
 	- [ ] Implement a framework class that refactors the way our engine is loaded (similar to ACL/Tyro)
 	`-> Included in this is to refactor the vk_engine class to a fish_vulkan_backend class with classes for individual components.
+	- [ ] Allow a dynamic pipeline (or allow it to be rebuilt at runtime) so the topology and polygon mode can be changed to render wireframe for debug.
 
 Previously:
 
@@ -135,6 +136,4 @@ Next time:
 	- [ ] Mess around with the current version and test out new models/textures/primitives 
 	
 	- [ ] Fix the cleanup error on window close.
-
-	- [ ] Remove most (if not all) validation errors/warnings in the console.
 
