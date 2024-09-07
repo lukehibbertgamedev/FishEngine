@@ -35,9 +35,9 @@ void Fish::JSON::Handler::serialise_scene_data(std::string sceneName, std::unord
 	for (const auto& [objName, objData] : objectsInScene)
 	{
 		nlohmann::json objectData = nlohmann::json::object();
-		objectData["position"] = serialise_vec3(objData.position);
-		objectData["rotation"] = serialise_vec3(objData.rotation);
-		objectData["scale"] = serialise_vec3(objData.scale);
+		objectData["position"] = serialise_vec3(objData.transform.position);
+		objectData["rotation"] = serialise_vec3(objData.transform.rotation);
+		objectData["scale"] = serialise_vec3(objData.transform.scale);
 		jsonData[objName] = objectData; // Todo: Add this to the object level.
 	}
 
@@ -85,9 +85,9 @@ bool Fish::JSON::Handler::parse_scene_data(std::string& outSceneName, std::unord
 		else {
 			Fish::ResourceData::Object object;
 			object.name = key;
-			object.position = parse_vec3(value.at("position"));
-			object.rotation = parse_vec3(value.at("rotation"));
-			object.scale = parse_vec3(value.at("scale"));
+			object.transform.position = glm::vec4(parse_vec3(value.at("position")), 0.0f);
+			object.transform.rotation = glm::vec4(parse_vec3(value.at("rotation")), 0.0f);
+			object.transform.scale = glm::vec4(parse_vec3(value.at("scale")), 0.0f);
 			dataContainer.push_back(object);
 		}
 	}

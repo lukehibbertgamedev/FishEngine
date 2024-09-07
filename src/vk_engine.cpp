@@ -63,7 +63,7 @@ void FishEngine::init()
     initialise_imgui(); // Required to be called after Vulkan initialisation.
 
     // Todo: sceneManager should make the calls to json which adds the loaded scene into its scenes container.
-    sceneManager.pActiveScene->load(); // If there is no scene to load, create a new empty scene and save that.
+    //sceneManager.pActiveScene->load(); // If there is no scene to load, create a new empty scene and save that.
 
     // initialise entity component systems
     //init_ecs();
@@ -344,19 +344,42 @@ void FishEngine::initialise_renderables()
         std::string structurePath = { "../../assets/PolyPizza/Trampoline.glb" };
         auto structureFile = Fish::Loader::loadGltf(this, structurePath);
         assert(structureFile.has_value());
-        ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
+        //ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
     }
     {
         std::string structurePath = { "../../assets/house.glb" };
         auto structureFile = Fish::Loader::loadGltf(this, structurePath);
         assert(structureFile.has_value());
-        ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
+        //ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
     }
     {
         std::string structurePath = { "../../assets/PolyPizza/BasicCar.glb" };
         auto structureFile = Fish::Loader::loadGltf(this, structurePath);
         assert(structureFile.has_value());
-        ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
+        //ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
+    }
+    {
+        for (int i = 0; i < 10; ++i) {
+            std::string structurePath = { "../../assets/PolyPizza/PistolDefault.glb" };
+            auto structureFile = Fish::Loader::loadGltf(this, structurePath);
+            assert(structureFile.has_value());
+            ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str() + std::to_string(i)] = *structureFile;
+        }
+
+        for (int i = 0; i < 10; ++i) {
+            Fish::ResourceData::Object instance = {};
+            instance.name = "Pistoldefault" + std::to_string(i);
+
+            Transform t = {};
+            t.position = glm::vec4(i * 2,0,0,0);
+            t.rotation = glm::vec4(0);
+            t.scale = glm::vec4(1);
+
+            ResourceManager::Get().loadedResources[instance.name]->transform = t;
+            instance.transform = t;
+
+            sceneManager.pActiveScene->objectsInScene[instance.name] = instance;
+        }
     }
 }
 
@@ -366,6 +389,7 @@ void FishEngine::initialise_default_scene()
 
     if (!sceneManager.pActiveScene) {
         sceneManager.pActiveScene = new Fish::Scene();
+        sceneManager.pActiveScene->sceneName = "ECS_Test";  
     }
 }
 
@@ -1114,16 +1138,6 @@ void FishEngine::imgui_scene_hierarchy()
             glm::mat4 sm = glm::scale(glm::mat4(1.0f), s);                                  // Scale.
             glm::mat4 _final = tm * rm * sm;                                                // Combined.
 
-            // Set all node transforms. All children nodes must be multiplied by the new parent/world transformation matrix.
-            /*for (auto& n : obj.topNodes) {
-                Node& _n = *n;
-                for (auto& c : _n.children) {
-                    Node& _c = *c;
-
-                    _c.localTransformMatrix *= _final;
-                }
-                _n.worldTransformMatrix = _final;
-            }*/
             ImGui::TreePop();
         }
         ++index;
@@ -1828,6 +1842,9 @@ void FishEngine::update_scene() // Todo: Move this into the scene class (make su
         // 
         //currentScene.loadedScenes[instance.first]->Update();
         //currentScene.loadedScenes[instance.first]->Draw(glm::mat4{ 1.0f }, mainDrawContext);
+
+        //ResourceManager::Get().loadedResources["Pistoldefault"]->Update();
+
     }
 }
 

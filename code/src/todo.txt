@@ -128,6 +128,7 @@ Previously:
 	- [X] In the process of creating new scenes												06/09
 
 	- [X] New scene functionality working													07/09
+	- [X] Have several of the same model rendering as their own object						07/09
 
 Next time:
 		

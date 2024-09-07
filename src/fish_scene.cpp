@@ -28,13 +28,11 @@ void Fish::Scene::load()
 	for (auto& [key, value] : objectsInScene) {
 		auto it = nameToIndexMap.find(key);
 		if (it != nameToIndexMap.end()) {
-			//Fish::ResourceData::Object& obj = value;
-			//size_t index = it->second;
 			Fish::ResourceData::Object& objData = objectsInScene[key];
 			Fish::Loader::LoadedGLTF& loadedGltf = *ResourceManager::Get().loadedResources[key];
-			loadedGltf.transform.position = glm::vec4(objData.position, 1.0f); // .transform.
-			loadedGltf.transform.rotation = glm::vec4(objData.rotation, 1.0f);
-			loadedGltf.transform.scale = glm::vec4(objData.scale, 1.0f);
+			loadedGltf.transform.position = objData.transform.position; 
+			loadedGltf.transform.rotation = objData.transform.rotation;
+			loadedGltf.transform.scale = objData.transform.scale;
 		}
 		else FISH_FATAL("No matching object found for: " + key);
 	}

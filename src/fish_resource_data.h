@@ -17,9 +17,10 @@ namespace Fish {
 		};
 
 		struct Object {
-			glm::vec3 position;
-			glm::vec3 rotation;
-			glm::vec3 scale;
+			Transform transform;
+			//glm::vec3 position;
+			//glm::vec3 rotation;
+			//glm::vec3 scale;
 			std::string name;
 		};
 	}
