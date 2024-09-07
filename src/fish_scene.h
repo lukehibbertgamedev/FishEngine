@@ -42,7 +42,7 @@ namespace Fish {
 	public:
 
 		std::unordered_map<std::string, Scene> scenes;
-		Scene* pActiveScene;
+		Scene* pActiveScene = nullptr;
 
 		void create_new_scene(const std::string& name);
 		void switch_scene(const std::string& sceneNameToLoad); // Todo: Overload this function to go by sceneIndex

@@ -62,5 +62,9 @@ void Fish::SceneManager::create_new_scene(const std::string& name)
 	pActiveScene = &scenes[name];
 
 	// Update runtime data
-	previousScene.objectsInScene.clear();
+	pActiveScene->objectsInScene.clear();
+
+	// This descriptor layout was already allocated and used correctly regardless of the scene that uses it.
+	// So we write the same one to use for this new scene. 
+	pActiveScene->_gpuSceneDataDescriptorLayout = previousScene._gpuSceneDataDescriptorLayout; 
 }

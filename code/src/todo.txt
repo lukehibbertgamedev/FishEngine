@@ -126,6 +126,8 @@ Previously:
 	- [X] Saving and loading scene names working											06/09
 	- [X] In the process of creating new scenes												06/09
 
+	- [X] New scene functionality working													07/09
+
 Next time:
 		
 	- [ ] Comment all functions and variables with at least something
