@@ -14,7 +14,7 @@ void Fish::Scene::load()
 
 	// Read data from file.
 	Fish::JSON::Handler handler("../../src/default_scene_01.json");
-	handler.parse_scene_data(sceneName, objectsInScene, outCameraCache); // Populate data containers.
+	handler.parse_scene_data(sceneName, objectsInScene, outCameraCache);
 
 	// Ensure the objectCache index matches the object that we want to apply that data to.
 	std::unordered_map<std::string, size_t> nameToIndexMap;
@@ -63,6 +63,7 @@ void Fish::SceneManager::create_new_scene(const std::string& name)
 
 	// Update runtime data
 	pActiveScene->objectsInScene.clear();
+	pActiveScene->camera.reset();
 
 	// This descriptor layout was already allocated and used correctly regardless of the scene that uses it.
 	// So we write the same one to use for this new scene. 

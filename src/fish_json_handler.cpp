@@ -52,7 +52,7 @@ void Fish::JSON::Handler::serialise_scene_data(std::string sceneName, std::unord
 	}
 }
 
-void Fish::JSON::Handler::parse_scene_data(std::string& outSceneName, std::unordered_map<std::string, Fish::ResourceData::Object>& outObjectData, Fish::ResourceData::Camera& outCameraData)
+bool Fish::JSON::Handler::parse_scene_data(std::string& outSceneName, std::unordered_map<std::string, Fish::ResourceData::Object>& outObjectData, Fish::ResourceData::Camera& outCameraData)
 {
 	std::vector<Fish::ResourceData::Object> dataContainer = {};
 	Fish::ResourceData::Camera camera = {};
@@ -61,6 +61,7 @@ void Fish::JSON::Handler::parse_scene_data(std::string& outSceneName, std::unord
 	std::ifstream input(m_Filepath);
 	if (!input.is_open()) {
 		FISH_FATAL("Failed to open file for reading.");
+		return false;
 	}
 
 	// Stream the file contents into our JSON container.
@@ -97,8 +98,9 @@ void Fish::JSON::Handler::parse_scene_data(std::string& outSceneName, std::unord
 	for (const auto& obj : dataContainer) {
 		outObjectData[obj.name] = obj;
 	}
-	//outObjectData = dataContainer;
 	outCameraData = camera;
+
+	return true;
 }
 
 bool Fish::JSON::Handler::file_exists()
@@ -110,6 +112,22 @@ bool Fish::JSON::Handler::create_file()
 {
 	nlohmann::json data = nlohmann::json::object();
 	std::ofstream output(m_Filepath);
+	if (output.is_open()) {
+		output << std::setw(4) << data << std::endl;
+		FISH_LOG("Empty JSON file created.");
+		return true;
+	}
+	else {
+		FISH_FATAL("Failed to create JSON file.");
+		assert(false);
+		return false;
+	}
+}
+
+bool Fish::JSON::Handler::create_file(const std::filesystem::path filepath)
+{
+	nlohmann::json data = nlohmann::json::object();
+	std::ofstream output(filepath);
 	if (output.is_open()) {
 		output << std::setw(4) << data << std::endl;
 		FISH_LOG("Empty JSON file created.");

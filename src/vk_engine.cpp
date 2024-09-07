@@ -62,6 +62,7 @@ void FishEngine::init()
     initialise_renderables();
     initialise_imgui(); // Required to be called after Vulkan initialisation.
 
+    // Todo: sceneManager should make the calls to json which adds the loaded scene into its scenes container.
     sceneManager.pActiveScene->load(); // If there is no scene to load, create a new empty scene and save that.
 
     // initialise entity component systems
