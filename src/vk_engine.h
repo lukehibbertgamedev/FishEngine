@@ -185,6 +185,8 @@ private:
 	void initialise_renderables();
 	// ...
 	void initialise_default_scene();
+	// ...
+	void initialise_ecs();
 	
 	// Unused for now: Initialise all entities, components, and systems for the Entity Component System.
 	//void initialise_entity_component_system();	
@@ -311,8 +313,11 @@ private:
 	VkPipeline m_GradientPipeline;										// Compute pipeline for our shader effects.
 	VkPipelineLayout m_GradientPipelineLayout;							// Pipeline layout for use in our compute shaders.
 
+
 	std::shared_ptr<Fish::ECS::Coordinator> m_Ecs;						// m_EntityComponentSystemCoordinator
-	std::shared_ptr<Fish::ECS::System::Physics> m_PhysicsSystem;		// A simple physics system to test out our ECS.
+	std::shared_ptr<Fish::ECS::System::Physics> physicsSystem;			// A simple physics system to test out our ECS.
+	std::vector<Fish::ECS::Entity> m_entities;
+
 
 	// These are required for use of immediate GPU commands. An immediate_submit function will
 	// use a fence and a different command buffer from the one we use on draws to send commands to

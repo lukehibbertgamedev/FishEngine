@@ -27,6 +27,7 @@
 #include <vk_pipelines.h>
 
 #include <fish_logger.h>
+#include <random>
 
 // We set a *global* pointer for the vulkan engine singleton reference. 
 // We do that instead of a typical singleton because we want to control explicitly when is the class initalized and destroyed. 
@@ -66,7 +67,7 @@ void FishEngine::init()
     //sceneManager.pActiveScene->load(); // If there is no scene to load, create a new empty scene and save that.
 
     // initialise entity component systems
-    //init_ecs();
+    initialise_ecs();
     
 
     Fish::Timer::EngineTimer _timer;
@@ -370,10 +371,10 @@ void FishEngine::initialise_renderables()
             Fish::ResourceData::Object instance = {};
             instance.name = "Pistoldefault" + std::to_string(i);
 
-            Transform t = {};
-            t.position = glm::vec4(i * 2,0,0,0);
-            t.rotation = glm::vec4(0);
-            t.scale = glm::vec4(1);
+            Fish::Component::Transform t = {};
+            t.position = glm::vec3(i * 2,0,0);
+            t.rotation = glm::vec3(0);
+            t.scale = glm::vec3(1);
 
             ResourceManager::Get().loadedResources[instance.name]->transform = t;
             instance.transform = t;
@@ -391,6 +392,58 @@ void FishEngine::initialise_default_scene()
         sceneManager.pActiveScene = new Fish::Scene();
         sceneManager.pActiveScene->sceneName = "ECS_Test";  
     }
+}
+
+void FishEngine::initialise_ecs()
+{
+    FISH_LOG("Initialising ECS...");
+
+    // initalise the coordinator to connect all parts of the ecs
+    m_Ecs->Init();
+
+    // register the components that are going to be used by entities
+    m_Ecs->RegisterComponent<Fish::Component::Gravity>();
+    m_Ecs->RegisterComponent<Fish::Component::RigidBody>();
+    m_Ecs->RegisterComponent<Fish::Component::Transform>();
+
+    physicsSystem = m_Ecs->RegisterSystem<Fish::ECS::System::Physics>();
+
+    // create and set the component signatures so the system knows what components to be updating
+    Fish::ECS::Signature signature;
+    //signature.reset();
+
+    // set up for the physics system
+    signature.set(m_Ecs->GetComponentType<Fish::Component::Gravity>());
+    signature.set(m_Ecs->GetComponentType<Fish::Component::RigidBody>());
+    signature.set(m_Ecs->GetComponentType<Fish::Component::Transform>());
+    m_Ecs->SetSystemSignature<Fish::ECS::System::Physics>(signature);
+    physicsSystem->init(m_Ecs);
+
+    std::default_random_engine generator;
+    std::uniform_real_distribution<float> randPosition(-100.0f, 100.0f);
+    std::uniform_real_distribution<float> randRotation(0.0f, 3.0f);
+    std::uniform_real_distribution<float> randScale(3.0f, 5.0f);
+    std::uniform_real_distribution<float> randGravity(-10.0f, -1.0f);
+
+    float scale = randScale(generator);
+
+    std::vector<Fish::ECS::Entity> entities(Fish::ECS::kMaxEntities);
+
+    for (auto& entity : entities)
+    {
+        entity = m_Ecs->CreateEntity();
+
+        m_Ecs->AddComponent(entity, Fish::Component::Gravity{ glm::vec3(0.0f, randGravity(generator), 0.0f) });
+
+        m_Ecs->AddComponent(entity, Fish::Component::RigidBody{ .velocity = glm::vec3(0.0f, 0.0f, 0.0f), .acceleration = glm::vec3(0.0f, 0.0f, 0.0f)});
+
+        m_Ecs->AddComponent(entity, Fish::Component::Transform{
+            .position = glm::vec3(randPosition(generator), randPosition(generator), randPosition(generator)),
+            .rotation = glm::vec3(randRotation(generator), randRotation(generator), randRotation(generator)),
+            .scale = glm::vec3(scale, scale, scale)
+        });
+    }
+    m_entities = entities;
 }
 
 void FishEngine::initialise_swapchain()
@@ -1820,6 +1873,9 @@ void FishEngine::update()
     stats.camera_pitch = sceneManager.pActiveScene->camera.m_Pitch;
     stats.camera_yaw = sceneManager.pActiveScene->camera.m_Yaw;
 
+    // update_ecs
+    physicsSystem->update(m_EngineTimer.delta_time());
+
     update_scene();
 }
 
@@ -1835,16 +1891,20 @@ void FishEngine::update_scene() // Todo: Move this into the scene class (make su
     sceneManager.pActiveScene->sceneData.proj = projection;
     sceneManager.pActiveScene->sceneData.viewproj = projection * view;
 
+    std::vector<Fish::Component::Transform> transforms;
+
+    for (auto& e : physicsSystem->mEntities) {
+        transforms.push_back(m_Ecs->GetComponent<Fish::Component::Transform>(e));
+    }
+
     // Draw all objects within the loadedScenes container.
-    for (const auto& instance : sceneManager.pActiveScene->objectsInScene) {
 
-        ResourceManager::Get().loadedResources[instance.first]->Update();
-        // 
-        //currentScene.loadedScenes[instance.first]->Update();
-        //currentScene.loadedScenes[instance.first]->Draw(glm::mat4{ 1.0f }, mainDrawContext);
+    int idx = 0;
+    for (const auto& [key, val] : sceneManager.pActiveScene->objectsInScene) {
 
-        //ResourceManager::Get().loadedResources["Pistoldefault"]->Update();
-
+        ResourceManager::Get().loadedResources[key]->transform = transforms[idx];
+        ResourceManager::Get().loadedResources[key]->Update();
+        idx++;
     }
 }
 

@@ -42,12 +42,15 @@ struct DeletionQueue {
         toDelete.clear();
     }
 };
-
-struct Transform {
-    glm::vec4 position = glm::vec4(0.0f);
-    glm::vec4 rotation = glm::vec4(0.0f);
-    glm::vec4 scale = glm::vec4(1.0f);
-};
+namespace Fish {
+    namespace Component {
+        struct Transform {
+            glm::vec3 position = glm::vec3(0.0f);
+            glm::vec3 rotation = glm::vec3(0.0f);
+            glm::vec3 scale = glm::vec3(1.0f);
+        };
+    }
+}
 
 // ...
 struct AllocatedImage {

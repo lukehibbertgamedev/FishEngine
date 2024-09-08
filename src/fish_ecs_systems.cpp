@@ -9,10 +9,13 @@ void Fish::ECS::System::Physics::update(float deltatime)
 {
 	for (Fish::ECS::Entity const& entity : mEntities)
 	{
-		Fish::Component::RigidBody& rigidbody = m_Coordinator->GetComponent<Fish::Component::RigidBody>(entity);
-		Fish::Component::Transform& transform = m_Coordinator->GetComponent<Fish::Component::Transform>(entity);
-		
-		transform.eulerRotation += rigidbody.velocity * deltatime;
+		auto& rigidBody = m_Coordinator->GetComponent<Fish::Component::RigidBody>(entity);
+		auto& transform = m_Coordinator->GetComponent<Fish::Component::Transform>(entity);
+		auto const& gravity = m_Coordinator->GetComponent<Fish::Component::Gravity>(entity);
+
+		transform.position += rigidBody.velocity * deltatime;
+
+		rigidBody.velocity += gravity.force * deltatime;
 	}
 }
 

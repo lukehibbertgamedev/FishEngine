@@ -9,6 +9,8 @@
 #include <set>
 #include <array>
 
+#include <fish_logger.h>
+#include <iostream>
 // Contains all relevant classes and functionality to implement the Entity Component System developed by Austin Morlan.
 // https://austinmorlan.com/posts/entity_component_system/#what-is-an-ecs
 // ACL/Tyro Engine utilised this for most of its implementation.
@@ -28,6 +30,7 @@ namespace Fish {
 		enum ComponentToBit : uint_fast8_t {
 			Transform = 0,
 			Rigidbody = 1,
+			Gravity = 2,
 		};
 
 		class EntityManager
@@ -178,6 +181,9 @@ namespace Fish {
 		class ComponentManager
 		{
 		public:
+
+			ComponentManager() {}
+
 			template<typename T>
 			void RegisterComponent()
 			{
@@ -344,13 +350,13 @@ namespace Fish {
 			void Init()
 			{
 				// Create pointers to each manager
-				//mComponentManager = std::make_unique<Fish::ECS::ComponentManager>();
-				//mEntityManager = std::make_unique<Fish::ECS::EntityManager>();
-				//mSystemManager = std::make_unique<Fish::ECS::SystemManager>();
+				mComponentManager = std::make_unique<Fish::ECS::ComponentManager>();
+				mEntityManager = std::make_unique<Fish::ECS::EntityManager>();
+				mSystemManager = std::make_unique<Fish::ECS::SystemManager>();
 
-				mComponentManager = std::unique_ptr<Fish::ECS::ComponentManager>(new Fish::ECS::ComponentManager());
-				mEntityManager = std::unique_ptr<Fish::ECS::EntityManager>(new Fish::ECS::EntityManager());
-				mSystemManager = std::unique_ptr<Fish::ECS::SystemManager>(new Fish::ECS::SystemManager());
+				//mComponentManager = std::unique_ptr<Fish::ECS::ComponentManager>(new Fish::ECS::ComponentManager());
+				//mEntityManager = std::unique_ptr<Fish::ECS::EntityManager>(new Fish::ECS::EntityManager());
+				//mSystemManager = std::unique_ptr<Fish::ECS::SystemManager>(new Fish::ECS::SystemManager());
 			}
 
 			Signature GetSignature(Entity entity)

@@ -12,6 +12,8 @@
 //forward declaration
 class FishEngine;
 
+namespace Component { struct Transform; }
+
 namespace Fish {
     namespace Loader {
 
@@ -54,7 +56,7 @@ namespace Fish {
             // nodes that dont have a parent, for iterating through the file in tree order
             std::vector<std::shared_ptr<Node>> topNodes;
 
-            Transform transform;
+            Fish::Component::Transform transform;
 
             std::vector<VkSampler> samplers;
 

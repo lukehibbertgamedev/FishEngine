@@ -126,6 +126,9 @@
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_json_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\fish_components.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\src\nlohmann_json.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -146,9 +149,6 @@
     </ClInclude>
     <ClInclude Include="C:\Users\lukeh\Desktop\FishEngine\Fish\code\src\CMakeFiles\engine.dir\RelWithDebInfo\cmake_pch.hxx">
       <Filter>Precompile Header File</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\fish_resource_data.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

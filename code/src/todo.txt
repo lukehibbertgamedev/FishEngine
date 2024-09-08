@@ -130,6 +130,8 @@ Previously:
 	- [X] New scene functionality working													07/09
 	- [X] Have several of the same model rendering as their own object						07/09
 
+	- [X] Attempted again at ECS initialisation (failed)									08/09
+
 Next time:
 		
 	- [ ] Comment all functions and variables with at least something
