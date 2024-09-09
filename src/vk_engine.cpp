@@ -399,23 +399,23 @@ void FishEngine::initialise_ecs()
     FISH_LOG("Initialising ECS...");
 
     // initalise the coordinator to connect all parts of the ecs
+    m_Ecs = std::make_shared<Fish::ECS::Coordinator>();
     m_Ecs->Init();
 
     // register the components that are going to be used by entities
-    m_Ecs->RegisterComponent<Fish::Component::Gravity>();
-    m_Ecs->RegisterComponent<Fish::Component::RigidBody>();
     m_Ecs->RegisterComponent<Fish::Component::Transform>();
+    m_Ecs->RegisterComponent<Fish::Component::RigidBody>();
+    m_Ecs->RegisterComponent<Fish::Component::Gravity>();
 
     physicsSystem = m_Ecs->RegisterSystem<Fish::ECS::System::Physics>();
 
     // create and set the component signatures so the system knows what components to be updating
     Fish::ECS::Signature signature;
-    //signature.reset();
 
     // set up for the physics system
-    signature.set(m_Ecs->GetComponentType<Fish::Component::Gravity>());
-    signature.set(m_Ecs->GetComponentType<Fish::Component::RigidBody>());
     signature.set(m_Ecs->GetComponentType<Fish::Component::Transform>());
+    signature.set(m_Ecs->GetComponentType<Fish::Component::RigidBody>());
+    signature.set(m_Ecs->GetComponentType<Fish::Component::Gravity>());
     m_Ecs->SetSystemSignature<Fish::ECS::System::Physics>(signature);
     physicsSystem->init(m_Ecs);
 

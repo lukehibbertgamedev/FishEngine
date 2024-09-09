@@ -350,8 +350,8 @@ namespace Fish {
 			void Init()
 			{
 				// Create pointers to each manager
-				mComponentManager = std::make_unique<Fish::ECS::ComponentManager>();
 				mEntityManager = std::make_unique<Fish::ECS::EntityManager>();
+				mComponentManager = std::make_unique<Fish::ECS::ComponentManager>();
 				mSystemManager = std::make_unique<Fish::ECS::SystemManager>();
 
 				//mComponentManager = std::unique_ptr<Fish::ECS::ComponentManager>(new Fish::ECS::ComponentManager());
