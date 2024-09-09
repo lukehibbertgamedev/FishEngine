@@ -327,10 +327,10 @@ void FishEngine::initialise_camera()
 
     // Zero-out/Initialise the camera's default data.
 
-    sceneManager.pActiveScene->camera.m_Velocity = glm::vec3(0.f);
-    sceneManager.pActiveScene->camera.m_Position = glm::vec3(28.0f, 22.0f, 21.0f);
-    sceneManager.pActiveScene->camera.m_Pitch = -0.3;
-    sceneManager.pActiveScene->camera.m_Yaw = 5.6;
+    sceneManager.pActiveScene->camera.m_Velocity = glm::vec3(0.0f);
+    sceneManager.pActiveScene->camera.m_Position = glm::vec3(250.0f, -50.0f, 350.0f);
+    sceneManager.pActiveScene->camera.m_Pitch = 0.0f;
+    sceneManager.pActiveScene->camera.m_Yaw = -0.6f;
 }
 
 void FishEngine::initialise_renderables()
@@ -360,25 +360,15 @@ void FishEngine::initialise_renderables()
         //ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
     }
     {
-        for (int i = 0; i < 10; ++i) {
+        // Temporary: Loading several of the same model using the ECS.
+        for (int i = 0; i < 25; ++i) {
             std::string structurePath = { "../../assets/PolyPizza/PistolDefault.glb" };
             auto structureFile = Fish::Loader::loadGltf(this, structurePath);
             assert(structureFile.has_value());
             ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str() + std::to_string(i)] = *structureFile;
-        }
 
-        for (int i = 0; i < 10; ++i) {
             Fish::ResourceData::Object instance = {};
             instance.name = "Pistoldefault" + std::to_string(i);
-
-            Fish::Component::Transform t = {};
-            t.position = glm::vec3(i * 2,0,0);
-            t.rotation = glm::vec3(0);
-            t.scale = glm::vec3(1);
-
-            ResourceManager::Get().loadedResources[instance.name]->transform = t;
-            instance.transform = t;
-
             sceneManager.pActiveScene->objectsInScene[instance.name] = instance;
         }
     }
@@ -396,35 +386,39 @@ void FishEngine::initialise_default_scene()
 
 void FishEngine::initialise_ecs()
 {
+    // initalise the coordinator to connect all parts of the ecs
     FISH_LOG("Initialising ECS...");
 
-    // initalise the coordinator to connect all parts of the ecs
+    // Make sure to actually initialise the shared ptr (I spent a while here trying to figure out why it wouldn't initialise).
     m_Ecs = std::make_shared<Fish::ECS::Coordinator>();
+    
+    // Set up the related system pointers.
     m_Ecs->Init();
 
-    // register the components that are going to be used by entities
+    // register the components that are going to be used by any entities
     m_Ecs->RegisterComponent<Fish::Component::Transform>();
     m_Ecs->RegisterComponent<Fish::Component::RigidBody>();
     m_Ecs->RegisterComponent<Fish::Component::Gravity>();
 
+    // register the systems that the coordinator will update
     physicsSystem = m_Ecs->RegisterSystem<Fish::ECS::System::Physics>();
 
     // create and set the component signatures so the system knows what components to be updating
     Fish::ECS::Signature signature;
 
-    // set up for the physics system
+    // set up the signature for the physics system, and initialise with the coordinator
     signature.set(m_Ecs->GetComponentType<Fish::Component::Transform>());
     signature.set(m_Ecs->GetComponentType<Fish::Component::RigidBody>());
     signature.set(m_Ecs->GetComponentType<Fish::Component::Gravity>());
     m_Ecs->SetSystemSignature<Fish::ECS::System::Physics>(signature);
     physicsSystem->init(m_Ecs);
 
+    // Part of the ECS demo, to randomise the entity data.
     std::default_random_engine generator;
     std::uniform_real_distribution<float> randPosition(-100.0f, 100.0f);
     std::uniform_real_distribution<float> randRotation(0.0f, 3.0f);
     std::uniform_real_distribution<float> randScale(3.0f, 5.0f);
     std::uniform_real_distribution<float> randGravity(-10.0f, -1.0f);
-
     float scale = randScale(generator);
 
     std::vector<Fish::ECS::Entity> entities(Fish::ECS::kMaxEntities);
@@ -1327,7 +1321,7 @@ void FishEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView)
 void FishEngine::draw()
 {
     // Draw all objects within the loadedScenes container.
-    for (const auto& instance : sceneManager.pActiveScene->objectsInScene) {  // FIX: Scene object container containing transform and string ID
+    for (const auto& instance : sceneManager.pActiveScene->objectsInScene) { 
         ResourceManager::Get().loadedResources[instance.first]->Draw(glm::mat4{ 1.0f }, mainDrawContext);
     }
 
@@ -1891,14 +1885,13 @@ void FishEngine::update_scene() // Todo: Move this into the scene class (make su
     sceneManager.pActiveScene->sceneData.proj = projection;
     sceneManager.pActiveScene->sceneData.viewproj = projection * view;
 
+    // I can't tell if this is a rubbish way or a decent way, but load the component data into a temporary vector, then set the GLTF data based on its component data.
     std::vector<Fish::Component::Transform> transforms;
-
     for (auto& e : physicsSystem->mEntities) {
         transforms.push_back(m_Ecs->GetComponent<Fish::Component::Transform>(e));
     }
 
-    // Draw all objects within the loadedScenes container.
-
+    // Update the GLTF (update its model matrix) from the ECS transform component.
     int idx = 0;
     for (const auto& [key, val] : sceneManager.pActiveScene->objectsInScene) {
 
