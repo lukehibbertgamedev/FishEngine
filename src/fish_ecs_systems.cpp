@@ -13,8 +13,8 @@ void Fish::ECS::System::Physics::update(float deltatime)
 		auto& rigidBody = m_Coordinator->GetComponent<Fish::Component::RigidBody>(entity);
 		auto const& gravity = m_Coordinator->GetComponent<Fish::Component::Gravity>(entity);
 
-		transform.position += rigidBody.velocity * deltatime;
-		rigidBody.velocity += gravity.force * deltatime;
+		//transform.position += rigidBody.velocity * deltatime;
+		//rigidBody.velocity += gravity.force * deltatime;
 		transform.rotation.y += 75.0f * deltatime;
 	}
 }

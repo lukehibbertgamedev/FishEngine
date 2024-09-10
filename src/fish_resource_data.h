@@ -6,6 +6,7 @@
 
 #include <string>
 #include <glm/vec3.hpp>
+#include <fish_loader.h>
 
 namespace Fish {
 	namespace ResourceData {
@@ -16,12 +17,15 @@ namespace Fish {
 			float yaw;
 		};
 
+		struct Model {
+			std::unordered_map<std::string, std::shared_ptr<Fish::Loader::MeshAsset>> meshes;
+		};
+
 		struct Object {
 			Fish::Component::Transform transform;
-			//glm::vec3 position;
-			//glm::vec3 rotation;
-			//glm::vec3 scale;
 			std::string name;
+
+			Model model; // Model data for this object in the scene, this can be changed to any loadedGltf meshes container.
 		};
 	}
 }
