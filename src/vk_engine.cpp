@@ -342,36 +342,79 @@ void FishEngine::initialise_renderables()
     // For now, we will load only the things we explicitly want but this will eventually become quite tedious.
 
     {
-        std::string structurePath = { "../../assets/PolyPizza/Trampoline.glb" };
-        auto structureFile = Fish::Loader::loadGltf(this, structurePath);
-        assert(structureFile.has_value());
+        //std::string structurePath = { "../../assets/PolyPizza/Trampoline.glb" };  // Load resource.
+        //auto structureFile = Fish::Loader::loadGltf(this, structurePath);         // Load resource.
+        //assert(structureFile.has_value());                                        // Load resource.
+        //std::string name = Fish::Utility::extract_file_name(structurePath);       // Extract name & add to loaded resources
+        //ResourceManager::Get().loadedResources[name.c_str()] = *structureFile;    // Extract name & add to loaded resources
+        //Fish::ResourceData::Object instance = { .name = name };                   // Add to scene
+        //sceneManager.pActiveScene->objectsInScene[name] = instance;               // Add to scene
+    }
+    {
+        //std::string structurePath = { "../../assets/house.glb" };
+        //auto structureFile = Fish::Loader::loadGltf(this, structurePath);
+        //assert(structureFile.has_value());
         //ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
     }
     {
-        std::string structurePath = { "../../assets/house.glb" };
-        auto structureFile = Fish::Loader::loadGltf(this, structurePath);
-        assert(structureFile.has_value());
-        //ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
-    }
-    {
-        std::string structurePath = { "../../assets/PolyPizza/BasicCar.glb" };
-        auto structureFile = Fish::Loader::loadGltf(this, structurePath);
-        assert(structureFile.has_value());
+        //std::string structurePath = { "../../assets/PolyPizza/BasicCar.glb" };
+        //auto structureFile = Fish::Loader::loadGltf(this, structurePath);
+        //assert(structureFile.has_value());
         //ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str()] = *structureFile;
     }
     {
         // Temporary: Loading several of the same model using the ECS.
-        for (int i = 0; i < 25; ++i) {
-            std::string structurePath = { "../../assets/PolyPizza/PistolDefault.glb" };
-            auto structureFile = Fish::Loader::loadGltf(this, structurePath);
-            assert(structureFile.has_value());
-            ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str() + std::to_string(i)] = *structureFile;
-
-            Fish::ResourceData::Object instance = {};
-            instance.name = "Pistoldefault" + std::to_string(i);
-            sceneManager.pActiveScene->objectsInScene[instance.name] = instance;
-        }
+        //for (int i = 0; i < 25; ++i) {
+        //    std::string structurePath = { "../../assets/PolyPizza/PistolDefault.glb" };
+        //    auto structureFile = Fish::Loader::loadGltf(this, structurePath);
+        //    assert(structureFile.has_value());
+        //    ResourceManager::Get().loadedResources[Fish::Utility::extract_file_name(structurePath).c_str() + std::to_string(i)] = *structureFile;
+        //
+        //    Fish::ResourceData::Object instance = {};
+        //    instance.name = "Pistoldefault" + std::to_string(i);
+        //    sceneManager.pActiveScene->objectsInScene[instance.name] = instance;
+        //}
     }
+
+    initialise_renderable("../../assets/PolyPizza/PistolDefault.glb");
+    initialise_renderable("../../assets/PolyPizza/PistolDefault.glb");
+    initialise_renderable("../../assets/PolyPizza/PistolDefault.glb");
+    initialise_renderable("../../assets/PolyPizza/PistolDefault.glb");
+    initialise_renderable("../../assets/PolyPizza/PistolDefault.glb");
+    initialise_renderable("../../assets/PolyPizza/Trampoline.glb");
+    initialise_renderable("../../assets/PolyPizza/Trampoline.glb");
+    initialise_renderable("../../assets/PolyPizza/Trampoline.glb");
+    initialise_renderable("../../assets/PolyPizza/Trampoline.glb");
+    initialise_renderable("../../assets/PolyPizza/Trampoline.glb");
+    initialise_renderable("../../assets/PolyPizza/Trampoline.glb");
+    initialise_renderable("../../assets/PolyPizza/Trampoline.glb");
+    initialise_renderable("../../assets/PolyPizza/Trampoline.glb");
+    initialise_renderable("../../assets/PolyPizza/Trampoline.glb");
+    initialise_renderable("../../assets/PolyPizza/Trampoline.glb");
+}
+
+void FishEngine::initialise_renderable(std::string glbPath)
+{
+    // Load the resource from file.
+    auto structureFile = Fish::Loader::loadGltf(this, glbPath);
+    assert(structureFile.has_value());                         
+    
+    // Extract the filename to use as a default tag.
+    std::string defaultName = Fish::Utility::extract_file_name(glbPath);
+    Fish::ResourceData::Object instance = { .name = defaultName };
+
+    // Check all the object names and if the name already exists, add a unique identifier to it.
+    int index = 1; 
+    while (sceneManager.pActiveScene->objectsInScene.find(instance.name) != sceneManager.pActiveScene->objectsInScene.end()) {
+        instance.name = defaultName + std::to_string(index);
+        ++index;
+    }
+
+    // Add the GLTF to the loaded resources container.
+    ResourceManager::Get().loadedResources[instance.name.c_str()] = *structureFile; 
+
+    // Create the object as an object for the scene.
+    sceneManager.pActiveScene->objectsInScene[instance.name] = instance;
 }
 
 void FishEngine::initialise_default_scene()

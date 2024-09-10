@@ -134,6 +134,8 @@ Previously:
 
 	- [X] Implemented the basics of an ECS													09/09
 
+	- [X] Unique names for loading the same object name more than once						10/09
+
 Next time:
 		
 	- [ ] Comment all functions and variables with at least something
