@@ -68,7 +68,7 @@ namespace Fish {
 
             ~LoadedGLTF() { clearAll(); };
 
-            void Update() 
+            void UpdateNodeTransformationMatrices() 
             {
                 glm::vec3 t(transform.position.x, transform.position.y, transform.position.z);           // Translation.
                 glm::mat4 tm = glm::translate(glm::mat4(1.0f), t);                                       // Translation.
@@ -83,15 +83,18 @@ namespace Fish {
                 glm::mat4 sm = glm::scale(glm::mat4(1.0f), s);                                           // Scale.
                 glm::mat4 _final = tm * rm * sm;                                                         // Combined.
 
-                // Set all node transforms. All children nodes must be multiplied by the new parent/world transformation matrix.
-                for (auto& n : topNodes) {
-                    Node& _n = *n;
-                    for (auto& c : _n.children) {
-                        Node& _c = *c;
+                //// Set all node transforms. All children nodes must be multiplied by the new parent/world transformation matrix.
+                //for (auto& n : topNodes) {
+                //    Node& _n = *n;
+                //    for (auto& c : _n.children) {
+                //        Node& _c = *c;
 
-                        _c.localTransformMatrix *= _final;
-                    }
-                    _n.worldTransformMatrix = _final;
+                //        _c.localTransformMatrix *= _final;
+                //    }
+                //    _n.worldTransformMatrix = _final;
+                //}
+                for (auto& n : topNodes) {
+                    n->refreshTransform(_final);
                 }
             }
 

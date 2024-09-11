@@ -232,6 +232,9 @@ private:
 	// Create a shader module loaded from a spri-v (.spv) file. Returns false if error occurred. 
 	bool load_shader_module(const char* filePath, VkShaderModule* outShaderModule);
 
+	// ...
+	const glm::mat4& calculate_object_transformation_matrix(Fish::ResourceData::RenderableObject object);
+
 	// Return frame data for the frame we are rendering to right now.
 	FrameData& get_current_frame();
 	// Return frame data for the frame we just previously rendered.

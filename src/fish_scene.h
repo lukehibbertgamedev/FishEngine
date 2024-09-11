@@ -23,6 +23,9 @@ namespace Fish {
 		VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
 		//std::unordered_map<std::string, std::shared_ptr<Fish::Loader::LoadedGLTF>> loadedScenes;
 		std::unordered_map<std::string, Fish::ResourceData::Object> objectsInScene;
+
+		std::vector<Fish::ResourceData::RenderableObject> renderableObjects;
+
 		std::string sceneName = "_";
 
 		// Containers that will be populated on load() to be accessed to set data.

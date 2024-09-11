@@ -136,6 +136,7 @@ Previously:
 
 	- [X] Unique names for loading the same object name more than once						10/09
 	- [X] Began work on changing a model at runtime using ImGui								10/09
+	- [X] Changing models at runtime using ImGui working									11/09
 
 Next time:
 		

@@ -18,7 +18,13 @@ namespace Fish {
 		};
 
 		struct Model {
-			std::unordered_map<std::string, std::shared_ptr<Fish::Loader::MeshAsset>> meshes;
+			std::shared_ptr<Fish::Loader::LoadedGLTF> current;
+		};
+
+		struct RenderableObject {
+			std::shared_ptr<Fish::Loader::LoadedGLTF> model;
+			Fish::Component::Transform transform;
+			std::string name;
 		};
 
 		struct Object {

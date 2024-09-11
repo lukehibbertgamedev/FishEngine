@@ -364,20 +364,30 @@ void FishEngine::initialise_renderable(std::string glbPath)
     
     // Extract the filename to use as a default tag.
     std::string defaultName = Fish::Utility::extract_file_name(glbPath);
-    Fish::ResourceData::Object instance = { .name = defaultName };
+    //Fish::ResourceData::Object instance = { .name = defaultName };
+    Fish::ResourceData::RenderableObject instance = { .name = defaultName };
 
     // Check all the object names and if the name already exists, add a unique identifier to it.
-    int index = 1; 
-    while (sceneManager.pActiveScene->objectsInScene.find(instance.name) != sceneManager.pActiveScene->objectsInScene.end()) {
+    int index = 1;
+    bool nameExists = std::any_of(sceneManager.pActiveScene->renderableObjects.begin(), sceneManager.pActiveScene->renderableObjects.end(), [&](const Fish::ResourceData::RenderableObject& obj) {
+        return obj.name == instance.name;
+    });
+
+    while (nameExists) {
         instance.name = defaultName + std::to_string(index);
         ++index;
+        nameExists = std::any_of(sceneManager.pActiveScene->renderableObjects.begin(), sceneManager.pActiveScene->renderableObjects.end(), [&](const Fish::ResourceData::RenderableObject& obj) {
+            return obj.name == instance.name;
+        });
     }
 
     // Add the GLTF to the loaded resources container.
     ResourceManager::Get().loadedResources[instance.name.c_str()] = *structureFile; 
+    instance.model = ResourceManager::Get().loadedResources[instance.name.c_str()];
+    instance.transform = {};
 
     // Create the object as an object for the scene.
-    sceneManager.pActiveScene->objectsInScene[instance.name] = instance;
+    sceneManager.pActiveScene->renderableObjects.push_back(instance);
 }
 
 void FishEngine::initialise_default_scene()
@@ -1134,8 +1144,8 @@ void FishEngine::imgui_debug_data()
 }
 
 const void createCombo(std::vector<std::string> comboItems, const char* comboLabel, int& currentIndex) {
-    const char* combo_preview_value = comboItems[currentIndex].c_str();
 
+    const char* combo_preview_value = comboItems[currentIndex].c_str();
     if (ImGui::BeginCombo(comboLabel, combo_preview_value))
     {
         for (int n = 0; n < comboItems.size(); n++)
@@ -1167,13 +1177,17 @@ void FishEngine::imgui_scene_hierarchy()
     // Within physicsSystem->update, read all entity transform data and call set_position which takes entity transform data and applies it to the loadedGltf instance of that object.
 
     int index = 0;
-    for (auto& object : sceneManager.pActiveScene->objectsInScene) // FIX: Scene object container containing transform and string ID
+    for (auto& object : sceneManager.pActiveScene->renderableObjects) // FIX: Scene object container containing transform and string ID
     {
         // Shared ptr must be dereferenced into a reference (not sure why I struggled here).
-        Fish::ResourceData::Object& obj = object.second;
-        Fish::Loader::LoadedGLTF& loadedGltf = *ResourceManager::Get().loadedResources[object.first];
+        //Fish::ResourceData::Object& obj = object.second;
+        //Fish::Loader::LoadedGLTF& loadedGltf = *ResourceManager::Get().loadedResources[object.name];
 
-        if (ImGui::TreeNode(object.first.c_str())) {
+        Fish::ResourceData::RenderableObject* pCurrentObject = &object;
+        if (!pCurrentObject)
+            FISH_FATAL("pCurrentObject is nullptr...");
+
+        if (ImGui::TreeNode(object.name.c_str())) {
             ImGui::NewLine();
 
             // Begin transform.
@@ -1182,71 +1196,93 @@ void FishEngine::imgui_scene_hierarchy()
             float rotation[4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
             float scale[4]      = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-            position[0] = loadedGltf.transform.position.x; 
-            position[1] = loadedGltf.transform.position.y; 
-            position[2] = loadedGltf.transform.position.z; 
-            rotation[0] = loadedGltf.transform.rotation.x; 
-            rotation[1] = loadedGltf.transform.rotation.y; 
-            rotation[2] = loadedGltf.transform.rotation.z; 
-            scale[0] = loadedGltf.transform.scale.x;       
-            scale[1] = loadedGltf.transform.scale.y;       
-            scale[2] = loadedGltf.transform.scale.z;       
+            position[0] = pCurrentObject->transform.position.x; 
+            position[1] = pCurrentObject->transform.position.y; 
+            position[2] = pCurrentObject->transform.position.z; 
+            rotation[0] = pCurrentObject->transform.rotation.x; 
+            rotation[1] = pCurrentObject->transform.rotation.y; 
+            rotation[2] = pCurrentObject->transform.rotation.z; 
+            scale[0] = pCurrentObject->transform.scale.x;       
+            scale[1] = pCurrentObject->transform.scale.y;       
+            scale[2] = pCurrentObject->transform.scale.z;       
                                                            
             ImGui::DragFloat3("Position", position);       
             ImGui::DragFloat3("Rotation", rotation);       
             ImGui::DragFloat3("Scale", scale);             
                                                            
-            loadedGltf.transform.position.x = position[0]; 
-            loadedGltf.transform.position.y = position[1]; 
-            loadedGltf.transform.position.z = position[2]; 
-            loadedGltf.transform.rotation.x = rotation[0]; 
-            loadedGltf.transform.rotation.y = rotation[1]; 
-            loadedGltf.transform.rotation.z = rotation[2]; 
-            loadedGltf.transform.scale.x = scale[0];       
-            loadedGltf.transform.scale.y = scale[1];       
-            loadedGltf.transform.scale.z = scale[2];       
+            pCurrentObject->transform.position.x = position[0]; 
+            pCurrentObject->transform.position.y = position[1]; 
+            pCurrentObject->transform.position.z = position[2]; 
+            pCurrentObject->transform.rotation.x = rotation[0]; 
+            pCurrentObject->transform.rotation.y = rotation[1]; 
+            pCurrentObject->transform.rotation.z = rotation[2]; 
+            pCurrentObject->transform.scale.x = scale[0];       
+            pCurrentObject->transform.scale.y = scale[1];       
+            pCurrentObject->transform.scale.z = scale[2];       
             // End transform.
 
             ImGui::NewLine();
 
-            //// Begin model.
+            // Begin model.
 
-            //// Display current model name
-            //std::string objectName = object.first;
-            //ImGui::Text(objectName.c_str());
+            // Display current model name
+            ImGui::Text(pCurrentObject->name.c_str());
 
-            //// List all loaded model names
-            //std::vector<const char*> loadedModelNames = {};
-            //for (auto& otherObject : sceneManager.pActiveScene->objectsInScene) {
-            //    loadedModelNames.push_back(otherObject.first.c_str());
-            //}
-            //std::vector<std::string> loadedModelNames2 = {};
-            //for (auto& otherObject : sceneManager.pActiveScene->objectsInScene) {
-            //    loadedModelNames2.push_back(otherObject.first);
-            //}
+            // List all loaded model names
+            std::vector<const char*> loadedModelNames = {};
+            for (auto& otherObject : sceneManager.pActiveScene->renderableObjects) {
+                loadedModelNames.push_back(otherObject.name.c_str());
+            }
+            std::vector<std::string> loadedModelNames2 = {};
+            for (auto& otherObject : sceneManager.pActiveScene->renderableObjects) {
+                loadedModelNames2.push_back(otherObject.name);
+            }
 
-            //// Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from items[])
+            // Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from items[])
             //static int item_selected_idx = 0; // Here we store our selection data as an index.
-            ////const char* items[] = { "Pistoldefault", "Trampoline" };
-            ////const char* combo_preview_value = items[item_selected_idx];
+            //const char* items[] = { "Pistoldefault", "Trampoline" };
+            //const char* combo_preview_value = items[item_selected_idx];
 
             //createCombo(loadedModelNames2, "Model", item_selected_idx);
 
-            //// Set this OBJECT's meshes container equal to the loadedGltf mesh container on the selected model
-            ////obj.model.meshes = ResourceManager::Get().loadedResources[loadedModelNames[item_selected_idx]]->meshes;
+            // Set this OBJECT's meshes container equal to the loadedGltf mesh container on the selected model
+            //obj.model.meshes = ResourceManager::Get().loadedResources[loadedModelNames[item_selected_idx]]->meshes;
 
             //if (ImGui::Button("Update", ImVec2(100, 20))) {
-            //    
-            //    Fish::Loader::LoadedGLTF& l = *ResourceManager::Get().loadedResources[loadedModelNames[item_selected_idx]];
-            //    //loadedGltf.meshes = l.meshes;
-            //    //loadedGltf.topNodes = l.topNodes;
-            //    //loadedGltf.nodes = l.nodes;
-            //    loadedGltf = l;
-            //    loadedGltf.transform = obj.transform;
 
-            //    item_selected_idx = 0;
+            // currentObject.currentModel = engine.loadedResources[loadedModelNames[selectedModelIdx]]; // Change model
+            //obj.model.current = ResourceManager::Get().loadedResources[loadedModelNames[item_selected_idx]];
+
+                //item_selected_idx = 0;
             //}
-            //// End model.
+            // End model.
+
+            {
+
+                std::vector<std::string> modelList;
+                for (const auto& kv : ResourceManager::Get().loadedResources) {
+                    modelList.push_back(kv.first);  // Fill the list with model names
+                }
+
+                if (pCurrentObject) {
+                    std::string currentModelName = pCurrentObject->name;  // Current model name
+
+                    if (ImGui::BeginCombo("Model Selector", currentModelName.c_str())) {
+                        for (int i = 0; i < modelList.size(); ++i) {
+                            const bool isSelected = (currentModelName == modelList[i]);
+                            if (ImGui::Selectable(modelList[i].c_str(), isSelected)) {
+                                currentModelName = modelList[i];
+                                pCurrentObject->model = ResourceManager::Get().loadedResources[modelList[i]];  // Update model
+                            }
+
+                            if (isSelected) {
+                                ImGui::SetItemDefaultFocus();
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+                }
+            }
 
             ImGui::TreePop();
         }
@@ -1384,8 +1420,19 @@ void FishEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView)
 void FishEngine::draw()
 {
     // Draw all objects within the loadedScenes container.
-    for (const auto& instance : sceneManager.pActiveScene->objectsInScene) { 
-        ResourceManager::Get().loadedResources[instance.first]->Draw(glm::mat4{ 1.0f }, mainDrawContext);
+    for (const auto& instance : sceneManager.pActiveScene->objectsInScene) {
+        if (instance.second.model.current) {            
+
+            //instance.second.model.current->UpdateNodeTransformationMatrices();
+            //instance.second.model.current->Draw(glm::mat4{ 1.0f }, mainDrawContext);
+            //instance.second.model.current->Draw(calculate_object_transformation_matrix(instance.second), mainDrawContext);
+            //ResourceManager::Get().loadedResources[instance.first]->Draw(glm::mat4{ 1.0f }, mainDrawContext);
+        }
+    }
+
+    for (auto& obj : sceneManager.pActiveScene->renderableObjects) {
+        glm::mat4 transform = calculate_object_transformation_matrix(obj);
+        obj.model->Draw(transform, mainDrawContext);
     }
 
     // Wait for the render fence to enter a signalled state meaning the GPU has finished 
@@ -1958,9 +2005,9 @@ void FishEngine::update_scene() // Todo: Move this into the scene class (make su
     int idx = 0;
     for (const auto& [key, val] : sceneManager.pActiveScene->objectsInScene) {
 
-        ResourceManager::Get().loadedResources[key]->transform = transforms[idx];
-        ResourceManager::Get().loadedResources[key]->Update();
-        idx++;
+        //ResourceManager::Get().loadedResources[key]->transform = transforms[idx];
+        //ResourceManager::Get().loadedResources[key]->UpdateNodeTransformationMatrices();
+        //idx++;
     }
 }
 
@@ -2033,10 +2080,25 @@ bool FishEngine::load_shader_module(const char* filePath, VkShaderModule* outSha
     return true;
 }
 
-//void FishVulkanEngine::update(float deltatime)
-//{
-//    //m_PhysicsSystem->update(deltatime);
-//}
+const glm::mat4& FishEngine::calculate_object_transformation_matrix(Fish::ResourceData::RenderableObject object)
+{
+    glm::vec3 t(object.transform.position.x, object.transform.position.y, object.transform.position.z);             // Translation.
+    glm::mat4 tm = glm::translate(glm::mat4(1.0f), t);                                                              // Translation.
+
+    glm::vec3 rx(1.0f, 0.0f, 0.0f);                                                                                 // Rotation.
+    glm::vec3 ry(0.0f, 1.0f, 0.0f);                                                                                 // Rotation.
+    glm::vec3 rz(0.0f, 0.0f, 1.0f);                                                                                 // Rotation.
+    glm::mat4 rxm = glm::rotate(glm::mat4(1.0f), glm::radians(object.transform.rotation.x), rx);                    // Rotation.
+    glm::mat4 rym = glm::rotate(glm::mat4(1.0f), glm::radians(object.transform.rotation.y), ry);                    // Rotation.
+    glm::mat4 rzm = glm::rotate(glm::mat4(1.0f), glm::radians(object.transform.rotation.z), rz);                    // Rotation.
+    glm::mat4 rm = rzm * rym * rxm;                                                                                 // Rotation.
+
+    glm::vec3 s(object.transform.scale.x, object.transform.scale.y, object.transform.scale.z);                      // Scale.
+    glm::mat4 sm = glm::scale(glm::mat4(1.0f), s);                                                                  // Scale.
+
+    glm::mat4 _final = tm * rm * sm;                                                                                // Combined.
+    return _final;
+}
 
 void GLTFMetallic_Roughness::build_pipelines(FishEngine* engine)
 {
