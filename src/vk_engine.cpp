@@ -1143,25 +1143,6 @@ void FishEngine::imgui_debug_data()
     ImGui::Text("Camera Pitch/Yaw: %f/%f", stats.camera_pitch, stats.camera_yaw);
 }
 
-const void createCombo(std::vector<std::string> comboItems, const char* comboLabel, int& currentIndex) {
-
-    const char* combo_preview_value = comboItems[currentIndex].c_str();
-    if (ImGui::BeginCombo(comboLabel, combo_preview_value))
-    {
-        for (int n = 0; n < comboItems.size(); n++)
-        {
-            const bool is_selected = (currentIndex == n);
-            if (ImGui::Selectable(comboItems[n].c_str(), is_selected))
-                currentIndex = n;
-
-            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if (is_selected)
-                ImGui::SetItemDefaultFocus();
-        }
-        ImGui::EndCombo();
-    }
-}
-
 void FishEngine::imgui_scene_hierarchy()
 {
     std::string sceneNameText = "Scene Name: " + sceneManager.pActiveScene->sceneName;
@@ -1177,15 +1158,12 @@ void FishEngine::imgui_scene_hierarchy()
     // Within physicsSystem->update, read all entity transform data and call set_position which takes entity transform data and applies it to the loadedGltf instance of that object.
 
     int index = 0;
+    std::unordered_map<std::string, int> objectModelSelection;
+
     for (auto& object : sceneManager.pActiveScene->renderableObjects) // FIX: Scene object container containing transform and string ID
     {
-        // Shared ptr must be dereferenced into a reference (not sure why I struggled here).
-        //Fish::ResourceData::Object& obj = object.second;
-        //Fish::Loader::LoadedGLTF& loadedGltf = *ResourceManager::Get().loadedResources[object.name];
-
         Fish::ResourceData::RenderableObject* pCurrentObject = &object;
-        if (!pCurrentObject)
-            FISH_FATAL("pCurrentObject is nullptr...");
+        if (!pCurrentObject) FISH_FATAL("pCurrentObject is nullptr...");
 
         if (ImGui::TreeNode(object.name.c_str())) {
             ImGui::NewLine();
@@ -1224,65 +1202,33 @@ void FishEngine::imgui_scene_hierarchy()
             ImGui::NewLine();
 
             // Begin model.
-
-            // Display current model name
-            ImGui::Text(pCurrentObject->name.c_str());
-
-            // List all loaded model names
-            std::vector<const char*> loadedModelNames = {};
-            for (auto& otherObject : sceneManager.pActiveScene->renderableObjects) {
-                loadedModelNames.push_back(otherObject.name.c_str());
-            }
-            std::vector<std::string> loadedModelNames2 = {};
-            for (auto& otherObject : sceneManager.pActiveScene->renderableObjects) {
-                loadedModelNames2.push_back(otherObject.name);
+            // Get all names of all models loaded (our options to swap between)
+            std::vector<std::string> loadedModelNames;
+            for (const auto& kv : ResourceManager::Get().loadedResources) {
+                loadedModelNames.push_back(kv.first);
             }
 
-            // Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from items[])
-            //static int item_selected_idx = 0; // Here we store our selection data as an index.
-            //const char* items[] = { "Pistoldefault", "Trampoline" };
-            //const char* combo_preview_value = items[item_selected_idx];
+            // Todo: Do something with this stupid static variable. I hate it.
+            static int currentModelIndex = 0;
 
-            //createCombo(loadedModelNames2, "Model", item_selected_idx);
-
-            // Set this OBJECT's meshes container equal to the loadedGltf mesh container on the selected model
-            //obj.model.meshes = ResourceManager::Get().loadedResources[loadedModelNames[item_selected_idx]]->meshes;
-
-            //if (ImGui::Button("Update", ImVec2(100, 20))) {
-
-            // currentObject.currentModel = engine.loadedResources[loadedModelNames[selectedModelIdx]]; // Change model
-            //obj.model.current = ResourceManager::Get().loadedResources[loadedModelNames[item_selected_idx]];
-
-                //item_selected_idx = 0;
-            //}
-            // End model.
-
+            const char* combo_preview_value = loadedModelNames[currentModelIndex].c_str();
+            if (ImGui::BeginCombo("Model", combo_preview_value))
             {
-
-                std::vector<std::string> modelList;
-                for (const auto& kv : ResourceManager::Get().loadedResources) {
-                    modelList.push_back(kv.first);  // Fill the list with model names
-                }
-
-                if (pCurrentObject) {
-                    std::string currentModelName = pCurrentObject->name;  // Current model name
-
-                    if (ImGui::BeginCombo("Model Selector", currentModelName.c_str())) {
-                        for (int i = 0; i < modelList.size(); ++i) {
-                            const bool isSelected = (currentModelName == modelList[i]);
-                            if (ImGui::Selectable(modelList[i].c_str(), isSelected)) {
-                                currentModelName = modelList[i];
-                                pCurrentObject->model = ResourceManager::Get().loadedResources[modelList[i]];  // Update model
-                            }
-
-                            if (isSelected) {
-                                ImGui::SetItemDefaultFocus();
-                            }
-                        }
-                        ImGui::EndCombo();
+                for (int n = 0; n < loadedModelNames.size(); n++)
+                {
+                    const bool is_selected = (pCurrentObject->name == loadedModelNames[n]);
+                    if (ImGui::Selectable(loadedModelNames[n].c_str(), is_selected)) {
+                        currentModelIndex = n;
+                        pCurrentObject->model = ResourceManager::Get().loadedResources[loadedModelNames[currentModelIndex]];
+                    }
+                    
+                    if (is_selected) {
+                        ImGui::SetItemDefaultFocus();
                     }
                 }
+                ImGui::EndCombo();
             }
+            // End model.
 
             ImGui::TreePop();
         }
