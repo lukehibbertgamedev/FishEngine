@@ -138,8 +138,13 @@ Previously:
 	- [X] Began work on changing a model at runtime using ImGui								10/09
 	- [X] Changing models at runtime using ImGui working									11/09
 
+	- [X] Attempt to convert the object mesh drawing to ECS									17/09
+
 Next time:
 		
+	- [ ] Add empty entity object that is not rendered but still exists
+	- [ ] Save and load current state of the entity data
+
 	- [ ] Comment all functions and variables with at least something
 	
 	- [ ] Mess around with the current version and test out new models/textures/primitives 

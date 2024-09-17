@@ -2,7 +2,7 @@
 #pragma once
 
 #include <vk_types.h>
-#include <glm/gtx/quaternion.hpp>
+#include <fish_loader.h>
 
 namespace Fish {
 
@@ -13,6 +13,10 @@ namespace Fish {
 		//	glm::vec3 eulerRotation;
 		//	glm::vec3 scale/* = glm::vec3(1.0f)*/;
 		//};
+
+		struct Mesh {
+			std::shared_ptr<Fish::Loader::LoadedGLTF> model;
+		};
 
 		struct RigidBody {
 			glm::vec3 velocity;

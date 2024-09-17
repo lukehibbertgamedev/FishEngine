@@ -234,6 +234,7 @@ private:
 
 	// ...
 	const glm::mat4& calculate_object_transformation_matrix(Fish::ResourceData::RenderableObject object);
+	const glm::mat4& calculate_object_transformation_matrix(Fish::Component::Transform transform);
 
 	// Return frame data for the frame we are rendering to right now.
 	FrameData& get_current_frame();
@@ -321,6 +322,7 @@ private:
 
 	std::shared_ptr<Fish::ECS::Coordinator> m_Ecs;						// m_EntityComponentSystemCoordinator
 	std::shared_ptr<Fish::ECS::System::Physics> physicsSystem;			// A simple physics system to test out our ECS.
+	std::shared_ptr<Fish::ECS::System::Render> renderSystem;			// A simple render system to test out our ECS.
 	std::vector<Fish::ECS::Entity> m_entities;
 
 

@@ -6,7 +6,8 @@
 
 #include <string>
 #include <glm/vec3.hpp>
-#include <fish_loader.h>
+//#include <fish_loader.h>
+#include <fish_components.h>
 
 namespace Fish {
 	namespace ResourceData {
@@ -18,15 +19,17 @@ namespace Fish {
 		};
 
 		struct Model {
-			std::shared_ptr<Fish::Loader::LoadedGLTF> current;
+			//std::shared_ptr<Fish::Loader::LoadedGLTF> current;
 		};
 
 		struct RenderableObject {
-			std::shared_ptr<Fish::Loader::LoadedGLTF> model;
+			//std::shared_ptr<Fish::Loader::LoadedGLTF> model;
+			Fish::Component::Mesh mesh;
 			Fish::Component::Transform transform;
 			std::string name;
 		};
 
+		// Todo: Replace instances of this with RenderableObject.
 		struct Object {
 			Fish::Component::Transform transform;
 			std::string name;

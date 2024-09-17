@@ -383,7 +383,7 @@ void FishEngine::initialise_renderable(std::string glbPath)
 
     // Add the GLTF to the loaded resources container.
     ResourceManager::Get().loadedResources[instance.name.c_str()] = *structureFile; 
-    instance.model = ResourceManager::Get().loadedResources[instance.name.c_str()];
+    instance.mesh.model = ResourceManager::Get().loadedResources[instance.name.c_str()];
     instance.transform = {};
 
     // Create the object as an object for the scene.
@@ -414,9 +414,7 @@ void FishEngine::initialise_ecs()
     // register the components that are going to be used by any entities
     m_Ecs->RegisterComponent<Fish::Component::Transform>();
     m_Ecs->RegisterComponent<Fish::Component::RigidBody>();
-    m_Ecs->RegisterComponent<Fish::Component::Gravity>();
-
-    // register the systems that the coordinator will update
+    m_Ecs->RegisterComponent<Fish::Component::Mesh>();
     physicsSystem = m_Ecs->RegisterSystem<Fish::ECS::System::Physics>();
 
     // create and set the component signatures so the system knows what components to be updating
@@ -425,35 +423,18 @@ void FishEngine::initialise_ecs()
     // set up the signature for the physics system, and initialise with the coordinator
     signature.set(m_Ecs->GetComponentType<Fish::Component::Transform>());
     signature.set(m_Ecs->GetComponentType<Fish::Component::RigidBody>());
-    signature.set(m_Ecs->GetComponentType<Fish::Component::Gravity>());
     m_Ecs->SetSystemSignature<Fish::ECS::System::Physics>(signature);
     physicsSystem->init(m_Ecs);
 
-    // Part of the ECS demo, to randomise the entity data.
-    std::default_random_engine generator;
-    std::uniform_real_distribution<float> randPosition(-100.0f, 100.0f);
-    std::uniform_real_distribution<float> randRotation(0.0f, 3.0f);
-    std::uniform_real_distribution<float> randScale(3.0f, 5.0f);
-    std::uniform_real_distribution<float> randGravity(-10.0f, -1.0f);
-    float scale = randScale(generator);
+    // Set up a rendering system which will handle our entity meshes.
+    renderSystem = m_Ecs->RegisterSystem<Fish::ECS::System::Render>();
 
-    std::vector<Fish::ECS::Entity> entities(Fish::ECS::kMaxEntities);
+    signature.reset();
 
-    for (auto& entity : entities)
-    {
-        entity = m_Ecs->CreateEntity();
-
-        m_Ecs->AddComponent(entity, Fish::Component::Gravity{ glm::vec3(0.0f, randGravity(generator), 0.0f) });
-
-        m_Ecs->AddComponent(entity, Fish::Component::RigidBody{ .velocity = glm::vec3(0.0f, 0.0f, 0.0f), .acceleration = glm::vec3(0.0f, 0.0f, 0.0f)});
-
-        m_Ecs->AddComponent(entity, Fish::Component::Transform{
-            .position = glm::vec3(randPosition(generator), randPosition(generator), randPosition(generator)),
-            .rotation = glm::vec3(randRotation(generator), randRotation(generator), randRotation(generator)),
-            .scale = glm::vec3(scale, scale, scale)
-        });
-    }
-    m_entities = entities;
+    signature.set(m_Ecs->GetComponentType<Fish::Component::Transform>());
+    signature.set(m_Ecs->GetComponentType<Fish::Component::Mesh>());
+    m_Ecs->SetSystemSignature<Fish::ECS::System::Render>(signature);
+    renderSystem->init(m_Ecs);
 }
 
 void FishEngine::initialise_swapchain()
@@ -1212,14 +1193,14 @@ void FishEngine::imgui_scene_hierarchy()
             static int currentModelIndex = 0;
 
             const char* combo_preview_value = loadedModelNames[currentModelIndex].c_str();
-            if (ImGui::BeginCombo("Model", combo_preview_value))
+            if (ImGui::BeginCombo("Model", nullptr)) // Nullptr here is for the preview value, this was a bit weird when setting the preview value.
             {
                 for (int n = 0; n < loadedModelNames.size(); n++)
                 {
                     const bool is_selected = (pCurrentObject->name == loadedModelNames[n]);
                     if (ImGui::Selectable(loadedModelNames[n].c_str(), is_selected)) {
                         currentModelIndex = n;
-                        pCurrentObject->model = ResourceManager::Get().loadedResources[loadedModelNames[currentModelIndex]];
+                        pCurrentObject->mesh.model = ResourceManager::Get().loadedResources[loadedModelNames[currentModelIndex]]; // FIX: When changing, model is either gone/reset.
                     }
                     
                     if (is_selected) {
@@ -1365,20 +1346,13 @@ void FishEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView)
 
 void FishEngine::draw()
 {
-    // Draw all objects within the loadedScenes container.
-    for (const auto& instance : sceneManager.pActiveScene->objectsInScene) {
-        if (instance.second.model.current) {            
-
-            //instance.second.model.current->UpdateNodeTransformationMatrices();
-            //instance.second.model.current->Draw(glm::mat4{ 1.0f }, mainDrawContext);
-            //instance.second.model.current->Draw(calculate_object_transformation_matrix(instance.second), mainDrawContext);
-            //ResourceManager::Get().loadedResources[instance.first]->Draw(glm::mat4{ 1.0f }, mainDrawContext);
-        }
-    }
-
+    // Call draw for all GLTF nodes for LoadedGLTFs in preparation to actually be rendered.
     for (auto& obj : sceneManager.pActiveScene->renderableObjects) {
+
+        // Todo: Only render objects if it has a mesh component.
+
         glm::mat4 transform = calculate_object_transformation_matrix(obj);
-        obj.model->Draw(transform, mainDrawContext);
+        obj.mesh.model->Draw(transform, mainDrawContext);
     }
 
     // Wait for the render fence to enter a signalled state meaning the GPU has finished 
@@ -2040,6 +2014,26 @@ const glm::mat4& FishEngine::calculate_object_transformation_matrix(Fish::Resour
     glm::mat4 rm = rzm * rym * rxm;                                                                                 // Rotation.
 
     glm::vec3 s(object.transform.scale.x, object.transform.scale.y, object.transform.scale.z);                      // Scale.
+    glm::mat4 sm = glm::scale(glm::mat4(1.0f), s);                                                                  // Scale.
+
+    glm::mat4 _final = tm * rm * sm;                                                                                // Combined.
+    return _final;
+}
+
+const glm::mat4& FishEngine::calculate_object_transformation_matrix(Fish::Component::Transform transform)
+{
+    glm::vec3 t(transform.position.x, transform.position.y, transform.position.z);                                  // Translation.
+    glm::mat4 tm = glm::translate(glm::mat4(1.0f), t);                                                              // Translation.
+
+    glm::vec3 rx(1.0f, 0.0f, 0.0f);                                                                                 // Rotation.
+    glm::vec3 ry(0.0f, 1.0f, 0.0f);                                                                                 // Rotation.
+    glm::vec3 rz(0.0f, 0.0f, 1.0f);                                                                                 // Rotation.
+    glm::mat4 rxm = glm::rotate(glm::mat4(1.0f), glm::radians(transform.rotation.x), rx);                           // Rotation.
+    glm::mat4 rym = glm::rotate(glm::mat4(1.0f), glm::radians(transform.rotation.y), ry);                           // Rotation.
+    glm::mat4 rzm = glm::rotate(glm::mat4(1.0f), glm::radians(transform.rotation.z), rz);                           // Rotation.
+    glm::mat4 rm = rzm * rym * rxm;                                                                                 // Rotation.
+
+    glm::vec3 s(transform.scale.x, transform.scale.y, transform.scale.z);                                           // Scale.
     glm::mat4 sm = glm::scale(glm::mat4(1.0f), s);                                                                  // Scale.
 
     glm::mat4 _final = tm * rm * sm;                                                                                // Combined.

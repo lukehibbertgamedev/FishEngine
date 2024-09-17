@@ -21,17 +21,35 @@ void Fish::ECS::System::Physics::update(float deltatime)
 
 // ---------------------------------------------------------------------------------------------------------------- // 
 
-void Fish::ECS::System::Renderer::init(std::shared_ptr<Fish::ECS::Coordinator>& coordinator)
+void Fish::ECS::System::Render::init(std::shared_ptr<Fish::ECS::Coordinator>& coordinator)
 {
 	m_Coordinator = coordinator;
 }
 
-void Fish::ECS::System::Renderer::update(float deltatime)
+void Fish::ECS::System::Render::update(float deltatime)
 {
 	for (Fish::ECS::Entity const& entity : mEntities)
-	{
-		// if mesh is active - don't update model matrix
-		// check mesh dirty flag - only update if dirty
-		// concatenate child model matrix with parent - for relative update
+	{		
+		Fish::Component::Transform& transform = m_Coordinator->GetComponent<Fish::Component::Transform>(entity);
+		Fish::Component::Mesh& mesh = m_Coordinator->GetComponent<Fish::Component::Mesh>(entity);
+		bool valid = (mesh.model != nullptr);
+		
+		if (valid) {
+			update_model_matrix(transform, mesh);
+		}
+
+		// Todo: check mesh dirty flag - only update if dirty		
+		// if not mesh.modelMatAlreadyUpdated
+		//	update_model_matrix
+		//	mesh.modelMatAlreadyUpdated = true
+
+		// Todo: concatenate child model matrix with parent - for relative update
+		// node has refresh transform for all children takes in only parent matrix
+
+		// mesh.modelMatAlreadyUpdated = false // to be set true elsewhere if necessary
 	}
+}
+
+void Fish::ECS::System::Render::update_model_matrix(const Fish::Component::Transform& transform, Fish::Component::Mesh& mesh)
+{
 }

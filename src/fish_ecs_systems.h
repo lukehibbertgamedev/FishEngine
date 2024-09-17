@@ -19,10 +19,11 @@ namespace Fish {
 			};
 
 			// Rendering system used to render any entity.
-			class Renderer : public Fish::ECS::SystemBase {
+			class Render : public Fish::ECS::SystemBase {
 			public:
 				void init(std::shared_ptr<Fish::ECS::Coordinator>& coordinator);
 				void update(float deltatime);
+				void update_model_matrix(const Fish::Component::Transform& transform, Fish::Component::Mesh& mesh);
 			private:
 				std::shared_ptr<Fish::ECS::Coordinator> m_Coordinator;
 			};
